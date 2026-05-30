@@ -25,6 +25,7 @@ import {
   Plus,
   Save,
   Search,
+  Trash2,
   Upload,
   UserPlus,
   X,
@@ -411,6 +412,7 @@ export default function App() {
   const [currentStep, setCurrentStep] = useState(0);
   const [completed, setCompleted] = useState<Record<number, boolean>>({});
   const [duplicateId, setDuplicateId] = useState(false);
+  const [validationAttempted, setValidationAttempted] = useState<Record<number, boolean>>({});
   const [saved, setSaved] = useState(false);
   const [degrees, setDegrees] = useState([
     { name: "Bằng Cử nhân chuyên ngành Kỹ thuật phần mềm", place: "Trường Đại học Thủy lợi" },
@@ -422,12 +424,29 @@ export default function App() {
     if (idx <= currentStep || completed[idx - 1]) setCurrentStep(idx);
   };
   const next = () => {
+    if (!validationAttempted[currentStep] && currentStep < wizardSteps.length - 1) {
+      setValidationAttempted((v) => ({ ...v, [currentStep]: true }));
+      return;
+    }
     setCompleted((c) => ({ ...c, [currentStep]: true }));
     setCurrentStep((s) => Math.min(s + 1, wizardSteps.length - 1));
   };
   const back = () => setCurrentStep((s) => Math.max(s - 1, 0));
 
   const isLast = currentStep === wizardSteps.length - 1;
+  const showStepError = !!validationAttempted[currentStep];
+  const validationMessage =
+    currentStep === 0
+      ? "Có 3 lỗi ở thông tin định danh: thiếu họ tên, sai ngày sinh, CCCD trùng."
+      : currentStep === 1
+      ? "Có lỗi ở thông tin liên hệ. Vui lòng kiểm tra email, số điện thoại và địa chỉ."
+      : currentStep === 2
+      ? "Có lỗi ở công tác & lương. Vui lòng chọn chức vụ và nhập hệ số lương hợp lệ."
+      : currentStep === 3
+      ? "Có lỗi ở trình độ học vấn. Vui lòng chọn trình độ đào tạo."
+      : currentStep === 4
+      ? "Thiếu tài liệu bắt buộc: Quyết định tuyển dụng."
+      : "";
 
   if (saved) {
     return (
@@ -512,6 +531,7 @@ export default function App() {
                         setCurrentStep(0);
                         setCompleted({});
                         setDuplicateId(false);
+                        setValidationAttempted({});
                       }}
                       className="rounded-lg bg-blue-700 px-4 py-2 text-[13px] font-semibold text-white hover:bg-blue-800"
                     >
@@ -679,13 +699,24 @@ export default function App() {
                           </div>
                           <div className="grid flex-1 grid-cols-2 gap-4">
                             <Field label="Họ và tên" required>
-                              <Input value="Nguyễn Văn A" state="success" />
+                              <Input value={showStepError ? "" : "Nguyễn Văn A"} state={showStepError ? "error" : "success"} />
+                              {showStepError ? (
+                                <div className="flex items-start gap-1.5 text-[12px] text-red-600">
+                                  <AlertCircle size={13} className="mt-0.5 shrink-0" />
+                                  <span>Họ và tên là trường bắt buộc.</span>
+                                </div>
+                              ) : null}
                             </Field>
                             <Field label="Giới tính" required>
                               <Select value="Nam" />
                             </Field>
-                            <Field label="Ngày sinh" required hint="Định dạng dd/mm/yyyy">
-                              <Input value="01/01/2000" icon={<Calendar size={15} />} />
+                            <Field
+                              label="Ngày sinh"
+                              required
+                              hint={showStepError ? undefined : "Định dạng dd/mm/yyyy"}
+                              error={showStepError ? "Ngày sinh không hợp lệ." : undefined}
+                            >
+                              <Input value={showStepError ? "32/13/2000" : "01/01/2000"} icon={<Calendar size={15} />} state={showStepError ? "error" : "default"} />
                             </Field>
                             <Field label="Quê quán" required>
                               <Input value="Hà Nội" icon={<MapPin size={15} />} />
@@ -693,25 +724,32 @@ export default function App() {
                             <Field
                               label="Số CCCD"
                               required
-                              error={duplicateId ? "Đã tồn tại hồ sơ với CCCD này. Vui lòng kiểm tra lại." : undefined}
+                              error={duplicateId || showStepError ? "Đã tồn tại hồ sơ với CCCD này. Vui lòng kiểm tra lại." : undefined}
                             >
                               <div className="flex gap-2">
                                 <div className="min-w-0 flex-1">
                                   <Input
-                                    value={duplicateId ? "001200001900" : "001200001901"}
-                                    state={duplicateId ? "error" : "success"}
+                                    value={duplicateId || showStepError ? "001200001900" : "001200001901"}
+                                    state={duplicateId || showStepError ? "error" : "success"}
                                   />
                                 </div>
                                 <button
                                   type="button"
-                                  onClick={() => setDuplicateId((v) => !v)}
                                   className={`h-10 shrink-0 rounded-lg border px-3 text-[12px] font-semibold ${
-                                    duplicateId
+                                    duplicateId || showStepError
                                       ? "border-slate-200 bg-white text-slate-700 hover:bg-slate-50"
                                       : "border-amber-200 bg-amber-50 text-amber-700 hover:bg-amber-100"
                                   }`}
+                                  onClick={() => {
+                                    if (duplicateId || showStepError) {
+                                      setDuplicateId(false);
+                                      setValidationAttempted((v) => ({ ...v, 0: false }));
+                                    } else {
+                                      setDuplicateId(true);
+                                    }
+                                  }}
                                 >
-                                  {duplicateId ? "Dùng CCCD hợp lệ" : "Kiểm tra trùng"}
+                                  {duplicateId || showStepError ? "Dùng CCCD hợp lệ" : "Kiểm tra trùng"}
                                 </button>
                               </div>
                             </Field>
@@ -738,15 +776,27 @@ export default function App() {
                         icon={<Mail size={18} />}
                       >
                         <div className="grid grid-cols-2 gap-4">
-                          <Field label="Email" required>
-                            <Input value="nguyenvana@tlu.edu.vn" icon={<Mail size={15} />} />
+                          <Field
+                            label="Email"
+                            required
+                            error={showStepError ? "Email không đúng định dạng." : undefined}
+                          >
+                            <Input value={showStepError ? "nguyenvana@" : "nguyenvana@tlu.edu.vn"} icon={<Mail size={15} />} state={showStepError ? "error" : "default"} />
                           </Field>
-                          <Field label="Số điện thoại" required>
-                            <Input value="0987654321" icon={<Phone size={15} />} />
+                          <Field
+                            label="Số điện thoại"
+                            required
+                            error={showStepError ? "Số điện thoại là trường bắt buộc." : undefined}
+                          >
+                            <Input value={showStepError ? "" : "0987654321"} icon={<Phone size={15} />} state={showStepError ? "error" : "default"} />
                           </Field>
                           <div className="col-span-2">
-                            <Field label="Địa chỉ thường trú" required>
-                              <Input value="Thanh Trì, Hà Nội" icon={<MapPin size={15} />} />
+                            <Field
+                              label="Địa chỉ thường trú"
+                              required
+                              error={showStepError ? "Vui lòng nhập địa chỉ thường trú." : undefined}
+                            >
+                              <Input value={showStepError ? "" : "Thanh Trì, Hà Nội"} icon={<MapPin size={15} />} state={showStepError ? "error" : "default"} />
                             </Field>
                           </div>
                         </div>
@@ -775,8 +825,8 @@ export default function App() {
                       >
                         {foreigner ? (
                           <div className="grid grid-cols-2 gap-4">
-                            <Field label="Số Visa" required>
-                              <Input placeholder="00-120-019" />
+                            <Field label="Số Visa" required error={showStepError ? "Số Visa là trường bắt buộc." : undefined}>
+                              <Input placeholder="00-120-019" state={showStepError ? "error" : "default"} />
                             </Field>
                             <Field label="Ngày hết hạn Visa" required>
                               <Input placeholder="01/01/2030" icon={<Calendar size={15} />} />
@@ -827,8 +877,12 @@ export default function App() {
                             <Field label="Bộ môn / phòng ban trực thuộc">
                               <Select value="Bộ môn Công nghệ phần mềm" state="success" />
                             </Field>
-                            <Field label="Chức vụ hiện tại" required>
-                              <Select value="Giảng viên" />
+                            <Field
+                              label="Chức vụ hiện tại"
+                              required
+                              error={showStepError ? "Vui lòng chọn chức vụ hiện tại." : undefined}
+                            >
+                              <Select value={showStepError ? "Chưa chọn" : "Giảng viên"} state={showStepError ? "error" : "default"} />
                             </Field>
                             <Field label="Loại nhân sự" required>
                               <Select value="Giảng viên cơ hữu" />
@@ -854,8 +908,12 @@ export default function App() {
                           <Field label="Bậc lương" required>
                             <Select value="Bậc 1" />
                           </Field>
-                          <Field label="Hệ số lương" required>
-                            <Input value="2.34" state="success" />
+                          <Field
+                            label="Hệ số lương"
+                            required
+                            error={showStepError ? "Hệ số lương phải là số lớn hơn 0." : undefined}
+                          >
+                            <Input value={showStepError ? "abc" : "2.34"} state={showStepError ? "error" : "success"} />
                           </Field>
                           <Field label="Phụ cấp chức vụ">
                             <Input value="0.00" />
@@ -877,8 +935,12 @@ export default function App() {
                         <Field label="Trình độ văn hóa" required>
                           <Select value="12/12" />
                         </Field>
-                        <Field label="Trình độ đào tạo" required>
-                          <Select value="Tiến sĩ" />
+                        <Field
+                          label="Trình độ đào tạo"
+                          required
+                          error={showStepError ? "Vui lòng chọn trình độ đào tạo." : undefined}
+                        >
+                          <Select value={showStepError ? "Chưa chọn" : "Tiến sĩ"} state={showStepError ? "error" : "default"} />
                         </Field>
                         <Field label="Chức danh nghề nghiệp" required>
                           <Input value="Tiến sĩ" />
@@ -900,7 +962,7 @@ export default function App() {
                         <div className="grid grid-cols-2 gap-3">
                           {[
                             ["CCCD/CMND bản scan", "Đã tải lên", "success"],
-                            ["Quyết định tuyển dụng", "Đã tải lên", "success"],
+                            ["Quyết định tuyển dụng", showStepError ? "Chưa có" : "Đã tải lên", showStepError ? "warn" : "success"],
                             ["Sơ yếu lý lịch", "Đã tải lên", "success"],
                             ["Ảnh thẻ 3x4", "Đã tải lên", "success"],
                           ].map(([name, status, tone]) => (
@@ -944,21 +1006,33 @@ export default function App() {
                           }
                         >
                           <div className="overflow-hidden rounded-lg border border-slate-200">
-                            <div className="grid grid-cols-[1.1fr_1fr_84px] bg-slate-50 px-3 py-2 text-[11px] font-bold uppercase tracking-wide text-slate-500">
+                            <div className="grid grid-cols-[1.1fr_1fr_64px_40px] bg-slate-50 px-3 py-2 text-[11px] font-bold uppercase tracking-wide text-slate-500">
                               <span>Tên bằng</span>
                               <span>Nơi cấp</span>
                               <span>File</span>
+                              <span />
                             </div>
                             {degrees.map((d, i) => (
                               <div
                                 key={`${d.name}-${i}`}
-                                className="grid grid-cols-[1.1fr_1fr_84px] items-center border-t border-slate-100 px-3 py-2.5 text-[12px]"
+                                className="grid grid-cols-[1.1fr_1fr_64px_40px] items-center border-t border-slate-100 px-3 py-2.5 text-[12px]"
                               >
                                 <span className="font-medium text-slate-900">{d.name || "Bằng mới"}</span>
                                 <span className="text-slate-600">{d.place || "Chưa nhập"}</span>
                                 <button className="inline-flex h-8 items-center justify-center rounded-md bg-blue-50 px-2 text-[11px] font-semibold text-blue-700">
                                   PDF
                                 </button>
+                                {degrees.length > 1 ? (
+                                  <button
+                                    onClick={() => setDegrees((arr) => arr.filter((_, idx) => idx !== i))}
+                                    className="grid size-8 place-items-center rounded-md text-red-500 hover:bg-red-50"
+                                    aria-label="Xóa bằng cấp"
+                                  >
+                                    <Trash2 size={14} />
+                                  </button>
+                                ) : (
+                                  <span />
+                                )}
                               </div>
                             ))}
                           </div>
@@ -980,21 +1054,33 @@ export default function App() {
                           }
                         >
                           <div className="overflow-hidden rounded-lg border border-slate-200">
-                            <div className="grid grid-cols-[1.1fr_1fr_84px] bg-slate-50 px-3 py-2 text-[11px] font-bold uppercase tracking-wide text-slate-500">
+                            <div className="grid grid-cols-[1.1fr_1fr_64px_40px] bg-slate-50 px-3 py-2 text-[11px] font-bold uppercase tracking-wide text-slate-500">
                               <span>Tên chứng chỉ</span>
                               <span>Nơi cấp</span>
                               <span>File</span>
+                              <span />
                             </div>
                             {certs.map((c, i) => (
                               <div
                                 key={`${c.name}-${i}`}
-                                className="grid grid-cols-[1.1fr_1fr_84px] items-center border-t border-slate-100 px-3 py-2.5 text-[12px]"
+                                className="grid grid-cols-[1.1fr_1fr_64px_40px] items-center border-t border-slate-100 px-3 py-2.5 text-[12px]"
                               >
                                 <span className="font-medium text-slate-900">{c.name || "Chứng chỉ mới"}</span>
                                 <span className="text-slate-600">{c.place || "Chưa nhập"}</span>
                                 <button className="inline-flex h-8 items-center justify-center rounded-md bg-blue-50 px-2 text-[11px] font-semibold text-blue-700">
                                   PDF
                                 </button>
+                                {certs.length > 1 ? (
+                                  <button
+                                    onClick={() => setCerts((arr) => arr.filter((_, idx) => idx !== i))}
+                                    className="grid size-8 place-items-center rounded-md text-red-500 hover:bg-red-50"
+                                    aria-label="Xóa chứng chỉ"
+                                  >
+                                    <Trash2 size={14} />
+                                  </button>
+                                ) : (
+                                  <span />
+                                )}
                               </div>
                             ))}
                           </div>
@@ -1097,9 +1183,9 @@ export default function App() {
                 {/* Sticky footer */}
                 <div className="flex items-center justify-between gap-3 border-t border-slate-200 bg-white px-6 py-3.5">
                   <div className="flex items-center gap-2 text-[12.5px] text-slate-500">
-                    {duplicateId ? (
+                    {showStepError ? (
                       <span className="inline-flex items-center gap-1 text-red-700">
-                        <AlertCircle size={14} /> CCCD đang trùng, cần sửa trước khi lưu.
+                        <AlertCircle size={14} /> {validationMessage}
                       </span>
                     ) : isLast ? (
                       <span className="inline-flex items-center gap-1 text-emerald-700">
