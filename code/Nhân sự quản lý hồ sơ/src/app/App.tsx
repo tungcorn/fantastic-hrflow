@@ -39,13 +39,13 @@ const sidebarItems: SidebarItem[] = [
   { id: "thong-ke", label: "Thống kê", icon: <BookOpen size={18} /> },
 ];
 
-type StepId = "ca-nhan" | "tai-chinh" | "hoc-van" | "bang-cap" | "xac-nhan";
+type StepId = "ca-nhan" | "cong-tac" | "hoc-van" | "tai-lieu" | "xac-nhan";
 
 const wizardSteps: { id: StepId; label: string; desc: string; icon: ReactNode }[] = [
   { id: "ca-nhan", label: "Thông tin cá nhân", desc: "Định danh, liên hệ, quốc tịch", icon: <CircleUserRound size={16} /> },
-  { id: "tai-chinh", label: "Ngân hàng & Đoàn/Đảng", desc: "Tài khoản nhận lương", icon: <Banknote size={16} /> },
+  { id: "cong-tac", label: "Công tác & lương", desc: "Đơn vị, chức vụ, hệ số", icon: <Building2 size={16} /> },
   { id: "hoc-van", label: "Trình độ học vấn", desc: "Văn hóa, học vị", icon: <GraduationCap size={16} /> },
-  { id: "bang-cap", label: "Bằng cấp & Chứng chỉ", desc: "File scan kèm theo", icon: <Award size={16} /> },
+  { id: "tai-lieu", label: "Tài liệu đính kèm", desc: "Bằng cấp, quyết định, CCCD", icon: <Award size={16} /> },
   { id: "xac-nhan", label: "Xem lại & xác nhận", desc: "Sinh mã cán bộ", icon: <CheckCircle2 size={16} /> },
 ];
 
@@ -344,13 +344,13 @@ export default function App() {
             </div>
           </header>
 
-          <div className="relative p-6">
+          <div className="relative min-h-[calc(100vh-65px)] overflow-hidden p-6">
             <div className="opacity-30">
               <PersonnelListBackground />
             </div>
 
-            <div className="absolute inset-0 flex justify-center overflow-y-auto p-6 pt-10">
-              <div className="h-fit w-full max-w-[1080px] rounded-2xl bg-white shadow-2xl ring-1 ring-slate-200">
+            <div className="absolute inset-0 flex items-start justify-center p-4 pt-6">
+              <div className="flex h-[calc(100vh-118px)] w-full max-w-[1080px] flex-col overflow-hidden rounded-2xl bg-white shadow-2xl ring-1 ring-slate-200">
                 {/* Modal header */}
                 <div className="flex items-center justify-between border-b border-slate-200 px-6 py-4">
                   <div className="flex items-center gap-3">
@@ -426,7 +426,7 @@ export default function App() {
                 </div>
 
                 {/* Step body */}
-                <div className="max-h-[calc(100vh-280px)] space-y-5 overflow-y-auto bg-slate-50/50 p-5">
+                <div className="min-h-0 flex-1 space-y-5 overflow-y-auto bg-slate-50/50 p-5">
                   {currentStep === 0 ? (
                     <>
                       <SectionCard
@@ -550,26 +550,70 @@ export default function App() {
                   {currentStep === 1 ? (
                     <>
                       <SectionCard
-                        title="Thông tin ngân hàng"
-                        description="Tài khoản nhận lương và phụ cấp."
-                        icon={<Banknote size={18} />}
+                        title="Thông tin công tác"
+                        description="Gắn cán bộ mới vào đúng đơn vị, chức vụ và loại nhân sự."
+                        icon={<Building2 size={18} />}
                       >
                         <div className="grid grid-cols-2 gap-4">
-                          <Field label="Số tài khoản" required>
-                            <Input value="00-120-019-999" />
+                          <Field label="Đơn vị công tác" required hint="Chọn từ cây tổ chức của Trường Đại học Thủy Lợi">
+                            <Select value="Khoa Công nghệ thông tin" state="success" />
                           </Field>
-                          <Field label="Tên ngân hàng" required>
-                            <Input value="Ngân hàng TMCP Quân đội" icon={<Building2 size={15} />} />
+                          <Field label="Bộ môn / phòng ban trực thuộc">
+                            <Select value="Bộ môn Công nghệ phần mềm" />
+                          </Field>
+                          <Field label="Chức vụ hiện tại" required>
+                            <Select value="Giảng viên" />
+                          </Field>
+                          <Field label="Loại nhân sự" required>
+                            <Select value="Giảng viên cơ hữu" />
+                          </Field>
+                          <Field label="Ngày bắt đầu công tác" required>
+                            <Input value="01/06/2026" icon={<Calendar size={15} />} />
+                          </Field>
+                          <Field label="Trạng thái hồ sơ" required>
+                            <Select value="Đang hoàn thiện" />
                           </Field>
                         </div>
                       </SectionCard>
                       <SectionCard
-                        title="Thông tin Đoàn / Đảng"
-                        description="Để trống nếu không tham gia."
+                        title="Lương và phụ cấp dự kiến"
+                        description="Dữ liệu này giúp Phòng TCKT có thể tra cứu ngay sau khi hồ sơ được duyệt."
+                        icon={<Banknote size={18} />}
+                      >
+                        <div className="grid grid-cols-3 gap-4">
+                          <Field label="Ngạch / hạng chức danh" required>
+                            <Select value="Giảng viên hạng III" />
+                          </Field>
+                          <Field label="Bậc lương" required>
+                            <Select value="Bậc 1" />
+                          </Field>
+                          <Field label="Hệ số lương" required>
+                            <Input value="2.34" state="success" />
+                          </Field>
+                          <Field label="Phụ cấp chức vụ">
+                            <Input value="0.00" />
+                          </Field>
+                          <Field label="Phụ cấp thâm niên">
+                            <Input value="0%" />
+                          </Field>
+                          <Field label="Nguồn chi trả" required>
+                            <Select value="Ngân sách nhà trường" />
+                          </Field>
+                        </div>
+                      </SectionCard>
+                      <SectionCard
+                        title="Thông tin ngân hàng và Đoàn / Đảng"
+                        description="Thông tin phụ trợ, có thể bổ sung sau khi hồ sơ chính được tạo."
                         icon={<BadgeCheck size={18} />}
                         optional
                       >
                         <div className="grid grid-cols-2 gap-4">
+                          <Field label="Số tài khoản">
+                            <Input value="00-120-019-999" />
+                          </Field>
+                          <Field label="Tên ngân hàng">
+                            <Input value="Ngân hàng TMCP Quân đội" icon={<Building2 size={15} />} />
+                          </Field>
                           <Field label="Ngày vào Đảng / Đoàn">
                             <Input value="01/01/2020" icon={<Calendar size={15} />} />
                           </Field>
@@ -602,6 +646,41 @@ export default function App() {
 
                   {currentStep === 3 ? (
                     <>
+                      <SectionCard
+                        title="Tài liệu bắt buộc"
+                        description="Các tài liệu này phải có trước khi lưu hồ sơ chính thức."
+                        icon={<FileText size={18} />}
+                      >
+                        <div className="grid grid-cols-2 gap-3">
+                          {[
+                            ["CCCD/CMND bản scan", "Đã tải lên", "success"],
+                            ["Quyết định tuyển dụng", "Chưa có", "warn"],
+                            ["Sơ yếu lý lịch", "Đã tải lên", "success"],
+                            ["Ảnh thẻ 3x4", "Đã tải lên", "success"],
+                          ].map(([name, status, tone]) => (
+                            <div
+                              key={name}
+                              className={`flex items-center justify-between rounded-lg border px-4 py-3 ${
+                                tone === "success"
+                                  ? "border-emerald-200 bg-emerald-50"
+                                  : "border-amber-200 bg-amber-50"
+                              }`}
+                            >
+                              <div>
+                                <div className="text-[13px] font-semibold text-slate-900">{name}</div>
+                                <div
+                                  className={`text-[12px] ${
+                                    tone === "success" ? "text-emerald-700" : "text-amber-700"
+                                  }`}
+                                >
+                                  {status}
+                                </div>
+                              </div>
+                              <FileButton label={tone === "success" ? "Thay file" : "Tải lên"} />
+                            </div>
+                          ))}
+                        </div>
+                      </SectionCard>
                       <SectionCard
                         title="Thông tin bằng cấp"
                         description="Tải lên từng bằng kèm file scan."
@@ -741,14 +820,16 @@ export default function App() {
                         ]}
                       />
                       <ReviewBlock
-                        title="Ngân hàng & Đoàn / Đảng"
+                        title="Công tác & lương"
                         stepIndex={2}
                         onEdit={() => setCurrentStep(1)}
                         rows={[
-                          { label: "Số tài khoản", value: "00-120-019-999" },
-                          { label: "Ngân hàng", value: "Ngân hàng TMCP Quân đội" },
-                          { label: "Ngày vào Đảng/Đoàn", value: "01/01/2020" },
-                          { label: "Tổ chức", value: "Đảng Cộng sản Việt Nam" },
+                          { label: "Đơn vị công tác", value: "Khoa Công nghệ thông tin" },
+                          { label: "Bộ môn", value: "Bộ môn Công nghệ phần mềm" },
+                          { label: "Chức vụ", value: "Giảng viên" },
+                          { label: "Loại nhân sự", value: "Giảng viên cơ hữu" },
+                          { label: "Hệ số lương", value: "2.34" },
+                          { label: "Nguồn chi trả", value: "Ngân sách nhà trường" },
                         ]}
                       />
                       <ReviewBlock
@@ -763,10 +844,15 @@ export default function App() {
                         ]}
                       />
                       <ReviewBlock
-                        title="Bằng cấp & Chứng chỉ"
+                        title="Tài liệu đính kèm"
                         stepIndex={4}
                         onEdit={() => setCurrentStep(3)}
                         rows={[
+                          {
+                            label: "Tài liệu bắt buộc",
+                            value: "3/4 đã tải lên",
+                            warn: "Thiếu quyết định tuyển dụng",
+                          },
                           { label: "Số bằng cấp", value: `${degrees.length} bằng đã đính kèm` },
                           { label: "Số chứng chỉ", value: `${certs.length} chứng chỉ` },
                         ]}
