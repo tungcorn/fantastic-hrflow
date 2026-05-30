@@ -238,6 +238,60 @@ function AddPersonnelButton() {
   );
 }
 
+function OrgTree() {
+  return (
+    <div className="rounded-lg border border-blue-200 bg-blue-50/40 p-3">
+      <div className="mb-3 flex items-center justify-between">
+        <div>
+          <div className="text-[13px] font-semibold text-slate-900">Cây đơn vị công tác</div>
+          <div className="text-[11.5px] text-slate-500">Chọn đơn vị theo cơ cấu tổ chức</div>
+        </div>
+        <span className="rounded-full bg-blue-100 px-2 py-1 text-[11px] font-semibold text-blue-700">
+          Đã chọn
+        </span>
+      </div>
+
+      <div className="space-y-1.5 text-[12.5px]">
+        <div className="flex items-center gap-2 rounded-md px-2 py-1.5 font-semibold text-slate-800">
+          <ChevronDown size={14} className="text-slate-500" />
+          Trường Đại học Thủy Lợi
+        </div>
+        <div className="ml-5 space-y-1 border-l border-slate-200 pl-3">
+          <div className="flex items-center gap-2 rounded-md px-2 py-1.5 text-slate-600">
+            <ChevronRight size={14} className="text-slate-400" />
+            Ban Giám hiệu
+          </div>
+          <div className="rounded-md bg-white p-1.5 ring-1 ring-blue-200">
+            <div className="flex items-center gap-2 rounded-md px-2 py-1.5 font-semibold text-blue-700">
+              <ChevronDown size={14} />
+              Khoa Công nghệ thông tin
+            </div>
+            <div className="ml-5 mt-1 space-y-1 border-l border-blue-100 pl-3">
+              <div className="rounded-md bg-blue-700 px-2 py-1.5 font-semibold text-white">
+                Bộ môn Công nghệ phần mềm
+              </div>
+              <div className="rounded-md px-2 py-1.5 text-slate-600">
+                Bộ môn Hệ thống thông tin
+              </div>
+              <div className="rounded-md px-2 py-1.5 text-slate-600">
+                Bộ môn Khoa học máy tính
+              </div>
+            </div>
+          </div>
+          <div className="flex items-center gap-2 rounded-md px-2 py-1.5 text-slate-600">
+            <ChevronRight size={14} className="text-slate-400" />
+            Phòng Tổ chức cán bộ
+          </div>
+          <div className="flex items-center gap-2 rounded-md px-2 py-1.5 text-slate-600">
+            <ChevronRight size={14} className="text-slate-400" />
+            Phòng Tài chính - Kế toán
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
 function PersonnelListBackground() {
   return (
     <div className="select-none px-6 py-5">
@@ -357,6 +411,8 @@ export default function App() {
   const [foreigner, setForeigner] = useState(false);
   const [currentStep, setCurrentStep] = useState(0);
   const [completed, setCompleted] = useState<Record<number, boolean>>({});
+  const [duplicateId, setDuplicateId] = useState(false);
+  const [saved, setSaved] = useState(false);
   const [degrees, setDegrees] = useState([
     { name: "Bằng Cử nhân chuyên ngành Kỹ thuật phần mềm", place: "Trường Đại học Thủy lợi" },
     { name: "Bằng Kỹ sư Khoa học máy tính", place: "Trường Đại học Thủy lợi" },
@@ -373,6 +429,104 @@ export default function App() {
   const back = () => setCurrentStep((s) => Math.max(s - 1, 0));
 
   const isLast = currentStep === wizardSteps.length - 1;
+
+  if (saved) {
+    return (
+      <div className="min-h-screen bg-white font-['Be_Vietnam_Pro'] text-slate-900">
+        <div className="flex min-h-screen overflow-hidden bg-white">
+          <aside className="w-[252px] shrink-0 border-r border-slate-200 bg-white">
+            <div className="flex items-center gap-3 px-5 py-4">
+              <div className="grid size-9 place-items-center overflow-hidden rounded-xl bg-white ring-1 ring-blue-100">
+                <img src={tluLogoIcon} alt="TLU" className="size-8 object-contain" />
+              </div>
+              <div>
+                <div className="text-[13px] font-semibold text-slate-950">Quản lý nhân sự</div>
+                <div className="text-[11px] text-slate-500">Trường Đại học Thủy Lợi</div>
+              </div>
+            </div>
+            <nav className="px-3 py-2">
+              {sidebarItems.map((item) => (
+                <button
+                  key={item.id}
+                  className={`mb-1 flex h-9 w-full items-center gap-2 rounded-lg px-3 text-[13px] transition ${
+                    item.id === "ho-so"
+                      ? "bg-blue-50 font-semibold text-blue-700"
+                      : "text-slate-700 hover:bg-slate-50"
+                  }`}
+                >
+                  {item.icon}
+                  {item.label}
+                </button>
+              ))}
+            </nav>
+          </aside>
+
+          <div className="min-w-0 flex-1 bg-slate-50">
+            <header className="flex h-[58px] items-center justify-between border-b border-slate-200 bg-white px-6">
+              <div className="flex items-center gap-3 text-[13px] font-medium text-slate-800">
+                <LayoutList size={16} />
+                <span>Hồ sơ nhân sự</span>
+              </div>
+              <div className="flex items-center gap-3">
+                <div className="h-8 w-px bg-slate-200" />
+                <div className="grid size-9 place-items-center rounded-lg border border-slate-300 bg-white text-slate-700">
+                  <CircleUserRound size={19} />
+                </div>
+                <div>
+                  <div className="text-[12px] font-semibold text-slate-950">Trưởng phòng TCCB</div>
+                  <div className="text-[11px] text-slate-500">Nhân sự phòng TCCB</div>
+                </div>
+                <ChevronDown size={14} className="text-slate-500" />
+              </div>
+            </header>
+
+            <div className="relative min-h-[calc(100vh-58px)] overflow-hidden bg-white">
+              <div className="opacity-25">
+                <PersonnelListBackground />
+              </div>
+              <div className="absolute inset-0 grid place-items-center p-6">
+                <section className="w-full max-w-[620px] rounded-2xl border border-emerald-200 bg-white p-8 text-center shadow-2xl">
+                  <div className="mx-auto grid size-16 place-items-center rounded-full bg-emerald-50 text-emerald-600">
+                    <CheckCircle2 size={34} />
+                  </div>
+                  <h1 className="mt-5 text-[22px] font-semibold text-slate-950">
+                    Hồ sơ nhân sự đã được tạo
+                  </h1>
+                  <p className="mt-2 text-[13px] leading-6 text-slate-500">
+                    Hệ thống đã lưu hồ sơ của Nguyễn Văn A và sinh mã cán bộ chính thức.
+                  </p>
+                  <div className="mx-auto mt-5 w-fit rounded-xl bg-blue-50 px-5 py-3 ring-1 ring-blue-100">
+                    <div className="text-[11px] font-semibold uppercase tracking-wide text-blue-700">
+                      Mã cán bộ
+                    </div>
+                    <div className="mt-1 font-mono text-[20px] font-bold text-blue-900">
+                      CB2026-0048
+                    </div>
+                  </div>
+                  <div className="mt-6 flex justify-center gap-3">
+                    <button className="rounded-lg border border-slate-200 bg-white px-4 py-2 text-[13px] font-semibold text-slate-700 hover:bg-slate-50">
+                      Xem hồ sơ
+                    </button>
+                    <button
+                      onClick={() => {
+                        setSaved(false);
+                        setCurrentStep(0);
+                        setCompleted({});
+                        setDuplicateId(false);
+                      }}
+                      className="rounded-lg bg-blue-700 px-4 py-2 text-[13px] font-semibold text-white hover:bg-blue-800"
+                    >
+                      Thêm hồ sơ khác
+                    </button>
+                  </div>
+                </section>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-white font-['Be_Vietnam_Pro'] text-slate-900">
@@ -551,9 +705,27 @@ export default function App() {
                             <Field
                               label="Số CCCD"
                               required
-                              error="Đã tồn tại hồ sơ với CCCD này. Vui lòng kiểm tra lại."
+                              error={duplicateId ? "Đã tồn tại hồ sơ với CCCD này. Vui lòng kiểm tra lại." : undefined}
                             >
-                              <Input value="001200001900" state="error" />
+                              <div className="flex gap-2">
+                                <div className="min-w-0 flex-1">
+                                  <Input
+                                    value={duplicateId ? "001200001900" : "001200001901"}
+                                    state={duplicateId ? "error" : "success"}
+                                  />
+                                </div>
+                                <button
+                                  type="button"
+                                  onClick={() => setDuplicateId((v) => !v)}
+                                  className={`h-10 shrink-0 rounded-lg border px-3 text-[12px] font-semibold ${
+                                    duplicateId
+                                      ? "border-slate-200 bg-white text-slate-700 hover:bg-slate-50"
+                                      : "border-amber-200 bg-amber-50 text-amber-700 hover:bg-amber-100"
+                                  }`}
+                                >
+                                  {duplicateId ? "Dùng CCCD hợp lệ" : "Kiểm tra trùng"}
+                                </button>
+                              </div>
                             </Field>
                             <Field label="Mã số thuế" required>
                               <Input value="1200001900" />
@@ -634,25 +806,28 @@ export default function App() {
                         description="Gắn cán bộ mới vào đúng đơn vị, chức vụ và loại nhân sự."
                         icon={<Building2 size={18} />}
                       >
-                        <div className="grid grid-cols-2 gap-4">
-                          <Field label="Đơn vị công tác" required hint="Chọn từ cây tổ chức của Trường Đại học Thủy Lợi">
-                            <Select value="Khoa Công nghệ thông tin" state="success" />
-                          </Field>
-                          <Field label="Bộ môn / phòng ban trực thuộc">
-                            <Select value="Bộ môn Công nghệ phần mềm" />
-                          </Field>
-                          <Field label="Chức vụ hiện tại" required>
-                            <Select value="Giảng viên" />
-                          </Field>
-                          <Field label="Loại nhân sự" required>
-                            <Select value="Giảng viên cơ hữu" />
-                          </Field>
-                          <Field label="Ngày bắt đầu công tác" required>
-                            <Input value="01/06/2026" icon={<Calendar size={15} />} />
-                          </Field>
-                          <Field label="Trạng thái hồ sơ" required>
-                            <Select value="Đang hoàn thiện" />
-                          </Field>
+                        <div className="grid grid-cols-[320px_1fr] gap-5">
+                          <OrgTree />
+                          <div className="grid grid-cols-2 gap-4">
+                            <Field label="Đơn vị công tác" required hint="Được chọn từ cây tổ chức bên trái">
+                              <Select value="Khoa Công nghệ thông tin" state="success" />
+                            </Field>
+                            <Field label="Bộ môn / phòng ban trực thuộc">
+                              <Select value="Bộ môn Công nghệ phần mềm" state="success" />
+                            </Field>
+                            <Field label="Chức vụ hiện tại" required>
+                              <Select value="Giảng viên" />
+                            </Field>
+                            <Field label="Loại nhân sự" required>
+                              <Select value="Giảng viên cơ hữu" />
+                            </Field>
+                            <Field label="Ngày bắt đầu công tác" required>
+                              <Input value="01/06/2026" icon={<Calendar size={15} />} />
+                            </Field>
+                            <Field label="Trạng thái hồ sơ" required>
+                              <Select value="Đang hoàn thiện" />
+                            </Field>
+                          </div>
                         </div>
                       </SectionCard>
                       <SectionCard
@@ -734,7 +909,7 @@ export default function App() {
                         <div className="grid grid-cols-2 gap-3">
                           {[
                             ["CCCD/CMND bản scan", "Đã tải lên", "success"],
-                            ["Quyết định tuyển dụng", "Chưa có", "warn"],
+                            ["Quyết định tuyển dụng", "Đã tải lên", "success"],
                             ["Sơ yếu lý lịch", "Đã tải lên", "success"],
                             ["Ảnh thẻ 3x4", "Đã tải lên", "success"],
                           ].map(([name, status, tone]) => (
@@ -928,11 +1103,7 @@ export default function App() {
                         stepIndex={4}
                         onEdit={() => setCurrentStep(3)}
                         rows={[
-                          {
-                            label: "Tài liệu bắt buộc",
-                            value: "3/4 đã tải lên",
-                            warn: "Thiếu quyết định tuyển dụng",
-                          },
+                          { label: "Tài liệu bắt buộc", value: "4/4 đã tải lên" },
                           { label: "Số bằng cấp", value: `${degrees.length} bằng đã đính kèm` },
                           { label: "Số chứng chỉ", value: `${certs.length} chứng chỉ` },
                         ]}
@@ -944,9 +1115,13 @@ export default function App() {
                 {/* Sticky footer */}
                 <div className="flex items-center justify-between gap-3 border-t border-slate-200 bg-white px-6 py-3.5">
                   <div className="flex items-center gap-2 text-[12.5px] text-slate-500">
-                    {isLast ? (
-                      <span className="inline-flex items-center gap-1 text-amber-700">
-                        <AlertCircle size={14} /> Còn <b>1 lỗi</b> ở bước "Thông tin cá nhân".
+                    {duplicateId ? (
+                      <span className="inline-flex items-center gap-1 text-red-700">
+                        <AlertCircle size={14} /> CCCD đang trùng, cần sửa trước khi lưu.
+                      </span>
+                    ) : isLast ? (
+                      <span className="inline-flex items-center gap-1 text-emerald-700">
+                        <CheckCircle2 size={14} /> Thông tin đã sẵn sàng để lưu chính thức.
                       </span>
                     ) : (
                       <>
@@ -972,7 +1147,17 @@ export default function App() {
                       <Save size={15} /> Lưu nháp
                     </button>
                     {isLast ? (
-                      <button className="inline-flex items-center gap-1.5 rounded-lg bg-blue-700 px-4 py-2 text-[13px] font-medium text-white hover:bg-blue-800">
+                      <button
+                        onClick={() => {
+                          if (!duplicateId) setSaved(true);
+                        }}
+                        disabled={duplicateId}
+                        className={`inline-flex items-center gap-1.5 rounded-lg px-4 py-2 text-[13px] font-medium text-white ${
+                          duplicateId
+                            ? "cursor-not-allowed bg-slate-300"
+                            : "bg-blue-700 hover:bg-blue-800"
+                        }`}
+                      >
                         <UserPlus size={15} /> Lưu hồ sơ chính thức
                       </button>
                     ) : (
