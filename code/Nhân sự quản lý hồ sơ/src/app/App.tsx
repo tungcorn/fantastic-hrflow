@@ -25,7 +25,6 @@ import {
   Plus,
   Save,
   Search,
-  Trash2,
   Upload,
   UserPlus,
   X,
@@ -928,97 +927,79 @@ export default function App() {
                           ))}
                         </div>
                       </SectionCard>
-                      <SectionCard
-                        title="Thông tin bằng cấp"
-                        description="Tải lên từng bằng kèm file scan."
-                        icon={<Award size={18} />}
-                        action={
-                          <button
-                            type="button"
-                            onClick={() => setDegrees((d) => [...d, { name: "", place: "" }])}
-                            className="inline-flex items-center gap-1.5 rounded-lg border border-blue-200 bg-white px-2.5 py-1.5 text-[12px] font-medium text-blue-700 hover:bg-blue-50"
-                          >
-                            <Plus size={13} /> Thêm bằng
-                          </button>
-                        }
-                      >
-                        <div className="space-y-3">
-                          {degrees.map((d, i) => (
-                            <div key={i} className="rounded-lg border border-slate-200 bg-white p-4">
-                              <div className="mb-3 flex items-center justify-between">
-                                <span className="text-[12px] font-semibold text-slate-500">
-                                  Bằng #{i + 1}
-                                </span>
-                                {degrees.length > 1 ? (
-                                  <button
-                                    onClick={() =>
-                                      setDegrees((arr) => arr.filter((_, idx) => idx !== i))
-                                    }
-                                    className="inline-flex items-center gap-1 text-[12px] text-red-600 hover:text-red-700"
-                                  >
-                                    <Trash2 size={13} /> Xóa
-                                  </button>
-                                ) : null}
-                              </div>
-                              <div className="grid grid-cols-[1fr_1fr_auto] items-end gap-3">
-                                <Field label="Tên bằng" required>
-                                  <Input value={d.name} />
-                                </Field>
-                                <Field label="Nơi cấp" required>
-                                  <Input value={d.place} />
-                                </Field>
-                                <FileButton />
-                              </div>
-                            </div>
-                          ))}
-                        </div>
-                      </SectionCard>
 
-                      <SectionCard
-                        title="Thông tin chứng chỉ"
-                        icon={<FileBadge size={18} />}
-                        optional
-                        action={
-                          <button
-                            type="button"
-                            onClick={() => setCerts((c) => [...c, { name: "", place: "" }])}
-                            className="inline-flex items-center gap-1.5 rounded-lg border border-blue-200 bg-white px-2.5 py-1.5 text-[12px] font-medium text-blue-700 hover:bg-blue-50"
-                          >
-                            <Plus size={13} /> Thêm chứng chỉ
-                          </button>
-                        }
-                      >
-                        <div className="space-y-3">
-                          {certs.map((c, i) => (
-                            <div key={i} className="rounded-lg border border-slate-200 bg-white p-4">
-                              <div className="mb-3 flex items-center justify-between">
-                                <span className="text-[12px] font-semibold text-slate-500">
-                                  Chứng chỉ #{i + 1}
-                                </span>
-                                {certs.length > 1 ? (
-                                  <button
-                                    onClick={() =>
-                                      setCerts((arr) => arr.filter((_, idx) => idx !== i))
-                                    }
-                                    className="inline-flex items-center gap-1 text-[12px] text-red-600 hover:text-red-700"
-                                  >
-                                    <Trash2 size={13} /> Xóa
-                                  </button>
-                                ) : null}
-                              </div>
-                              <div className="grid grid-cols-[1fr_1fr_auto] items-end gap-3">
-                                <Field label="Tên chứng chỉ" required>
-                                  <Input value={c.name} />
-                                </Field>
-                                <Field label="Nơi cấp" required>
-                                  <Input value={c.place} />
-                                </Field>
-                                <FileButton />
-                              </div>
+                      <div className="grid grid-cols-2 gap-5">
+                        <SectionCard
+                          title="Thông tin bằng cấp"
+                          description="Danh sách bằng cấp đã đính kèm."
+                          icon={<Award size={18} />}
+                          action={
+                            <button
+                              type="button"
+                              onClick={() => setDegrees((d) => [...d, { name: "", place: "" }])}
+                              className="inline-flex items-center gap-1.5 rounded-lg border border-blue-200 bg-white px-2.5 py-1.5 text-[12px] font-medium text-blue-700 hover:bg-blue-50"
+                            >
+                              <Plus size={13} /> Thêm
+                            </button>
+                          }
+                        >
+                          <div className="overflow-hidden rounded-lg border border-slate-200">
+                            <div className="grid grid-cols-[1.1fr_1fr_84px] bg-slate-50 px-3 py-2 text-[11px] font-bold uppercase tracking-wide text-slate-500">
+                              <span>Tên bằng</span>
+                              <span>Nơi cấp</span>
+                              <span>File</span>
                             </div>
-                          ))}
-                        </div>
-                      </SectionCard>
+                            {degrees.map((d, i) => (
+                              <div
+                                key={`${d.name}-${i}`}
+                                className="grid grid-cols-[1.1fr_1fr_84px] items-center border-t border-slate-100 px-3 py-2.5 text-[12px]"
+                              >
+                                <span className="font-medium text-slate-900">{d.name || "Bằng mới"}</span>
+                                <span className="text-slate-600">{d.place || "Chưa nhập"}</span>
+                                <button className="inline-flex h-8 items-center justify-center rounded-md bg-blue-50 px-2 text-[11px] font-semibold text-blue-700">
+                                  PDF
+                                </button>
+                              </div>
+                            ))}
+                          </div>
+                        </SectionCard>
+
+                        <SectionCard
+                          title="Thông tin chứng chỉ"
+                          description="Các chứng chỉ chuyên môn hoặc ngoại ngữ."
+                          icon={<FileBadge size={18} />}
+                          optional
+                          action={
+                            <button
+                              type="button"
+                              onClick={() => setCerts((c) => [...c, { name: "", place: "" }])}
+                              className="inline-flex items-center gap-1.5 rounded-lg border border-blue-200 bg-white px-2.5 py-1.5 text-[12px] font-medium text-blue-700 hover:bg-blue-50"
+                            >
+                              <Plus size={13} /> Thêm
+                            </button>
+                          }
+                        >
+                          <div className="overflow-hidden rounded-lg border border-slate-200">
+                            <div className="grid grid-cols-[1.1fr_1fr_84px] bg-slate-50 px-3 py-2 text-[11px] font-bold uppercase tracking-wide text-slate-500">
+                              <span>Tên chứng chỉ</span>
+                              <span>Nơi cấp</span>
+                              <span>File</span>
+                            </div>
+                            {certs.map((c, i) => (
+                              <div
+                                key={`${c.name}-${i}`}
+                                className="grid grid-cols-[1.1fr_1fr_84px] items-center border-t border-slate-100 px-3 py-2.5 text-[12px]"
+                              >
+                                <span className="font-medium text-slate-900">{c.name || "Chứng chỉ mới"}</span>
+                                <span className="text-slate-600">{c.place || "Chưa nhập"}</span>
+                                <button className="inline-flex h-8 items-center justify-center rounded-md bg-blue-50 px-2 text-[11px] font-semibold text-blue-700">
+                                  PDF
+                                </button>
+                              </div>
+                            ))}
+                          </div>
+                        </SectionCard>
+                      </div>
                     </>
                   ) : null}
 
