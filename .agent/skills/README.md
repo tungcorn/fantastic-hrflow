@@ -1,10 +1,16 @@
-# Bộ custom Skills cho bài tập nhóm TTNM — HRMS
+# Bộ Skills cho bài tập nhóm TTNM — HRMS
 
-Thư mục này chứa 5 custom Skills tập trung để hỗ trợ làm phần I–II của bài tập lớn môn **Tương tác Người–Máy** theo chủ đề **Hệ thống Quản lý Nhân sự (HRMS) — Trường Đại học Thủy Lợi**.
+Thư mục này chứa các Skills hỗ trợ làm bài tập lớn môn **Tương tác Người–Máy** theo chủ đề **Hệ thống Quản lý Nhân sự (HRMS) — Trường Đại học Thủy Lợi**.
 
-Nếu chưa biết phần nào dùng Skill nào, xem file router: [`SKILL_ROUTER.md`](SKILL_ROUTER.md).
+- Nhóm `ttnm-hrms-*`: hỗ trợ viết phần I–II của báo cáo.
+- Nhóm `figma*`: hỗ trợ thiết kế UI/Figma cho phần III–IV, gồm phác họa thiết kế, tạo file Figma, sinh màn hình và thống nhất design system.
 
-## Danh sách Skill
+Nếu chưa biết phần nào dùng Skill nào, xem file router:
+
+- [`SKILL_ROUTER.md`](SKILL_ROUTER.md): router cho phần báo cáo I–II.
+- [`FIGMA_SKILL_ROUTER.md`](FIGMA_SKILL_ROUTER.md): router riêng cho thiết kế UI/Figma phần III–IV.
+
+## Danh sách Skill HRMS
 
 | Skill | Dùng khi |
 | --- | --- |
@@ -13,6 +19,28 @@ Nếu chưa biết phần nào dùng Skill nào, xem file router: [`SKILL_ROUTER
 | `ttnm-hrms-user-analysis` | Viết mục 2.1–2.2: giới thiệu và phân tích nhóm người sử dụng. |
 | `ttnm-hrms-task-analysis` | Viết mục 2.3: phân tích tối thiểu 5 nhiệm vụ quan trọng bằng goal/task/HTA. |
 | `ttnm-hrms-report-assembler` | Ghép, rà soát và chuẩn hóa báo cáo chương I–II khoảng 5–6 trang. |
+
+## Danh sách Skill Figma/UI
+
+| Skill | Dùng khi |
+| --- | --- |
+| `figma` | Làm việc với link Figma, lấy context/screenshot/asset từ Figma hoặc chuẩn bị chuyển thiết kế thành code. |
+| `figma-create-new-file` | Tạo file Figma hoặc FigJam mới cho dự án. |
+| `figma-generate-design` | Sinh hoặc cập nhật các màn hình UI trong Figma từ mô tả/scenario. |
+| `figma-use` | Thao tác trực tiếp với Figma bằng Plugin API; dùng kèm khi cần tạo/sửa node, frame, component. |
+| `figma-create-design-system-rules` | Thiết lập quy tắc thiết kế thống nhất: màu, chữ, spacing, component và quy ước Figma-to-code. |
+
+## Gợi ý dùng cho phần III–IV
+
+1. Dùng `figma-create-design-system-rules` để thống nhất style HRMS: menu trái, bảng dữ liệu, form, hộp thoại, màu cảnh báo.
+2. Dùng `figma-create-new-file` để tạo file Figma chung cho nhóm.
+3. Dùng `figma-generate-design` + `figma-use` để dựng từng màn hình cho 5 nhiệm vụ:
+   - Tra cứu/xem danh sách hồ sơ nhân sự.
+   - Thêm mới hồ sơ nhân sự.
+   - Tạo/gia hạn hợp đồng lao động.
+   - Xem và xuất thống kê nhân sự đa chiều.
+   - Đăng ký khóa đào tạo self-service.
+4. Dùng `figma` khi cần đọc lại link Figma, kiểm tra screenshot hoặc đối chiếu node thiết kế.
 
 ## Cách đóng gói nhanh bằng PowerShell
 
