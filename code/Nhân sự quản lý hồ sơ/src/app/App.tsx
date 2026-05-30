@@ -26,7 +26,6 @@ import {
   Plus,
   Save,
   Search,
-  Table2,
   Trash2,
   Upload,
   UserPlus,
@@ -232,23 +231,10 @@ function StatusBadge({ value }: { value: string }) {
 
 function AddPersonnelButton() {
   return (
-    <div className="relative">
-      <button className="flex h-9 items-center gap-2 rounded-lg bg-blue-700 px-3.5 text-[12px] font-semibold text-white shadow-sm hover:bg-blue-800">
-        <Plus size={14} />
-        Thêm hồ sơ nhân sự
-        <ChevronDown size={14} />
-      </button>
-      <div className="absolute right-0 top-10 z-10 w-[184px] overflow-hidden rounded-lg bg-blue-700 py-1 text-white shadow-xl ring-1 ring-blue-500">
-        <button className="flex h-9 w-full items-center gap-2 px-3 text-left text-[12px] hover:bg-blue-600">
-          <Plus size={14} />
-          Thêm thủ công
-        </button>
-        <button className="flex h-9 w-full items-center gap-2 px-3 text-left text-[12px] hover:bg-blue-600">
-          <Table2 size={14} />
-          Thêm bằng Excel
-        </button>
-      </div>
-    </div>
+    <button className="flex h-9 items-center gap-2 rounded-lg bg-blue-700 px-3.5 text-[12px] font-semibold text-white shadow-sm hover:bg-blue-800">
+      <Plus size={14} />
+      Thêm hồ sơ nhân sự
+    </button>
   );
 }
 
@@ -389,10 +375,10 @@ export default function App() {
   const isLast = currentStep === wizardSteps.length - 1;
 
   return (
-    <div className="min-h-screen bg-neutral-900 p-4 font-['Be_Vietnam_Pro'] text-slate-900">
-      <div className="mx-auto flex min-h-[calc(100vh-32px)] max-w-[1420px] overflow-hidden rounded-lg bg-white">
+    <div className="min-h-screen bg-white font-['Be_Vietnam_Pro'] text-slate-900">
+      <div className="flex min-h-screen overflow-hidden bg-white">
         {/* App sidebar */}
-        <aside className="w-[245px] shrink-0 border-r border-slate-200 bg-white">
+        <aside className="w-[252px] shrink-0 border-r border-slate-200 bg-white">
           <div className="flex items-center gap-3 px-5 py-4">
             <div className="grid size-9 place-items-center overflow-hidden rounded-xl bg-white ring-1 ring-blue-100">
               <img src={tluLogoIcon} alt="TLU" className="size-8 object-contain" />
@@ -438,13 +424,13 @@ export default function App() {
             </div>
           </header>
 
-          <div className="relative min-h-[calc(100vh-90px)] overflow-hidden bg-white">
+          <div className="relative min-h-[calc(100vh-58px)] overflow-hidden bg-white">
             <div className="opacity-25">
               <PersonnelListBackground />
             </div>
 
-            <div className="absolute inset-0 flex items-start justify-center p-5 pt-7">
-              <div className="flex h-[calc(100vh-122px)] w-full max-w-[1080px] flex-col overflow-hidden rounded-2xl bg-white shadow-2xl ring-1 ring-slate-200">
+            <div className="absolute inset-0 flex items-start justify-center p-6 pt-7">
+              <div className="flex h-[calc(100vh-112px)] w-full max-w-[1180px] flex-col overflow-hidden rounded-2xl bg-white shadow-2xl ring-1 ring-slate-200">
                 {/* Modal header */}
                 <div className="flex items-center justify-between border-b border-slate-200 px-6 py-4">
                   <div className="flex items-center gap-3">

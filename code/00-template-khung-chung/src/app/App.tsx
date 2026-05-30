@@ -10,7 +10,6 @@ import {
   LayoutList,
   Plus,
   Search,
-  Table2,
 } from "lucide-react";
 import tluLogoIcon from "./tlu-logo-icon.png";
 
@@ -43,7 +42,7 @@ const rows = [
 
 function Sidebar() {
   return (
-    <aside className="w-[245px] shrink-0 border-r border-slate-200 bg-white">
+    <aside className="w-[252px] shrink-0 border-r border-slate-200 bg-white">
       <div className="flex items-center gap-3 px-5 py-4">
         <div className="grid size-9 place-items-center overflow-hidden rounded-xl bg-white ring-1 ring-blue-100">
           <img src={tluLogoIcon} alt="TLU" className="size-8 object-contain" />
@@ -100,23 +99,10 @@ function StatusBadge({ value }: { value: string }) {
 
 function AddPersonnelButton() {
   return (
-    <div className="relative">
-      <button className="flex h-9 items-center gap-2 rounded-lg bg-blue-700 px-3.5 text-[12px] font-semibold text-white shadow-sm hover:bg-blue-800">
-        <Plus size={14} />
-        Thêm hồ sơ nhân sự
-        <ChevronDown size={14} />
-      </button>
-      <div className="absolute right-0 top-10 z-10 w-[184px] overflow-hidden rounded-lg bg-blue-700 py-1 text-white shadow-xl ring-1 ring-blue-500">
-        <button className="flex h-9 w-full items-center gap-2 px-3 text-left text-[12px] hover:bg-blue-600">
-          <Plus size={14} />
-          Thêm thủ công
-        </button>
-        <button className="flex h-9 w-full items-center gap-2 px-3 text-left text-[12px] hover:bg-blue-600">
-          <Table2 size={14} />
-          Thêm bằng Excel
-        </button>
-      </div>
-    </div>
+    <button className="flex h-9 items-center gap-2 rounded-lg bg-blue-700 px-3.5 text-[12px] font-semibold text-white shadow-sm hover:bg-blue-800">
+      <Plus size={14} />
+      Thêm hồ sơ nhân sự
+    </button>
   );
 }
 
@@ -183,8 +169,8 @@ function PersonnelTable() {
 
 export default function App() {
   return (
-    <div className="min-h-screen bg-neutral-900 p-4 font-['Be_Vietnam_Pro'] text-slate-900">
-      <div className="mx-auto flex min-h-[calc(100vh-32px)] max-w-[1420px] overflow-hidden rounded-lg bg-white">
+    <div className="min-h-screen bg-white font-['Be_Vietnam_Pro'] text-slate-900">
+      <div className="flex min-h-screen overflow-hidden bg-white">
         <Sidebar />
 
         <main className="min-w-0 flex-1 bg-slate-50">
