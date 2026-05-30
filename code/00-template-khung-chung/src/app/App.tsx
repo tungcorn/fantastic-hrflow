@@ -10,9 +10,9 @@ import {
   LayoutList,
   Plus,
   Search,
-  ShieldCheck,
   Table2,
 } from "lucide-react";
+import tluLogoIcon from "./tlu-logo-icon.png";
 
 type MenuItem = {
   label: string;
@@ -45,8 +45,8 @@ function Sidebar() {
   return (
     <aside className="w-[245px] shrink-0 border-r border-slate-200 bg-white">
       <div className="flex items-center gap-3 px-5 py-4">
-        <div className="grid size-9 place-items-center rounded-xl bg-blue-700 text-white">
-          <ShieldCheck size={17} />
+        <div className="grid size-9 place-items-center overflow-hidden rounded-xl bg-white ring-1 ring-blue-100">
+          <img src={tluLogoIcon} alt="TLU" className="size-8 object-contain" />
         </div>
         <div>
           <div className="text-[13px] font-semibold text-slate-950">Quản lý nhân sự</div>
