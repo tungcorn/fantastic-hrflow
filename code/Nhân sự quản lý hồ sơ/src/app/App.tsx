@@ -10,6 +10,7 @@ import {
   Building2,
   Calendar,
   CheckCircle2,
+  ChevronDown,
   ChevronRight,
   CircleUserRound,
   Edit3,
@@ -18,11 +19,15 @@ import {
   Flag,
   GraduationCap,
   Info,
+  LayoutList,
   Mail,
   MapPin,
   Phone,
   Plus,
   Save,
+  Search,
+  ShieldCheck,
+  Table2,
   Trash2,
   Upload,
   UserPlus,
@@ -187,44 +192,132 @@ function SectionCard({
   );
 }
 
-function PersonnelListBackground() {
-  const rows = ["Nguyễn Văn A", "Trần Thị B", "Lê Minh C", "Phạm Khánh D", "Hoàng Văn E", "Đỗ Thu F"];
+const personnelRows = [
+  ["NS001", "Nguyễn Văn An", "Ban Giám hiệu", "Giáo sư", "Hiệu trưởng", "Đang hoạt động", "Đang hoạt động"],
+  ["NS002", "Trần Thị Bình", "Khoa CNTT", "Thạc sĩ", "Trưởng khoa", "Đang hoạt động", "Đang hoạt động"],
+  ["NS003", "Lê Văn Cường", "Phòng Tổ chức cán bộ", "Phó Giáo sư", "Trợ lý", "Đã thôi việc", "Đã thôi việc"],
+  ["NS004", "Phạm Thị Dung", "Ban Giám hiệu", "Tiến sĩ", "Trợ lý", "Chờ gia hạn", "Đang hoạt động"],
+  ["NS005", "Hoàng Văn Em", "Khoa Kinh tế", "Phó Giáo sư", "Trưởng khoa", "Đang hoạt động", "Đang hoạt động"],
+  ["NS006", "Ngô Thị Phương", "Khoa CNTT", "Tiến sĩ", "Phó trưởng khoa", "Đang hoạt động", "Đang hoạt động"],
+  ["NS007", "Đỗ Văn Giang", "Khoa Kinh tế", "Tiến sĩ", "Giảng viên chính", "Chờ gia hạn", "Đang hoạt động"],
+  ["NS008", "Vũ Thị Hạnh", "Khoa Kinh tế", "Phó Giáo sư", "Giảng viên", "Đang hoạt động", "Đang hoạt động"],
+  ["NS009", "Bùi Văn Khôi", "Khoa CNTT", "Thạc sĩ", "Giảng viên chính", "Đã thôi việc", "Đã thôi việc"],
+  ["NS010", "Lý Thị Mai", "Khoa Kinh tế", "Thạc sĩ", "Giảng viên cao cấp", "Đang hoạt động", "Đang hoạt động"],
+];
+
+function SelectFilter({ label }: { label: string }) {
   return (
-    <div className="pointer-events-none select-none">
-      <div className="mb-4 flex items-center justify-between">
-        <h2 className="text-[18px] font-semibold text-slate-800">Hồ sơ nhân sự</h2>
-        <button className="inline-flex items-center gap-1.5 rounded-lg bg-blue-700 px-3 py-2 text-[13px] font-medium text-white">
-          <Plus size={15} /> Thêm hồ sơ mới
+    <button className="flex h-9 min-w-[142px] items-center justify-between rounded-lg border border-slate-300 bg-white px-3 text-[12px] text-slate-500 shadow-sm">
+      <span>{label}</span>
+      <ChevronDown size={14} className="text-slate-400" />
+    </button>
+  );
+}
+
+function StatusBadge({ value }: { value: string }) {
+  const tone =
+    value === "Đã thôi việc"
+      ? "bg-rose-50 text-rose-600"
+      : value === "Chờ gia hạn"
+      ? "bg-orange-50 text-orange-600"
+      : "bg-emerald-50 text-emerald-600";
+
+  return (
+    <span className={`inline-flex items-center gap-1 rounded-full px-2.5 py-1 text-[11px] font-semibold ${tone}`}>
+      <span className="size-1.5 rounded-full bg-current" />
+      {value}
+    </span>
+  );
+}
+
+function AddPersonnelButton() {
+  return (
+    <div className="relative">
+      <button className="flex h-9 items-center gap-2 rounded-lg bg-blue-700 px-3.5 text-[12px] font-semibold text-white shadow-sm hover:bg-blue-800">
+        <Plus size={14} />
+        Thêm hồ sơ nhân sự
+        <ChevronDown size={14} />
+      </button>
+      <div className="absolute right-0 top-10 z-10 w-[184px] overflow-hidden rounded-lg bg-blue-700 py-1 text-white shadow-xl ring-1 ring-blue-500">
+        <button className="flex h-9 w-full items-center gap-2 px-3 text-left text-[12px] hover:bg-blue-600">
+          <Plus size={14} />
+          Thêm thủ công
+        </button>
+        <button className="flex h-9 w-full items-center gap-2 px-3 text-left text-[12px] hover:bg-blue-600">
+          <Table2 size={14} />
+          Thêm bằng Excel
         </button>
       </div>
-      <div className="overflow-hidden rounded-lg border border-slate-200 bg-white">
-        <div className="grid grid-cols-[1.6fr_1fr_1fr_0.9fr_0.7fr] gap-3 border-b border-slate-200 bg-slate-50 px-4 py-2.5 text-[12px] font-semibold uppercase tracking-wide text-slate-500">
-          <span>Họ tên</span>
-          <span>Đơn vị</span>
-          <span>Chức vụ</span>
-          <span>Trạng thái</span>
-          <span>Thao tác</span>
+    </div>
+  );
+}
+
+function PersonnelListBackground() {
+  return (
+    <div className="select-none px-6 py-5">
+      <div className="mb-5 flex items-center justify-between gap-4">
+        <div className="flex items-center gap-2">
+          <div className="flex h-9 w-[170px] items-center gap-2 rounded-lg border border-slate-300 bg-white px-3 shadow-sm">
+            <Search size={14} className="text-slate-400" />
+            <input
+              className="min-w-0 flex-1 bg-transparent text-[12px] text-slate-900 placeholder:text-slate-400 focus:outline-none"
+              placeholder="Tìm kiếm"
+            />
+          </div>
+          <SelectFilter label="Đơn vị công tác" />
+          <SelectFilter label="Học hàm/học vị" />
+          <SelectFilter label="Hợp đồng" />
+          <SelectFilter label="Trạng thái" />
         </div>
-        {rows.map((name, i) => (
+        <AddPersonnelButton />
+      </div>
+
+      <section className="overflow-hidden rounded-xl border border-slate-200 bg-white">
+        <div className="grid grid-cols-[0.7fr_1.2fr_1.35fr_1fr_1fr_1fr_1fr_44px] bg-blue-100 px-4 py-3 text-[11px] font-bold uppercase tracking-wide text-slate-800">
+          <span>Mã NS</span>
+          <span>Họ tên</span>
+          <span>Đơn vị công tác</span>
+          <span>Học hàm/học vị</span>
+          <span>Chức vụ</span>
+          <span>Hợp đồng</span>
+          <span>Trạng thái</span>
+          <span />
+        </div>
+
+        {personnelRows.map(([code, name, unit, degree, role, contract, status]) => (
           <div
-            key={name}
-            className="grid grid-cols-[1.6fr_1fr_1fr_0.9fr_0.7fr] gap-3 border-b border-slate-100 px-4 py-3 text-[13px] text-slate-700 last:border-0"
+            key={code}
+            className="grid h-[58px] grid-cols-[0.7fr_1.2fr_1.35fr_1fr_1fr_1fr_1fr_44px] items-center border-b border-slate-100 px-4 text-[12px] text-slate-800 last:border-0"
           >
-            <span className="font-medium text-slate-800">{name}</span>
-            <span>Khoa CNTT</span>
-            <span>Giảng viên</span>
+            <span className="font-mono text-[11px] font-semibold text-slate-700">{code}</span>
+            <span className="font-medium">{name}</span>
+            <span>{unit}</span>
+            <span>{degree}</span>
+            <span>{role}</span>
             <span>
-              <span
-                className={`inline-flex rounded-full px-2 py-0.5 text-[11px] font-medium ${
-                  i % 3 === 0 ? "bg-amber-50 text-amber-700" : "bg-emerald-50 text-emerald-700"
-                }`}
-              >
-                {i % 3 === 0 ? "Đang chờ" : "Đang hoạt động"}
-              </span>
+              <StatusBadge value={contract} />
             </span>
-            <span className="text-slate-400">···</span>
+            <span>
+              <StatusBadge value={status} />
+            </span>
+            <button className="grid size-8 place-items-center rounded-lg text-slate-500 hover:bg-slate-50">
+              <Edit3 size={14} />
+            </button>
           </div>
         ))}
+      </section>
+
+      <div className="mt-4 flex items-center justify-between text-[12px] text-slate-500">
+        <span>Hiển thị 10 / 20 hồ sơ nhân sự</span>
+        <div className="flex items-center gap-3">
+          <button className="h-8 rounded-lg border border-slate-300 bg-white px-3 text-[12px] text-slate-500">
+            Trước
+          </button>
+          <span className="font-medium text-slate-700">Trang 1 / 2</span>
+          <button className="h-8 rounded-lg border border-slate-300 bg-white px-3 text-[12px] font-medium text-slate-700">
+            Sau
+          </button>
+        </div>
       </div>
     </div>
   );
@@ -296,27 +389,27 @@ export default function App() {
   const isLast = currentStep === wizardSteps.length - 1;
 
   return (
-    <div className="min-h-screen bg-slate-100 font-['Be_Vietnam_Pro'] text-slate-900">
-      <div className="flex min-h-screen">
+    <div className="min-h-screen bg-neutral-900 p-4 font-['Be_Vietnam_Pro'] text-slate-900">
+      <div className="mx-auto flex min-h-[calc(100vh-32px)] max-w-[1420px] overflow-hidden rounded-lg bg-white">
         {/* App sidebar */}
-        <aside className="w-[240px] shrink-0 border-r border-slate-200 bg-white">
-          <div className="flex items-center gap-2 px-5 py-4">
-            <div className="grid size-9 place-items-center rounded-lg bg-blue-700 text-white">
-              <BadgeCheck size={18} />
+        <aside className="w-[245px] shrink-0 border-r border-slate-200 bg-white">
+          <div className="flex items-center gap-3 px-5 py-4">
+            <div className="grid size-9 place-items-center rounded-xl bg-blue-700 text-white">
+              <ShieldCheck size={17} />
             </div>
             <div>
-              <div className="text-[13px] font-semibold text-slate-900">Quản lý nhân sự</div>
-              <div className="text-[11px] text-slate-500">Trường Đại học Thủy lợi</div>
+              <div className="text-[13px] font-semibold text-slate-950">Quản lý nhân sự</div>
+              <div className="text-[11px] text-slate-500">Trường Đại học Thủy Lợi</div>
             </div>
           </div>
-          <nav className="px-2 py-2">
+          <nav className="px-3 py-2">
             {sidebarItems.map((item) => (
               <button
                 key={item.id}
-                className={`mb-0.5 flex w-full items-center gap-2.5 rounded-lg px-3 py-2 text-[13px] ${
+                className={`mb-1 flex h-9 w-full items-center gap-2 rounded-lg px-3 text-[13px] transition ${
                   item.id === "ho-so"
                     ? "bg-blue-50 font-semibold text-blue-700"
-                    : "text-slate-600 hover:bg-slate-50"
+                    : "text-slate-700 hover:bg-slate-50"
                 }`}
               >
                 {item.icon}
@@ -326,31 +419,32 @@ export default function App() {
           </nav>
         </aside>
 
-        <div className="flex-1">
-          <header className="flex items-center justify-between border-b border-slate-200 bg-white px-6 py-3">
-            <div className="text-[13px] text-slate-500">
-              <span className="text-slate-400">Hồ sơ nhân sự</span>{" "}
-              <ChevronRight size={12} className="inline" />{" "}
-              <span className="font-medium text-slate-700">Thêm hồ sơ mới</span>
+        <div className="min-w-0 flex-1 bg-slate-50">
+          <header className="flex h-[58px] items-center justify-between border-b border-slate-200 bg-white px-6">
+            <div className="flex items-center gap-3 text-[13px] font-medium text-slate-800">
+              <LayoutList size={16} />
+              <span>Hồ sơ nhân sự</span>
             </div>
-            <div className="flex items-center gap-2">
-              <div className="text-right">
-                <div className="text-[13px] font-medium text-slate-800">Trưởng phòng TCCB</div>
+            <div className="flex items-center gap-3">
+              <div className="h-8 w-px bg-slate-200" />
+              <div className="grid size-9 place-items-center rounded-lg border border-slate-300 bg-white text-slate-700">
+                <CircleUserRound size={19} />
+              </div>
+              <div>
+                <div className="text-[12px] font-semibold text-slate-950">Trưởng phòng TCCB</div>
                 <div className="text-[11px] text-slate-500">Nhân sự phòng TCCB</div>
               </div>
-              <div className="grid size-9 place-items-center rounded-full bg-slate-200 text-slate-600">
-                <CircleUserRound size={20} />
-              </div>
+              <ChevronDown size={14} className="text-slate-500" />
             </div>
           </header>
 
-          <div className="relative min-h-[calc(100vh-65px)] overflow-hidden p-6">
-            <div className="opacity-30">
+          <div className="relative min-h-[calc(100vh-90px)] overflow-hidden bg-white">
+            <div className="opacity-25">
               <PersonnelListBackground />
             </div>
 
-            <div className="absolute inset-0 flex items-start justify-center p-4 pt-6">
-              <div className="flex h-[calc(100vh-118px)] w-full max-w-[1080px] flex-col overflow-hidden rounded-2xl bg-white shadow-2xl ring-1 ring-slate-200">
+            <div className="absolute inset-0 flex items-start justify-center p-5 pt-7">
+              <div className="flex h-[calc(100vh-122px)] w-full max-w-[1080px] flex-col overflow-hidden rounded-2xl bg-white shadow-2xl ring-1 ring-slate-200">
                 {/* Modal header */}
                 <div className="flex items-center justify-between border-b border-slate-200 px-6 py-4">
                   <div className="flex items-center gap-3">
