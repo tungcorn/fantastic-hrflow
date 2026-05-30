@@ -4,7 +4,6 @@ import {
   ArrowLeft,
   ArrowRight,
   Award,
-  BadgeCheck,
   Banknote,
   BookOpen,
   Building2,
@@ -43,10 +42,11 @@ const sidebarItems: SidebarItem[] = [
   { id: "thong-ke", label: "Thống kê", icon: <BookOpen size={18} /> },
 ];
 
-type StepId = "ca-nhan" | "cong-tac" | "hoc-van" | "tai-lieu" | "xac-nhan";
+type StepId = "ca-nhan" | "lien-he" | "cong-tac" | "hoc-van" | "tai-lieu" | "xac-nhan";
 
 const wizardSteps: { id: StepId; label: string; desc: string; icon: ReactNode }[] = [
-  { id: "ca-nhan", label: "Thông tin cá nhân", desc: "Định danh, liên hệ, quốc tịch", icon: <CircleUserRound size={16} /> },
+  { id: "ca-nhan", label: "Thông tin định danh", desc: "Họ tên, ngày sinh, CCCD", icon: <CircleUserRound size={16} /> },
+  { id: "lien-he", label: "Liên hệ & quốc tịch", desc: "Email, địa chỉ, visa", icon: <Flag size={16} /> },
   { id: "cong-tac", label: "Công tác & lương", desc: "Đơn vị, chức vụ, hệ số", icon: <Building2 size={16} /> },
   { id: "hoc-van", label: "Trình độ học vấn", desc: "Văn hóa, học vị", icon: <GraduationCap size={16} /> },
   { id: "tai-lieu", label: "Tài liệu đính kèm", desc: "Bằng cấp, quyết định, CCCD", icon: <Award size={16} /> },
@@ -664,8 +664,8 @@ export default function App() {
                   {currentStep === 0 ? (
                     <>
                       <SectionCard
-                        title="Thông tin cá nhân"
-                        description="Thông tin định danh theo CCCD và hồ sơ giấy."
+                        title="Thông tin định danh"
+                        description="Các thông tin nhận diện chính theo hồ sơ giấy."
                         icon={<CircleUserRound size={18} />}
                       >
                         <div className="flex gap-5">
@@ -691,17 +691,6 @@ export default function App() {
                             <Field label="Quê quán" required>
                               <Input value="Hà Nội" icon={<MapPin size={15} />} />
                             </Field>
-                            <Field label="Email" required>
-                              <Input value="nguyenvana@tlu.edu.vn" icon={<Mail size={15} />} />
-                            </Field>
-                            <Field label="Số điện thoại" required>
-                              <Input value="0987654321" icon={<Phone size={15} />} />
-                            </Field>
-                            <div className="col-span-2">
-                              <Field label="Địa chỉ thường trú" required>
-                                <Input value="Thanh Trì, Hà Nội" icon={<MapPin size={15} />} />
-                              </Field>
-                            </div>
                             <Field
                               label="Số CCCD"
                               required
@@ -735,6 +724,30 @@ export default function App() {
                             </Field>
                             <Field label="Số bảo hiểm y tế" required>
                               <Input value="00120019" />
+                            </Field>
+                          </div>
+                        </div>
+                      </SectionCard>
+                    </>
+                  ) : null}
+
+                  {currentStep === 1 ? (
+                    <>
+                      <SectionCard
+                        title="Thông tin liên hệ"
+                        description="Thông tin dùng để liên lạc và gửi thông báo từ hệ thống."
+                        icon={<Mail size={18} />}
+                      >
+                        <div className="grid grid-cols-2 gap-4">
+                          <Field label="Email" required>
+                            <Input value="nguyenvana@tlu.edu.vn" icon={<Mail size={15} />} />
+                          </Field>
+                          <Field label="Số điện thoại" required>
+                            <Input value="0987654321" icon={<Phone size={15} />} />
+                          </Field>
+                          <div className="col-span-2">
+                            <Field label="Địa chỉ thường trú" required>
+                              <Input value="Thanh Trì, Hà Nội" icon={<MapPin size={15} />} />
                             </Field>
                           </div>
                         </div>
@@ -799,7 +812,7 @@ export default function App() {
                     </>
                   ) : null}
 
-                  {currentStep === 1 ? (
+                  {currentStep === 2 ? (
                     <>
                       <SectionCard
                         title="Thông tin công tác"
@@ -856,31 +869,10 @@ export default function App() {
                           </Field>
                         </div>
                       </SectionCard>
-                      <SectionCard
-                        title="Thông tin ngân hàng và Đoàn / Đảng"
-                        description="Thông tin phụ trợ, có thể bổ sung sau khi hồ sơ chính được tạo."
-                        icon={<BadgeCheck size={18} />}
-                        optional
-                      >
-                        <div className="grid grid-cols-2 gap-4">
-                          <Field label="Số tài khoản">
-                            <Input value="00-120-019-999" />
-                          </Field>
-                          <Field label="Tên ngân hàng">
-                            <Input value="Ngân hàng TMCP Quân đội" icon={<Building2 size={15} />} />
-                          </Field>
-                          <Field label="Ngày vào Đảng / Đoàn">
-                            <Input value="01/01/2020" icon={<Calendar size={15} />} />
-                          </Field>
-                          <Field label="Thông tin chi tiết">
-                            <Input value="Đảng Cộng sản Việt Nam" />
-                          </Field>
-                        </div>
-                      </SectionCard>
                     </>
                   ) : null}
 
-                  {currentStep === 2 ? (
+                  {currentStep === 3 ? (
                     <SectionCard title="Trình độ học vấn" icon={<GraduationCap size={18} />}>
                       <div className="grid grid-cols-2 gap-4">
                         <Field label="Trình độ văn hóa" required>
@@ -899,7 +891,7 @@ export default function App() {
                     </SectionCard>
                   ) : null}
 
-                  {currentStep === 3 ? (
+                  {currentStep === 4 ? (
                     <>
                       <SectionCard
                         title="Tài liệu bắt buộc"
@@ -1030,7 +1022,7 @@ export default function App() {
                     </>
                   ) : null}
 
-                  {currentStep === 4 ? (
+                  {currentStep === 5 ? (
                     <>
                       <div className="rounded-xl border border-blue-200 bg-blue-50/70 p-4">
                         <div className="flex items-start gap-3">
@@ -1056,7 +1048,7 @@ export default function App() {
                       </div>
 
                       <ReviewBlock
-                        title="Thông tin cá nhân"
+                        title="Thông tin định danh"
                         stepIndex={1}
                         onEdit={() => setCurrentStep(0)}
                         rows={[
@@ -1064,20 +1056,29 @@ export default function App() {
                           { label: "Giới tính", value: "Nam" },
                           { label: "Ngày sinh", value: "01/01/2000" },
                           { label: "Quê quán", value: "Hà Nội" },
-                          { label: "Email", value: "nguyenvana@tlu.edu.vn" },
-                          { label: "Số điện thoại", value: "0987654321" },
                           {
                             label: "Số CCCD",
-                            value: "001200001900",
-                            warn: "CCCD đang trùng — cần xác nhận trước khi lưu",
+                            value: duplicateId ? "001200001900" : "001200001901",
+                            warn: duplicateId ? "CCCD đang trùng — cần xác nhận trước khi lưu" : undefined,
                           },
+                          { label: "Mã số thuế", value: "1200001900" },
+                        ]}
+                      />
+                      <ReviewBlock
+                        title="Liên hệ & quốc tịch"
+                        stepIndex={2}
+                        onEdit={() => setCurrentStep(1)}
+                        rows={[
+                          { label: "Email", value: "nguyenvana@tlu.edu.vn" },
+                          { label: "Số điện thoại", value: "0987654321" },
+                          { label: "Địa chỉ", value: "Thanh Trì, Hà Nội" },
                           { label: "Quốc tịch", value: foreigner ? "Nước ngoài" : "Việt Nam" },
                         ]}
                       />
                       <ReviewBlock
                         title="Công tác & lương"
-                        stepIndex={2}
-                        onEdit={() => setCurrentStep(1)}
+                        stepIndex={3}
+                        onEdit={() => setCurrentStep(2)}
                         rows={[
                           { label: "Đơn vị công tác", value: "Khoa Công nghệ thông tin" },
                           { label: "Bộ môn", value: "Bộ môn Công nghệ phần mềm" },
@@ -1089,8 +1090,8 @@ export default function App() {
                       />
                       <ReviewBlock
                         title="Trình độ học vấn"
-                        stepIndex={3}
-                        onEdit={() => setCurrentStep(2)}
+                        stepIndex={4}
+                        onEdit={() => setCurrentStep(3)}
                         rows={[
                           { label: "Trình độ văn hóa", value: "12/12" },
                           { label: "Trình độ đào tạo", value: "Tiến sĩ" },
@@ -1100,8 +1101,8 @@ export default function App() {
                       />
                       <ReviewBlock
                         title="Tài liệu đính kèm"
-                        stepIndex={4}
-                        onEdit={() => setCurrentStep(3)}
+                        stepIndex={5}
+                        onEdit={() => setCurrentStep(4)}
                         rows={[
                           { label: "Tài liệu bắt buộc", value: "4/4 đã tải lên" },
                           { label: "Số bằng cấp", value: `${degrees.length} bằng đã đính kèm` },
