@@ -229,12 +229,59 @@ function StatusBadge({ value }: { value: string }) {
   );
 }
 
-function AddPersonnelButton() {
+function AddPersonnelButton({
+  withMenu,
+  menuOpen,
+  onToggleMenu,
+  onManualAdd,
+  onExcelImport,
+}: {
+  withMenu?: boolean;
+  menuOpen?: boolean;
+  onToggleMenu?: () => void;
+  onManualAdd?: () => void;
+  onExcelImport?: () => void;
+}) {
   return (
-    <button className="flex h-9 items-center gap-2 rounded-lg bg-blue-700 px-3.5 text-[12px] font-semibold text-white shadow-sm hover:bg-blue-800">
-      <Plus size={14} />
-      Thêm hồ sơ nhân sự
-    </button>
+    <div className="flex flex-col items-end">
+      <button
+        onClick={withMenu ? onToggleMenu : onManualAdd}
+        className="flex h-9 items-center gap-2 rounded-lg bg-blue-700 px-3.5 text-[12px] font-semibold text-white shadow-sm hover:bg-blue-800"
+      >
+        <Plus size={14} />
+        Thêm hồ sơ nhân sự
+        {withMenu ? <ChevronDown size={14} className={menuOpen ? "rotate-180" : ""} /> : null}
+      </button>
+
+      {withMenu && menuOpen ? (
+        <div className="relative z-30 mt-1 mb-[-98px] w-[218px] overflow-hidden rounded-xl border border-slate-200 bg-white py-1.5 text-left shadow-xl">
+          <button
+            onClick={onManualAdd}
+            className="flex w-full items-start gap-3 px-3.5 py-2.5 text-left hover:bg-blue-50"
+          >
+            <span className="mt-0.5 grid size-7 place-items-center rounded-lg bg-blue-50 text-blue-700">
+              <Plus size={14} />
+            </span>
+            <span>
+              <span className="block text-[12.5px] font-semibold text-slate-900">Thêm thủ công</span>
+              <span className="block text-[11px] text-slate-500">Nhập từng hồ sơ qua 6 bước</span>
+            </span>
+          </button>
+          <button
+            onClick={onExcelImport}
+            className="flex w-full items-start gap-3 px-3.5 py-2.5 text-left hover:bg-blue-50"
+          >
+            <span className="mt-0.5 grid size-7 place-items-center rounded-lg bg-emerald-50 text-emerald-700">
+              <FileText size={14} />
+            </span>
+            <span>
+              <span className="block text-[12.5px] font-semibold text-slate-900">Nhập từ Excel</span>
+              <span className="block text-[11px] text-slate-500">Tạo nhiều hồ sơ từ file mẫu</span>
+            </span>
+          </button>
+        </div>
+      ) : null}
+    </div>
   );
 }
 
@@ -292,10 +339,20 @@ function OrgTree() {
   );
 }
 
-function PersonnelListBackground() {
+function PersonnelListBackground({
+  addMenuOpen,
+  onToggleAddMenu,
+  onManualAdd,
+  onExcelImport,
+}: {
+  addMenuOpen?: boolean;
+  onToggleAddMenu?: () => void;
+  onManualAdd?: () => void;
+  onExcelImport?: () => void;
+}) {
   return (
     <div className="select-none px-6 py-5">
-      <div className="mb-5 flex items-center justify-between gap-4">
+      <div className="mb-5 flex items-start justify-between gap-4">
         <div className="flex items-center gap-2">
           <div className="flex h-9 w-[170px] items-center gap-2 rounded-lg border border-slate-300 bg-white px-3 shadow-sm">
             <Search size={14} className="text-slate-400" />
@@ -309,7 +366,13 @@ function PersonnelListBackground() {
           <SelectFilter label="Hợp đồng" />
           <SelectFilter label="Trạng thái" />
         </div>
-        <AddPersonnelButton />
+        <AddPersonnelButton
+          withMenu={!!onToggleAddMenu}
+          menuOpen={addMenuOpen}
+          onToggleMenu={onToggleAddMenu}
+          onManualAdd={onManualAdd}
+          onExcelImport={onExcelImport}
+        />
       </div>
 
       <section className="overflow-hidden rounded-xl border border-slate-200 bg-white">
@@ -360,6 +423,242 @@ function PersonnelListBackground() {
         </div>
       </div>
     </div>
+  );
+}
+
+function ExcelImportDialog({ onClose }: { onClose: () => void }) {
+  const [imported, setImported] = useState(false);
+  const previewRows = [
+    ["Nguyễn Văn Minh", "Khoa CNTT", "Giảng viên", "Hợp lệ"],
+    ["Trần Thu Hà", "Khoa Kinh tế", "Trợ lý", "Hợp lệ"],
+    ["Phạm Đức Long", "Phòng TCCB", "Chuyên viên", "Thiếu CCCD"],
+  ];
+  const invalidRows = [
+    {
+      row: "Dòng 18",
+      name: "Phạm Đức Long",
+      field: "Số CCCD",
+      issue: "Để trống trường bắt buộc",
+      fix: "Bổ sung CCCD rồi kiểm tra lại file",
+    },
+  ];
+
+  if (imported) {
+    return (
+      <section className="w-full max-w-[620px] overflow-hidden rounded-2xl border border-emerald-200 bg-white shadow-2xl">
+        <header className="flex justify-end px-5 pt-5">
+          <button
+            onClick={onClose}
+            className="grid size-9 place-items-center rounded-lg text-slate-400 hover:bg-slate-100"
+          >
+            <X size={18} />
+          </button>
+        </header>
+        <div className="px-8 pb-8 text-center">
+          <div className="mx-auto grid size-16 place-items-center rounded-full bg-emerald-50 text-emerald-600">
+            <CheckCircle2 size={34} />
+          </div>
+          <h1 className="mt-5 text-[21px] font-semibold text-slate-950">
+            Nhập hồ sơ từ Excel thành công
+          </h1>
+          <p className="mx-auto mt-2 max-w-[460px] text-[13px] leading-6 text-slate-500">
+            Hệ thống đã tạo 37 hồ sơ hợp lệ từ file Danh_sach_nhan_su_moi.xlsx. 1 dòng chưa được nhập do thiếu dữ liệu bắt buộc.
+          </p>
+
+          <div className="mt-6 grid grid-cols-3 gap-3 text-left">
+            <div className="rounded-xl border border-emerald-200 bg-emerald-50 p-4">
+              <div className="text-[11px] font-semibold uppercase tracking-wide text-emerald-700">Đã nhập</div>
+              <div className="mt-1 text-[24px] font-bold text-emerald-900">37</div>
+            </div>
+            <div className="rounded-xl border border-amber-200 bg-amber-50 p-4">
+              <div className="text-[11px] font-semibold uppercase tracking-wide text-amber-700">Chưa nhập</div>
+              <div className="mt-1 text-[24px] font-bold text-amber-900">1</div>
+            </div>
+            <div className="rounded-xl border border-blue-200 bg-blue-50 p-4">
+              <div className="text-[11px] font-semibold uppercase tracking-wide text-blue-700">Tổng dòng</div>
+              <div className="mt-1 text-[24px] font-bold text-blue-900">38</div>
+            </div>
+          </div>
+
+          <div className="mt-6 flex justify-center gap-3">
+            <button
+              onClick={onClose}
+              className="rounded-lg border border-slate-200 bg-white px-4 py-2 text-[13px] font-semibold text-slate-700 hover:bg-slate-50"
+            >
+              Về danh sách
+            </button>
+            <button
+              onClick={() => setImported(false)}
+              className="rounded-lg bg-blue-700 px-4 py-2 text-[13px] font-semibold text-white hover:bg-blue-800"
+            >
+              Nhập file khác
+            </button>
+          </div>
+        </div>
+      </section>
+    );
+  }
+
+  return (
+    <section className="w-full max-w-[760px] overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-2xl">
+      <header className="flex items-start justify-between border-b border-slate-200 px-6 py-5">
+        <div className="flex gap-3">
+          <div className="grid size-10 shrink-0 place-items-center rounded-xl bg-emerald-50 text-emerald-700">
+            <FileText size={20} />
+          </div>
+          <div>
+            <h1 className="text-[18px] font-semibold text-slate-950">Nhập hồ sơ từ Excel</h1>
+            <p className="mt-0.5 text-[12.5px] text-slate-500">
+              Tạo nhiều hồ sơ nhân sự bằng file mẫu của Phòng Tổ chức cán bộ.
+            </p>
+          </div>
+        </div>
+        <button
+          onClick={onClose}
+          className="grid size-9 place-items-center rounded-lg text-slate-400 hover:bg-slate-100"
+        >
+          <X size={18} />
+        </button>
+      </header>
+
+      <div className="space-y-4 px-6 py-5">
+        <div className="grid grid-cols-[1fr_1.1fr] gap-4">
+          <div className="rounded-xl border border-blue-200 bg-blue-50/70 p-4">
+            <div className="flex items-start justify-between gap-3">
+              <div>
+                <div className="text-[13px] font-semibold text-blue-900">File mẫu</div>
+                <p className="mt-1 text-[12px] leading-5 text-blue-800">
+                  Mẫu gồm định danh, đơn vị công tác, học vị, hợp đồng và tài liệu cần bổ sung.
+                </p>
+              </div>
+              <button className="inline-flex h-9 shrink-0 items-center gap-2 rounded-lg border border-blue-200 bg-white px-3 text-[12.5px] font-semibold text-blue-700 hover:bg-blue-50">
+                <FileText size={15} /> Tải mẫu
+              </button>
+            </div>
+          </div>
+
+          <div className="rounded-xl border border-dashed border-slate-300 bg-white p-4">
+            <div className="flex min-h-[112px] items-center gap-4 rounded-lg bg-slate-50 px-4">
+              <div className="grid size-10 place-items-center rounded-full bg-white text-slate-500 shadow-sm">
+                <Upload size={18} />
+              </div>
+              <div className="min-w-0 flex-1">
+                <div className="truncate text-[13px] font-semibold text-slate-900">
+                  Danh_sach_nhan_su_moi.xlsx
+                </div>
+                <div className="mt-1 text-[11.5px] text-slate-500">Đã chọn · 38 dòng dữ liệu</div>
+              </div>
+              <button className="rounded-lg border border-slate-200 bg-white px-3 py-1.5 text-[12px] font-medium text-slate-700 hover:bg-slate-50">
+                Chọn file khác
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <div className="grid grid-cols-4 gap-3">
+          <div className="rounded-xl border border-slate-200 bg-white p-4">
+            <div className="text-[11px] font-semibold uppercase tracking-wide text-slate-500">Tổng dòng</div>
+            <div className="mt-1 text-[24px] font-bold text-slate-950">38</div>
+          </div>
+          <div className="rounded-xl border border-emerald-200 bg-emerald-50 p-4">
+            <div className="text-[11px] font-semibold uppercase tracking-wide text-emerald-700">Hợp lệ</div>
+            <div className="mt-1 text-[24px] font-bold text-emerald-900">37/38</div>
+          </div>
+          <div className="rounded-xl border border-amber-200 bg-amber-50 p-4">
+            <div className="text-[11px] font-semibold uppercase tracking-wide text-amber-700">Không hợp lệ</div>
+            <div className="mt-1 text-[24px] font-bold text-amber-900">1</div>
+          </div>
+          <div className="rounded-xl border border-blue-200 bg-blue-50 p-4">
+            <div className="text-[11px] font-semibold uppercase tracking-wide text-blue-700">Sẵn sàng nhập</div>
+            <div className="mt-1 text-[24px] font-bold text-blue-900">97%</div>
+          </div>
+        </div>
+
+        <div className="overflow-hidden rounded-xl border border-slate-200 bg-white">
+          <div className="flex items-center justify-between border-b border-slate-100 px-4 py-3">
+            <div>
+              <div className="text-[13px] font-semibold text-slate-900">Kết quả kiểm tra dữ liệu</div>
+              <div className="text-[11.5px] text-slate-500">37 dòng hợp lệ, 1 dòng cần chỉnh sửa</div>
+            </div>
+            <span className="inline-flex items-center gap-1 rounded-full bg-amber-50 px-2.5 py-1 text-[11.5px] font-semibold text-amber-700">
+              <AlertCircle size={13} /> Có cảnh báo
+            </span>
+          </div>
+          <div className="grid grid-cols-[1.2fr_1fr_1fr_0.8fr] bg-slate-50 px-4 py-2 text-[11px] font-bold uppercase tracking-wide text-slate-500">
+            <span>Họ tên</span>
+            <span>Đơn vị</span>
+            <span>Chức vụ</span>
+            <span>Trạng thái</span>
+          </div>
+          {previewRows.map(([name, unit, role, status]) => (
+            <div
+              key={name}
+              className="grid grid-cols-[1.2fr_1fr_1fr_0.8fr] items-center border-t border-slate-100 px-4 py-2.5 text-[12px]"
+            >
+              <span className="font-medium text-slate-900">{name}</span>
+              <span className="text-slate-600">{unit}</span>
+              <span className="text-slate-600">{role}</span>
+              <span
+                className={`w-fit rounded-full px-2 py-0.5 text-[11px] font-semibold ${
+                  status === "Hợp lệ" ? "bg-emerald-50 text-emerald-700" : "bg-amber-50 text-amber-700"
+                }`}
+              >
+                {status}
+              </span>
+            </div>
+          ))}
+        </div>
+
+        <div className="overflow-hidden rounded-xl border border-amber-200 bg-white">
+          <div className="flex items-center justify-between border-b border-amber-100 bg-amber-50 px-4 py-3">
+            <div>
+              <div className="text-[13px] font-semibold text-amber-900">Thông tin không hợp lệ</div>
+              <div className="text-[11.5px] text-amber-700">Cần sửa trước khi nhập toàn bộ file.</div>
+            </div>
+            <button className="rounded-lg border border-amber-200 bg-white px-3 py-1.5 text-[12px] font-semibold text-amber-700 hover:bg-amber-50">
+              Xuất danh sách lỗi
+            </button>
+          </div>
+          <div className="grid grid-cols-[0.7fr_1.1fr_1fr_1.25fr_1.35fr] bg-white px-4 py-2 text-[11px] font-bold uppercase tracking-wide text-slate-500">
+            <span>Dòng</span>
+            <span>Họ tên</span>
+            <span>Trường lỗi</span>
+            <span>Lý do</span>
+            <span>Cách xử lý</span>
+          </div>
+          {invalidRows.map((row) => (
+            <div
+              key={row.row}
+              className="grid grid-cols-[0.7fr_1.1fr_1fr_1.25fr_1.35fr] items-center border-t border-amber-100 px-4 py-2.5 text-[12px]"
+            >
+              <span className="font-semibold text-amber-800">{row.row}</span>
+              <span className="font-medium text-slate-900">{row.name}</span>
+              <span className="text-slate-700">{row.field}</span>
+              <span className="text-slate-600">{row.issue}</span>
+              <span className="text-slate-600">{row.fix}</span>
+            </div>
+          ))}
+        </div>
+      </div>
+
+      <footer className="flex items-center justify-between border-t border-slate-200 bg-slate-50 px-6 py-4">
+        <div className="text-[12px] text-slate-500">Hệ thống chỉ nhập các dòng hợp lệ sau khi xác nhận.</div>
+        <div className="flex gap-2">
+          <button
+            onClick={onClose}
+            className="rounded-lg border border-slate-200 bg-white px-4 py-2 text-[13px] font-medium text-slate-700 hover:bg-slate-50"
+          >
+            Hủy
+          </button>
+          <button
+            onClick={() => setImported(true)}
+            className="inline-flex items-center gap-1.5 rounded-lg bg-blue-700 px-4 py-2 text-[13px] font-semibold text-white hover:bg-blue-800"
+          >
+            <CheckCircle2 size={15} /> Nhập 37 hồ sơ hợp lệ
+          </button>
+        </div>
+      </footer>
+    </section>
   );
 }
 
@@ -414,6 +713,9 @@ export default function App() {
   const [duplicateId, setDuplicateId] = useState(false);
   const [validationAttempted, setValidationAttempted] = useState<Record<number, boolean>>({});
   const [saved, setSaved] = useState(false);
+  const [modalOpen, setModalOpen] = useState(true);
+  const [addMenuOpen, setAddMenuOpen] = useState(true);
+  const [excelImportOpen, setExcelImportOpen] = useState(false);
   const [degrees, setDegrees] = useState([
     { name: "Bằng Cử nhân chuyên ngành Kỹ thuật phần mềm", place: "Trường Đại học Thủy lợi" },
     { name: "Bằng Kỹ sư Khoa học máy tính", place: "Trường Đại học Thủy lợi" },
@@ -432,6 +734,25 @@ export default function App() {
     setCurrentStep((s) => Math.min(s + 1, wizardSteps.length - 1));
   };
   const back = () => setCurrentStep((s) => Math.max(s - 1, 0));
+  const openManualAdd = () => {
+    setModalOpen(true);
+    setAddMenuOpen(false);
+    setExcelImportOpen(false);
+  };
+  const closeModal = () => {
+    setModalOpen(false);
+    setAddMenuOpen(true);
+    setExcelImportOpen(false);
+  };
+  const openExcelImport = () => {
+    setModalOpen(false);
+    setAddMenuOpen(false);
+    setExcelImportOpen(true);
+  };
+  const closeExcelImport = () => {
+    setExcelImportOpen(false);
+    setAddMenuOpen(true);
+  };
 
   const isLast = currentStep === wizardSteps.length - 1;
   const showStepError = !!validationAttempted[currentStep];
@@ -532,6 +853,9 @@ export default function App() {
                         setCompleted({});
                         setDuplicateId(false);
                         setValidationAttempted({});
+                        setModalOpen(true);
+                        setAddMenuOpen(false);
+                        setExcelImportOpen(false);
                       }}
                       className="rounded-lg bg-blue-700 px-4 py-2 text-[13px] font-semibold text-white hover:bg-blue-800"
                     >
@@ -598,16 +922,21 @@ export default function App() {
           </header>
 
           <div className="relative min-h-[calc(100vh-58px)] overflow-hidden bg-white">
-            <div className="opacity-25">
-              <PersonnelListBackground />
-            </div>
+            {modalOpen ? (
+              <>
+                <div className="opacity-25">
+                  <PersonnelListBackground />
+                </div>
 
-            <div className="absolute inset-0 flex items-start justify-center p-6 pt-7">
+                <div className="absolute inset-0 flex items-start justify-center p-6 pt-7">
               <div className="flex h-[calc(100vh-112px)] w-full max-w-[1180px] flex-col overflow-hidden rounded-2xl bg-white shadow-2xl ring-1 ring-slate-200">
                 {/* Modal header */}
                 <div className="flex items-center justify-between border-b border-slate-200 px-6 py-4">
                   <div className="flex items-center gap-3">
-                    <button className="grid size-9 place-items-center rounded-lg border border-slate-200 text-slate-500 hover:bg-slate-50">
+                    <button
+                      onClick={closeModal}
+                      className="grid size-9 place-items-center rounded-lg border border-slate-200 text-slate-500 hover:bg-slate-50"
+                    >
                       <ArrowLeft size={17} />
                     </button>
                     <div>
@@ -621,7 +950,10 @@ export default function App() {
                     <span className="hidden items-center gap-1 rounded-full bg-emerald-50 px-2.5 py-1 text-[12px] font-medium text-emerald-700 md:inline-flex">
                       <CheckCircle2 size={13} /> Đã lưu nháp lúc 09:42
                     </span>
-                    <button className="grid size-9 place-items-center rounded-lg text-slate-400 hover:bg-slate-100">
+                    <button
+                      onClick={closeModal}
+                      className="grid size-9 place-items-center rounded-lg text-slate-400 hover:bg-slate-100"
+                    >
                       <X size={18} />
                     </button>
                   </div>
@@ -1207,7 +1539,10 @@ export default function App() {
                         <ArrowLeft size={15} /> Quay lại
                       </button>
                     ) : (
-                      <button className="rounded-lg border border-slate-200 bg-white px-4 py-2 text-[13px] font-medium text-slate-700 hover:bg-slate-50">
+                      <button
+                        onClick={closeModal}
+                        className="rounded-lg border border-slate-200 bg-white px-4 py-2 text-[13px] font-medium text-slate-700 hover:bg-slate-50"
+                      >
                         Hủy
                       </button>
                     )}
@@ -1239,7 +1574,24 @@ export default function App() {
                   </div>
                 </div>
               </div>
-            </div>
+                </div>
+              </>
+            ) : (
+              <PersonnelListBackground
+                addMenuOpen={addMenuOpen}
+                onToggleAddMenu={() => setAddMenuOpen((open) => !open)}
+                onManualAdd={openManualAdd}
+                onExcelImport={openExcelImport}
+              />
+            )}
+            {excelImportOpen ? (
+              <>
+                <div className="absolute inset-0 bg-white/70" />
+                <div className="absolute inset-0 grid place-items-center p-6">
+                  <ExcelImportDialog onClose={closeExcelImport} />
+                </div>
+              </>
+            ) : null}
           </div>
         </div>
       </div>
