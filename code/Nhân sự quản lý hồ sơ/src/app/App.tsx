@@ -428,10 +428,13 @@ function PersonnelListBackground({
 
 function ExcelImportDialog({ onClose }: { onClose: () => void }) {
   const [imported, setImported] = useState(false);
+  const [fileUploaded, setFileUploaded] = useState(false);
   const previewRows = [
     ["Nguyễn Văn Minh", "Khoa CNTT", "Giảng viên", "Hợp lệ"],
     ["Trần Thu Hà", "Khoa Kinh tế", "Trợ lý", "Hợp lệ"],
-    ["Phạm Đức Long", "Phòng TCCB", "Chuyên viên", "Thiếu CCCD"],
+    ["Phạm Đức Long", "Phòng TCCB", "Chuyên viên", "2 lỗi"],
+    ["Đỗ Mai Anh", "Khoa CNTT", "Giảng viên", "2 lỗi"],
+    ["Lê Quốc Bảo", "Khoa Kinh tế", "Trợ lý", "1 lỗi"],
   ];
   const invalidRows = [
     {
@@ -439,7 +442,35 @@ function ExcelImportDialog({ onClose }: { onClose: () => void }) {
       name: "Phạm Đức Long",
       field: "Số CCCD",
       issue: "Để trống trường bắt buộc",
-      fix: "Bổ sung CCCD rồi kiểm tra lại file",
+      type: "Thiếu bắt buộc",
+    },
+    {
+      row: "Dòng 18",
+      name: "Phạm Đức Long",
+      field: "Ngày sinh",
+      issue: "Sai định dạng ngày",
+      type: "Sai định dạng",
+    },
+    {
+      row: "Dòng 24",
+      name: "Đỗ Mai Anh",
+      field: "Email",
+      issue: "Email không đúng định dạng",
+      type: "Sai định dạng",
+    },
+    {
+      row: "Dòng 24",
+      name: "Đỗ Mai Anh",
+      field: "Đơn vị công tác",
+      issue: "Không khớp danh mục đơn vị",
+      type: "Sai danh mục",
+    },
+    {
+      row: "Dòng 31",
+      name: "Lê Quốc Bảo",
+      field: "Số CCCD",
+      issue: "Trùng với hồ sơ NS009",
+      type: "Trùng dữ liệu",
     },
   ];
 
@@ -462,17 +493,17 @@ function ExcelImportDialog({ onClose }: { onClose: () => void }) {
             Nhập hồ sơ từ Excel thành công
           </h1>
           <p className="mx-auto mt-2 max-w-[460px] text-[13px] leading-6 text-slate-500">
-            Hệ thống đã tạo 37 hồ sơ hợp lệ từ file Danh_sach_nhan_su_moi.xlsx. 1 dòng chưa được nhập do thiếu dữ liệu bắt buộc.
+            Hệ thống đã tạo 35 hồ sơ hợp lệ từ file Danh_sach_nhan_su_moi.xlsx. 3 dòng chưa được nhập do còn 5 lỗi dữ liệu.
           </p>
 
           <div className="mt-6 grid grid-cols-3 gap-3 text-left">
             <div className="rounded-xl border border-emerald-200 bg-emerald-50 p-4">
               <div className="text-[11px] font-semibold uppercase tracking-wide text-emerald-700">Đã nhập</div>
-              <div className="mt-1 text-[24px] font-bold text-emerald-900">37</div>
+              <div className="mt-1 text-[24px] font-bold text-emerald-900">35</div>
             </div>
             <div className="rounded-xl border border-amber-200 bg-amber-50 p-4">
               <div className="text-[11px] font-semibold uppercase tracking-wide text-amber-700">Chưa nhập</div>
-              <div className="mt-1 text-[24px] font-bold text-amber-900">1</div>
+              <div className="mt-1 text-[24px] font-bold text-amber-900">3</div>
             </div>
             <div className="rounded-xl border border-blue-200 bg-blue-50 p-4">
               <div className="text-[11px] font-semibold uppercase tracking-wide text-blue-700">Tổng dòng</div>
@@ -488,13 +519,89 @@ function ExcelImportDialog({ onClose }: { onClose: () => void }) {
               Về danh sách
             </button>
             <button
-              onClick={() => setImported(false)}
+              onClick={() => {
+                setImported(false);
+                setFileUploaded(false);
+              }}
               className="rounded-lg bg-blue-700 px-4 py-2 text-[13px] font-semibold text-white hover:bg-blue-800"
             >
               Nhập file khác
             </button>
           </div>
         </div>
+      </section>
+    );
+  }
+
+  if (!fileUploaded) {
+    return (
+      <section className="w-full max-w-[680px] overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-2xl">
+        <header className="flex items-start justify-between border-b border-slate-200 px-6 py-5">
+          <div className="flex gap-3">
+            <div className="grid size-10 shrink-0 place-items-center rounded-xl bg-emerald-50 text-emerald-700">
+              <FileText size={20} />
+            </div>
+            <div>
+              <h1 className="text-[18px] font-semibold text-slate-950">Nhập hồ sơ từ Excel</h1>
+              <p className="mt-0.5 text-[12.5px] text-slate-500">
+                Chọn file Excel theo mẫu để kiểm tra dữ liệu trước khi nhập hàng loạt.
+              </p>
+            </div>
+          </div>
+          <button
+            onClick={onClose}
+            className="grid size-9 place-items-center rounded-lg text-slate-400 hover:bg-slate-100"
+          >
+            <X size={18} />
+          </button>
+        </header>
+
+        <div className="space-y-4 px-6 py-5">
+          <div className="rounded-xl border border-blue-200 bg-blue-50/70 p-4">
+            <div className="flex items-start justify-between gap-4">
+              <div>
+                <div className="text-[13px] font-semibold text-blue-900">File mẫu nhập hồ sơ</div>
+                <p className="mt-1 text-[12px] leading-5 text-blue-800">
+                  File mẫu giúp thống nhất các cột bắt buộc như họ tên, CCCD, ngày sinh, đơn vị công tác và chức vụ.
+                </p>
+              </div>
+              <button className="inline-flex h-9 shrink-0 items-center gap-2 rounded-lg border border-blue-200 bg-white px-3 text-[12.5px] font-semibold text-blue-700 hover:bg-blue-50">
+                <FileText size={15} /> Tải file mẫu
+              </button>
+            </div>
+          </div>
+
+          <button
+            onClick={() => setFileUploaded(true)}
+            className="flex min-h-[220px] w-full flex-col items-center justify-center rounded-2xl border-2 border-dashed border-slate-300 bg-slate-50 px-6 text-center hover:border-blue-300 hover:bg-blue-50/40"
+          >
+            <div className="grid size-14 place-items-center rounded-full bg-white text-blue-700 shadow-sm">
+              <Upload size={24} />
+            </div>
+            <div className="mt-4 text-[15px] font-semibold text-slate-950">Chọn file Excel để tải lên</div>
+            <div className="mt-1 text-[12.5px] text-slate-500">
+              Hỗ trợ .xlsx, tối đa 200 hồ sơ/lần. Dữ liệu sẽ được kiểm tra trước khi nhập.
+            </div>
+            <span className="mt-4 rounded-lg bg-blue-700 px-4 py-2 text-[13px] font-semibold text-white">
+              Chọn file Excel
+            </span>
+          </button>
+        </div>
+
+        <footer className="flex items-center justify-between border-t border-slate-200 bg-slate-50 px-6 py-4">
+          <div className="text-[12px] text-slate-500">Chưa có file nào được chọn.</div>
+          <div className="flex gap-2">
+            <button
+              onClick={onClose}
+              className="rounded-lg border border-slate-200 bg-white px-4 py-2 text-[13px] font-medium text-slate-700 hover:bg-slate-50"
+            >
+              Hủy
+            </button>
+            <button className="cursor-not-allowed rounded-lg bg-slate-300 px-4 py-2 text-[13px] font-semibold text-white">
+              Kiểm tra file
+            </button>
+          </div>
+        </footer>
       </section>
     );
   }
@@ -548,7 +655,10 @@ function ExcelImportDialog({ onClose }: { onClose: () => void }) {
                 </div>
                 <div className="mt-1 text-[11.5px] text-slate-500">Đã chọn · 38 dòng dữ liệu</div>
               </div>
-              <button className="rounded-lg border border-slate-200 bg-white px-3 py-1.5 text-[12px] font-medium text-slate-700 hover:bg-slate-50">
+              <button
+                onClick={() => setFileUploaded(false)}
+                className="rounded-lg border border-slate-200 bg-white px-3 py-1.5 text-[12px] font-medium text-slate-700 hover:bg-slate-50"
+              >
                 Chọn file khác
               </button>
             </div>
@@ -562,15 +672,15 @@ function ExcelImportDialog({ onClose }: { onClose: () => void }) {
           </div>
           <div className="rounded-xl border border-emerald-200 bg-emerald-50 p-4">
             <div className="text-[11px] font-semibold uppercase tracking-wide text-emerald-700">Hợp lệ</div>
-            <div className="mt-1 text-[24px] font-bold text-emerald-900">37/38</div>
+            <div className="mt-1 text-[24px] font-bold text-emerald-900">35/38</div>
           </div>
           <div className="rounded-xl border border-amber-200 bg-amber-50 p-4">
-            <div className="text-[11px] font-semibold uppercase tracking-wide text-amber-700">Không hợp lệ</div>
-            <div className="mt-1 text-[24px] font-bold text-amber-900">1</div>
+            <div className="text-[11px] font-semibold uppercase tracking-wide text-amber-700">Dòng lỗi</div>
+            <div className="mt-1 text-[24px] font-bold text-amber-900">3</div>
           </div>
           <div className="rounded-xl border border-blue-200 bg-blue-50 p-4">
-            <div className="text-[11px] font-semibold uppercase tracking-wide text-blue-700">Sẵn sàng nhập</div>
-            <div className="mt-1 text-[24px] font-bold text-blue-900">97%</div>
+            <div className="text-[11px] font-semibold uppercase tracking-wide text-blue-700">Tổng lỗi</div>
+            <div className="mt-1 text-[24px] font-bold text-blue-900">5</div>
           </div>
         </div>
 
@@ -578,7 +688,7 @@ function ExcelImportDialog({ onClose }: { onClose: () => void }) {
           <div className="flex items-center justify-between border-b border-slate-100 px-4 py-3">
             <div>
               <div className="text-[13px] font-semibold text-slate-900">Kết quả kiểm tra dữ liệu</div>
-              <div className="text-[11.5px] text-slate-500">37 dòng hợp lệ, 1 dòng cần chỉnh sửa</div>
+              <div className="text-[11.5px] text-slate-500">35 dòng hợp lệ, 3 dòng có lỗi, 5 lỗi cần chỉnh sửa</div>
             </div>
             <span className="inline-flex items-center gap-1 rounded-full bg-amber-50 px-2.5 py-1 text-[11.5px] font-semibold text-amber-700">
               <AlertCircle size={13} /> Có cảnh báo
@@ -600,7 +710,7 @@ function ExcelImportDialog({ onClose }: { onClose: () => void }) {
               <span className="text-slate-600">{role}</span>
               <span
                 className={`w-fit rounded-full px-2 py-0.5 text-[11px] font-semibold ${
-                  status === "Hợp lệ" ? "bg-emerald-50 text-emerald-700" : "bg-amber-50 text-amber-700"
+                  status === "Hợp lệ" ? "bg-emerald-50 text-emerald-700" : "bg-rose-50 text-rose-700"
                 }`}
               >
                 {status}
@@ -619,30 +729,32 @@ function ExcelImportDialog({ onClose }: { onClose: () => void }) {
               Xuất danh sách lỗi
             </button>
           </div>
-          <div className="grid grid-cols-[0.7fr_1.1fr_1fr_1.25fr_1.35fr] bg-white px-4 py-2 text-[11px] font-bold uppercase tracking-wide text-slate-500">
+          <div className="grid grid-cols-[0.68fr_1.05fr_1fr_1fr_1.45fr] bg-white px-4 py-2 text-[11px] font-bold uppercase tracking-wide text-slate-500">
             <span>Dòng</span>
             <span>Họ tên</span>
             <span>Trường lỗi</span>
-            <span>Lý do</span>
-            <span>Cách xử lý</span>
+            <span>Loại lỗi</span>
+            <span>Nội dung lỗi</span>
           </div>
           {invalidRows.map((row) => (
             <div
-              key={row.row}
-              className="grid grid-cols-[0.7fr_1.1fr_1fr_1.25fr_1.35fr] items-center border-t border-amber-100 px-4 py-2.5 text-[12px]"
+              key={`${row.row}-${row.field}`}
+              className="grid grid-cols-[0.68fr_1.05fr_1fr_1fr_1.45fr] items-center border-t border-amber-100 px-4 py-2.5 text-[12px]"
             >
               <span className="font-semibold text-amber-800">{row.row}</span>
               <span className="font-medium text-slate-900">{row.name}</span>
               <span className="text-slate-700">{row.field}</span>
+              <span className="w-fit rounded-full bg-amber-50 px-2 py-0.5 text-[11px] font-semibold text-amber-700">
+                {row.type}
+              </span>
               <span className="text-slate-600">{row.issue}</span>
-              <span className="text-slate-600">{row.fix}</span>
             </div>
           ))}
         </div>
       </div>
 
       <footer className="flex items-center justify-between border-t border-slate-200 bg-slate-50 px-6 py-4">
-        <div className="text-[12px] text-slate-500">Hệ thống chỉ nhập các dòng hợp lệ sau khi xác nhận.</div>
+        <div className="text-[12px] text-slate-500">Hệ thống chỉ nhập 35 dòng hợp lệ; 3 dòng lỗi được giữ lại để xuất và sửa.</div>
         <div className="flex gap-2">
           <button
             onClick={onClose}
@@ -654,7 +766,7 @@ function ExcelImportDialog({ onClose }: { onClose: () => void }) {
             onClick={() => setImported(true)}
             className="inline-flex items-center gap-1.5 rounded-lg bg-blue-700 px-4 py-2 text-[13px] font-semibold text-white hover:bg-blue-800"
           >
-            <CheckCircle2 size={15} /> Nhập 37 hồ sơ hợp lệ
+            <CheckCircle2 size={15} /> Nhập 35 hồ sơ hợp lệ
           </button>
         </div>
       </footer>
