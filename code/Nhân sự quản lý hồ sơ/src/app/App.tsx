@@ -962,38 +962,6 @@ function LargePersonnelForm({
           </aside>
 
           <main className="min-h-0 space-y-4 overflow-y-auto overflow-x-hidden pr-1">
-            <div className="flex items-center justify-between gap-4 rounded-xl border border-slate-200 bg-white px-4 py-2.5">
-              <div className="flex items-center gap-3">
-                <div className={`grid size-8 place-items-center rounded-lg ${hasErrors ? "bg-red-50 text-red-600" : "bg-emerald-50 text-emerald-600"}`}>
-                  {hasErrors ? <AlertCircle size={18} /> : <CheckCircle2 size={18} />}
-                </div>
-                <div>
-                  <div className="text-[12.5px] font-semibold text-slate-900">
-                    {hasErrors ? "Còn lỗi cần sửa" : "Sẵn sàng lưu hồ sơ"}
-                  </div>
-                  <div className="text-[11.5px] text-slate-500">
-                    {hasErrors
-                      ? "Lỗi được đánh dấu tại trường nhập và nhóm thông tin tương ứng."
-                      : "Thông tin đã đủ điều kiện để lưu chính thức."}
-                  </div>
-                </div>
-              </div>
-              <div className="flex items-center gap-3">
-                <div className="rounded-lg bg-blue-50 px-3 py-1.5 ring-1 ring-blue-100">
-                  <div className="text-[10.5px] font-semibold uppercase tracking-wide text-blue-700">Mã dự kiến</div>
-                  <div className="font-mono text-[14px] font-bold text-blue-900">CB2026-0048</div>
-                </div>
-                <button
-                  onClick={() => {
-                    setShowErrors(true);
-                    setDuplicateId(true);
-                  }}
-                  className="rounded-lg border border-amber-200 bg-white px-3 py-1.5 text-[12.5px] font-semibold text-amber-700 hover:bg-amber-50"
-                >
-                  Kiểm tra dữ liệu
-                </button>
-              </div>
-            </div>
             <section id="identity">
               <SectionCard
                 title="Thông tin cá nhân"
@@ -1128,10 +1096,8 @@ function LargePersonnelForm({
                   description="Gắn cán bộ mới vào đúng đơn vị, chức vụ và loại nhân sự."
                   icon={<Building2 size={18} />}
                 >
-                  <div className="grid grid-cols-[260px_1fr] gap-4">
-                    <OrgTree />
-                    <div className="grid min-w-0 grid-cols-3 gap-3">
-                      <Field label="Đơn vị công tác" required hint="Được chọn từ cây tổ chức bên trái">
+                  <div className="grid min-w-0 grid-cols-3 gap-3">
+                      <Field label="Đơn vị công tác" required>
                         <Select value="Khoa Công nghệ thông tin" state="success" />
                       </Field>
                       <Field label="Bộ môn / phòng ban trực thuộc">
@@ -1149,8 +1115,10 @@ function LargePersonnelForm({
                       <Field label="Trạng thái hồ sơ" required>
                         <Select value="Đang hoàn thiện" />
                       </Field>
+                      <div className="col-span-3 rounded-lg border border-blue-100 bg-blue-50 px-3 py-2 text-[12px] text-blue-800">
+                        Đường dẫn đơn vị: Trường Đại học Thủy Lợi / Khoa Công nghệ thông tin / Bộ môn Công nghệ phần mềm
+                      </div>
                     </div>
-                  </div>
                 </SectionCard>
 
                 <SectionCard title="Lương và phụ cấp dự kiến" icon={<Banknote size={18} />}>
@@ -1324,7 +1292,7 @@ function LargePersonnelForm({
             </span>
           ) : (
             <span className="inline-flex items-center gap-1 text-emerald-700">
-              <CheckCircle2 size={14} /> Form đã được kiểm tra, có thể lưu hồ sơ.
+              <CheckCircle2 size={14} /> Nhấn lưu để hệ thống kiểm tra và tạo hồ sơ chính thức.
             </span>
           )}
         </div>
@@ -1340,14 +1308,14 @@ function LargePersonnelForm({
           </button>
           <button
             onClick={() => {
-              if (!hasErrors) {
+              if (hasErrors) {
+                setShowErrors(true);
+                setDuplicateId(true);
+              } else {
                 onSave();
               }
             }}
-            disabled={hasErrors}
-            className={`inline-flex items-center gap-1.5 rounded-lg px-4 py-2 text-[13px] font-semibold text-white ${
-              hasErrors ? "cursor-not-allowed bg-slate-300" : "bg-blue-700 hover:bg-blue-800"
-            }`}
+            className="inline-flex items-center gap-1.5 rounded-lg bg-blue-700 px-4 py-2 text-[13px] font-semibold text-white hover:bg-blue-800"
           >
             <UserPlus size={15} /> Lưu hồ sơ chính thức
           </button>
