@@ -69,19 +69,19 @@ function Field({
   children: ReactNode;
 }) {
   return (
-    <div className="space-y-1.5">
-      <label className="flex items-center gap-1 text-[13px] font-medium text-slate-700">
+    <div className="space-y-1">
+      <label className="flex items-center gap-1 text-[12px] font-medium text-slate-700">
         {label}
         {required ? <span className="text-red-600">*</span> : null}
       </label>
       {children}
       {error ? (
-        <div className="flex items-start gap-1.5 text-[12px] text-red-600">
-          <AlertCircle size={13} className="mt-0.5 shrink-0" />
+        <div className="flex items-start gap-1.5 text-[11.5px] text-red-600">
+          <AlertCircle size={12} className="mt-0.5 shrink-0" />
           <span>{error}</span>
         </div>
       ) : hint ? (
-        <div className="text-[12px] text-slate-500">{hint}</div>
+        <div className="text-[11.5px] text-slate-500">{hint}</div>
       ) : null}
     </div>
   );
@@ -108,14 +108,14 @@ function Input({
       : "border-slate-200 focus-within:ring-blue-200";
   return (
     <div
-      className={`flex h-10 items-center gap-2 rounded-lg border bg-white px-3 transition focus-within:ring-4 ${ring}`}
+      className={`flex h-9 items-center gap-2 rounded-lg border bg-white px-2.5 transition focus-within:ring-4 ${ring}`}
     >
       {icon ? <span className="text-slate-400">{icon}</span> : null}
       <input
         defaultValue={value}
         placeholder={placeholder}
         readOnly={readOnly}
-        className="flex-1 bg-transparent text-[14px] text-slate-900 placeholder:text-slate-400 focus:outline-none"
+        className="min-w-0 flex-1 bg-transparent text-[13px] text-slate-900 placeholder:text-slate-400 focus:outline-none"
       />
       {state === "success" ? <CheckCircle2 size={16} className="text-emerald-500" /> : null}
       {state === "error" ? <AlertCircle size={16} className="text-red-500" /> : null}
@@ -129,7 +129,7 @@ function Select({ value, state = "default" }: { value: string; state?: FieldStat
   return (
     <button
       type="button"
-      className={`flex h-10 w-full items-center justify-between rounded-lg border bg-white px-3 text-[14px] text-slate-900 ${ring}`}
+      className={`flex h-9 w-full items-center justify-between rounded-lg border bg-white px-2.5 text-[13px] text-slate-900 ${ring}`}
     >
       <span>{value}</span>
       <ChevronRight size={16} className="rotate-90 text-slate-400" />
@@ -141,7 +141,7 @@ function FileButton({ label = "Tải PDF" }: { label?: string }) {
   return (
     <button
       type="button"
-      className="inline-flex h-10 shrink-0 items-center gap-1.5 rounded-lg border border-blue-200 bg-blue-50 px-3 text-[13px] font-medium text-blue-700 hover:bg-blue-100"
+      className="inline-flex h-8 shrink-0 items-center gap-1.5 rounded-lg border border-blue-200 bg-blue-50 px-2.5 text-[12px] font-medium text-blue-700 hover:bg-blue-100"
     >
       <Upload size={15} /> {label}
     </button>
@@ -165,14 +165,14 @@ function SectionCard({
 }) {
   return (
     <section className="rounded-xl border border-slate-200 bg-white">
-      <header className="flex items-start justify-between gap-3 border-b border-slate-100 px-5 py-4">
-        <div className="flex gap-3">
-          <div className="grid size-9 shrink-0 place-items-center rounded-lg bg-blue-50 text-blue-700">
+      <header className="flex items-start justify-between gap-3 border-b border-slate-100 px-4 py-3">
+        <div className="flex gap-2.5">
+          <div className="grid size-8 shrink-0 place-items-center rounded-lg bg-blue-50 text-blue-700">
             {icon}
           </div>
           <div>
             <div className="flex items-center gap-2">
-              <h3 className="text-[15px] font-semibold text-slate-900">{title}</h3>
+              <h3 className="text-[14px] font-semibold text-slate-900">{title}</h3>
               {optional ? (
                 <span className="rounded-md bg-slate-100 px-1.5 py-0.5 text-[11px] font-medium text-slate-500">
                   Không bắt buộc
@@ -180,13 +180,13 @@ function SectionCard({
               ) : null}
             </div>
             {description ? (
-              <p className="mt-0.5 text-[12.5px] text-slate-500">{description}</p>
+              <p className="mt-0.5 text-[12px] text-slate-500">{description}</p>
             ) : null}
           </div>
         </div>
         {action}
       </header>
-      <div className="px-5 py-5">{children}</div>
+      <div className="px-4 py-4">{children}</div>
     </section>
   );
 }
@@ -429,13 +429,7 @@ function PersonnelListBackground({
 function ExcelImportDialog({ onClose }: { onClose: () => void }) {
   const [imported, setImported] = useState(false);
   const [fileUploaded, setFileUploaded] = useState(false);
-  const previewRows = [
-    ["Nguyễn Văn Minh", "Khoa CNTT", "Giảng viên", "Hợp lệ"],
-    ["Trần Thu Hà", "Khoa Kinh tế", "Trợ lý", "Hợp lệ"],
-    ["Phạm Đức Long", "Phòng TCCB", "Chuyên viên", "2 lỗi"],
-    ["Đỗ Mai Anh", "Khoa CNTT", "Giảng viên", "2 lỗi"],
-    ["Lê Quốc Bảo", "Khoa Kinh tế", "Trợ lý", "1 lỗi"],
-  ];
+  const [allValid, setAllValid] = useState(false);
   const invalidRows = [
     {
       row: "Dòng 18",
@@ -473,6 +467,9 @@ function ExcelImportDialog({ onClose }: { onClose: () => void }) {
       type: "Trùng dữ liệu",
     },
   ];
+  const validCount = allValid ? 38 : 35;
+  const invalidCount = allValid ? 0 : 3;
+  const errorCount = allValid ? 0 : 5;
 
   if (imported) {
     return (
@@ -493,17 +490,18 @@ function ExcelImportDialog({ onClose }: { onClose: () => void }) {
             Nhập hồ sơ từ Excel thành công
           </h1>
           <p className="mx-auto mt-2 max-w-[460px] text-[13px] leading-6 text-slate-500">
-            Hệ thống đã tạo 35 hồ sơ hợp lệ từ file Danh_sach_nhan_su_moi.xlsx. 3 dòng chưa được nhập do còn 5 lỗi dữ liệu.
+            Hệ thống đã tạo {validCount} hồ sơ hợp lệ từ file Danh_sach_nhan_su_moi.xlsx.
+            {invalidCount > 0 ? ` ${invalidCount} dòng chưa được nhập do còn ${errorCount} lỗi dữ liệu.` : " Toàn bộ dữ liệu đã được nhập."}
           </p>
 
           <div className="mt-6 grid grid-cols-3 gap-3 text-left">
             <div className="rounded-xl border border-emerald-200 bg-emerald-50 p-4">
               <div className="text-[11px] font-semibold uppercase tracking-wide text-emerald-700">Đã nhập</div>
-              <div className="mt-1 text-[24px] font-bold text-emerald-900">35</div>
+              <div className="mt-1 text-[24px] font-bold text-emerald-900">{validCount}</div>
             </div>
             <div className="rounded-xl border border-amber-200 bg-amber-50 p-4">
               <div className="text-[11px] font-semibold uppercase tracking-wide text-amber-700">Chưa nhập</div>
-              <div className="mt-1 text-[24px] font-bold text-amber-900">3</div>
+              <div className="mt-1 text-[24px] font-bold text-amber-900">{invalidCount}</div>
             </div>
             <div className="rounded-xl border border-blue-200 bg-blue-50 p-4">
               <div className="text-[11px] font-semibold uppercase tracking-wide text-blue-700">Tổng dòng</div>
@@ -522,6 +520,7 @@ function ExcelImportDialog({ onClose }: { onClose: () => void }) {
               onClick={() => {
                 setImported(false);
                 setFileUploaded(false);
+                setAllValid(false);
               }}
               className="rounded-lg bg-blue-700 px-4 py-2 text-[13px] font-semibold text-white hover:bg-blue-800"
             >
@@ -572,7 +571,10 @@ function ExcelImportDialog({ onClose }: { onClose: () => void }) {
           </div>
 
           <button
-            onClick={() => setFileUploaded(true)}
+            onClick={() => {
+              setFileUploaded(true);
+              setAllValid(false);
+            }}
             className="flex min-h-[220px] w-full flex-col items-center justify-center rounded-2xl border-2 border-dashed border-slate-300 bg-slate-50 px-6 text-center hover:border-blue-300 hover:bg-blue-50/40"
           >
             <div className="grid size-14 place-items-center rounded-full bg-white text-blue-700 shadow-sm">
@@ -607,8 +609,8 @@ function ExcelImportDialog({ onClose }: { onClose: () => void }) {
   }
 
   return (
-    <section className="w-full max-w-[760px] overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-2xl">
-      <header className="flex items-start justify-between border-b border-slate-200 px-6 py-5">
+    <section className="flex h-[calc(100vh-96px)] w-full max-w-[760px] flex-col overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-2xl">
+      <header className="shrink-0 flex items-start justify-between border-b border-slate-200 px-6 py-5">
         <div className="flex gap-3">
           <div className="grid size-10 shrink-0 place-items-center rounded-xl bg-emerald-50 text-emerald-700">
             <FileText size={20} />
@@ -628,7 +630,7 @@ function ExcelImportDialog({ onClose }: { onClose: () => void }) {
         </button>
       </header>
 
-      <div className="space-y-4 px-6 py-5">
+      <div className="min-h-0 flex-1 space-y-4 overflow-y-auto px-6 py-5">
         <div className="grid grid-cols-[1fr_1.1fr] gap-4">
           <div className="rounded-xl border border-blue-200 bg-blue-50/70 p-4">
             <div className="flex items-start justify-between gap-3">
@@ -656,10 +658,10 @@ function ExcelImportDialog({ onClose }: { onClose: () => void }) {
                 <div className="mt-1 text-[11.5px] text-slate-500">Đã chọn · 38 dòng dữ liệu</div>
               </div>
               <button
-                onClick={() => setFileUploaded(false)}
+                onClick={() => setAllValid(true)}
                 className="rounded-lg border border-slate-200 bg-white px-3 py-1.5 text-[12px] font-medium text-slate-700 hover:bg-slate-50"
               >
-                Chọn file khác
+                {allValid ? "Chọn file khác" : "Chọn file đã sửa"}
               </button>
             </div>
           </div>
@@ -672,89 +674,181 @@ function ExcelImportDialog({ onClose }: { onClose: () => void }) {
           </div>
           <div className="rounded-xl border border-emerald-200 bg-emerald-50 p-4">
             <div className="text-[11px] font-semibold uppercase tracking-wide text-emerald-700">Hợp lệ</div>
-            <div className="mt-1 text-[24px] font-bold text-emerald-900">35/38</div>
+            <div className="mt-1 text-[24px] font-bold text-emerald-900">{validCount}/38</div>
           </div>
-          <div className="rounded-xl border border-amber-200 bg-amber-50 p-4">
-            <div className="text-[11px] font-semibold uppercase tracking-wide text-amber-700">Dòng lỗi</div>
-            <div className="mt-1 text-[24px] font-bold text-amber-900">3</div>
+          <div
+            className={`rounded-xl border p-4 ${
+              allValid ? "border-emerald-200 bg-emerald-50" : "border-amber-200 bg-amber-50"
+            }`}
+          >
+            <div
+              className={`text-[11px] font-semibold uppercase tracking-wide ${
+                allValid ? "text-emerald-700" : "text-amber-700"
+              }`}
+            >
+              Dòng lỗi
+            </div>
+            <div
+              className={`mt-1 text-[24px] font-bold ${
+                allValid ? "text-emerald-900" : "text-amber-900"
+              }`}
+            >
+              {invalidCount}
+            </div>
           </div>
-          <div className="rounded-xl border border-blue-200 bg-blue-50 p-4">
-            <div className="text-[11px] font-semibold uppercase tracking-wide text-blue-700">Tổng lỗi</div>
-            <div className="mt-1 text-[24px] font-bold text-blue-900">5</div>
+          <div
+            className={`rounded-xl border p-4 ${
+              allValid ? "border-emerald-200 bg-emerald-50" : "border-blue-200 bg-blue-50"
+            }`}
+          >
+            <div
+              className={`text-[11px] font-semibold uppercase tracking-wide ${
+                allValid ? "text-emerald-700" : "text-blue-700"
+              }`}
+            >
+              Tổng lỗi
+            </div>
+            <div
+              className={`mt-1 text-[24px] font-bold ${
+                allValid ? "text-emerald-900" : "text-blue-900"
+              }`}
+            >
+              {errorCount}
+            </div>
           </div>
         </div>
 
-        <div className="overflow-hidden rounded-xl border border-slate-200 bg-white">
+        <div
+          className={`overflow-hidden rounded-xl border bg-white ${
+            allValid ? "border-emerald-200" : "border-slate-200"
+          }`}
+        >
           <div className="flex items-center justify-between border-b border-slate-100 px-4 py-3">
             <div>
-              <div className="text-[13px] font-semibold text-slate-900">Kết quả kiểm tra dữ liệu</div>
-              <div className="text-[11.5px] text-slate-500">35 dòng hợp lệ, 3 dòng có lỗi, 5 lỗi cần chỉnh sửa</div>
+              <div className="text-[13px] font-semibold text-slate-900">Kết quả kiểm tra file</div>
+              <div className="text-[11.5px] text-slate-500">
+                {allValid
+                  ? "Toàn bộ 38 hồ sơ đạt điều kiện nhập vào hệ thống."
+                  : "File có thể nhập một phần, nhưng cần sửa lỗi nếu muốn nhập đủ 38 hồ sơ."}
+              </div>
             </div>
-            <span className="inline-flex items-center gap-1 rounded-full bg-amber-50 px-2.5 py-1 text-[11.5px] font-semibold text-amber-700">
-              <AlertCircle size={13} /> Có cảnh báo
+            <span
+              className={`inline-flex items-center gap-1 rounded-full px-2.5 py-1 text-[11.5px] font-semibold ${
+                allValid ? "bg-emerald-50 text-emerald-700" : "bg-amber-50 text-amber-700"
+              }`}
+            >
+              {allValid ? <CheckCircle2 size={13} /> : <AlertCircle size={13} />}
+              {allValid ? "Sẵn sàng nhập" : "5 lỗi cần xử lý"}
             </span>
           </div>
-          <div className="grid grid-cols-[1.2fr_1fr_1fr_0.8fr] bg-slate-50 px-4 py-2 text-[11px] font-bold uppercase tracking-wide text-slate-500">
-            <span>Họ tên</span>
-            <span>Đơn vị</span>
-            <span>Chức vụ</span>
-            <span>Trạng thái</span>
-          </div>
-          {previewRows.map(([name, unit, role, status]) => (
-            <div
-              key={name}
-              className="grid grid-cols-[1.2fr_1fr_1fr_0.8fr] items-center border-t border-slate-100 px-4 py-2.5 text-[12px]"
-            >
-              <span className="font-medium text-slate-900">{name}</span>
-              <span className="text-slate-600">{unit}</span>
-              <span className="text-slate-600">{role}</span>
-              <span
-                className={`w-fit rounded-full px-2 py-0.5 text-[11px] font-semibold ${
-                  status === "Hợp lệ" ? "bg-emerald-50 text-emerald-700" : "bg-rose-50 text-rose-700"
-                }`}
-              >
-                {status}
-              </span>
+
+          <div className="grid grid-cols-[1fr_1fr] gap-4 p-4">
+            <div className="rounded-xl border border-emerald-200 bg-emerald-50 p-4">
+              <div className="flex items-start gap-3">
+                <div className="grid size-9 place-items-center rounded-full bg-white text-emerald-700 shadow-sm">
+                  <CheckCircle2 size={18} />
+                </div>
+                <div>
+                  <div className="text-[13px] font-semibold text-emerald-900">Có thể nhập ngay</div>
+                  <p className="mt-1 text-[12px] leading-5 text-emerald-800">
+                    {allValid
+                      ? "38 hồ sơ hợp lệ sẽ được tạo sau khi xác nhận nhập file."
+                      : "35 hồ sơ hợp lệ sẽ được tạo nếu chọn nhập phần hợp lệ. Các dòng lỗi không được đưa vào hệ thống."}
+                  </p>
+                </div>
+              </div>
             </div>
-          ))}
+
+            <div
+              className={`rounded-xl border p-4 ${
+                allValid ? "border-emerald-200 bg-emerald-50" : "border-amber-200 bg-amber-50"
+              }`}
+            >
+              <div className="flex items-start gap-3">
+                <div
+                  className={`grid size-9 place-items-center rounded-full bg-white shadow-sm ${
+                    allValid ? "text-emerald-700" : "text-amber-700"
+                  }`}
+                >
+                  {allValid ? <CheckCircle2 size={18} /> : <AlertCircle size={18} />}
+                </div>
+                <div>
+                  <div className={`text-[13px] font-semibold ${allValid ? "text-emerald-900" : "text-amber-900"}`}>
+                    {allValid ? "Không còn lỗi dữ liệu" : "Cần sửa trong file"}
+                  </div>
+                  <p className={`mt-1 text-[12px] leading-5 ${allValid ? "text-emerald-800" : "text-amber-800"}`}>
+                    {allValid
+                      ? "Không phát hiện thiếu trường bắt buộc, sai định dạng, sai danh mục hoặc trùng dữ liệu."
+                      : "3 dòng đang có lỗi. Xuất danh sách lỗi, sửa file Excel, rồi chọn lại file để kiểm tra lần nữa."}
+                  </p>
+                </div>
+              </div>
+            </div>
+          </div>
         </div>
 
-        <div className="overflow-hidden rounded-xl border border-amber-200 bg-white">
-          <div className="flex items-center justify-between border-b border-amber-100 bg-amber-50 px-4 py-3">
-            <div>
-              <div className="text-[13px] font-semibold text-amber-900">Thông tin không hợp lệ</div>
-              <div className="text-[11.5px] text-amber-700">Cần sửa trước khi nhập toàn bộ file.</div>
+        {allValid ? (
+          <div className="overflow-hidden rounded-xl border border-emerald-200 bg-white">
+            <div className="border-b border-emerald-100 bg-emerald-50 px-4 py-3">
+              <div className="text-[13px] font-semibold text-emerald-900">Các kiểm tra đã đạt</div>
+              <div className="text-[11.5px] text-emerald-700">File đã sẵn sàng để nhập toàn bộ hồ sơ.</div>
             </div>
-            <button className="rounded-lg border border-amber-200 bg-white px-3 py-1.5 text-[12px] font-semibold text-amber-700 hover:bg-amber-50">
-              Xuất danh sách lỗi
-            </button>
-          </div>
-          <div className="grid grid-cols-[0.68fr_1.05fr_1fr_1fr_1.45fr] bg-white px-4 py-2 text-[11px] font-bold uppercase tracking-wide text-slate-500">
-            <span>Dòng</span>
-            <span>Họ tên</span>
-            <span>Trường lỗi</span>
-            <span>Loại lỗi</span>
-            <span>Nội dung lỗi</span>
-          </div>
-          {invalidRows.map((row) => (
-            <div
-              key={`${row.row}-${row.field}`}
-              className="grid grid-cols-[0.68fr_1.05fr_1fr_1fr_1.45fr] items-center border-t border-amber-100 px-4 py-2.5 text-[12px]"
-            >
-              <span className="font-semibold text-amber-800">{row.row}</span>
-              <span className="font-medium text-slate-900">{row.name}</span>
-              <span className="text-slate-700">{row.field}</span>
-              <span className="w-fit rounded-full bg-amber-50 px-2 py-0.5 text-[11px] font-semibold text-amber-700">
-                {row.type}
-              </span>
-              <span className="text-slate-600">{row.issue}</span>
+            <div className="grid grid-cols-2 gap-3 p-4">
+              {[
+                "Đủ trường bắt buộc",
+                "Định dạng ngày, email, số điện thoại hợp lệ",
+                "Đơn vị công tác khớp danh mục",
+                "Không phát hiện CCCD trùng",
+              ].map((item) => (
+                <div key={item} className="flex items-center gap-2 rounded-lg border border-emerald-100 bg-emerald-50/70 px-3 py-2.5 text-[12.5px] font-medium text-emerald-800">
+                  <CheckCircle2 size={15} className="shrink-0" />
+                  {item}
+                </div>
+              ))}
             </div>
-          ))}
-        </div>
+          </div>
+        ) : (
+          <div className="overflow-hidden rounded-xl border border-amber-200 bg-white">
+            <div className="flex items-center justify-between border-b border-amber-100 bg-amber-50 px-4 py-3">
+              <div>
+                <div className="text-[13px] font-semibold text-amber-900">Thông tin không hợp lệ</div>
+                <div className="text-[11.5px] text-amber-700">Cần sửa trước khi nhập toàn bộ file.</div>
+              </div>
+              <button className="rounded-lg border border-amber-200 bg-white px-3 py-1.5 text-[12px] font-semibold text-amber-700 hover:bg-amber-50">
+                Xuất danh sách lỗi
+              </button>
+            </div>
+            <div className="grid grid-cols-[0.68fr_1.05fr_1fr_1fr_1.45fr] bg-white px-4 py-2 text-[11px] font-bold uppercase tracking-wide text-slate-500">
+              <span>Dòng</span>
+              <span>Họ tên</span>
+              <span>Trường lỗi</span>
+              <span>Loại lỗi</span>
+              <span>Nội dung lỗi</span>
+            </div>
+            {invalidRows.map((row) => (
+              <div
+                key={`${row.row}-${row.field}`}
+                className="grid grid-cols-[0.68fr_1.05fr_1fr_1fr_1.45fr] items-center border-t border-amber-100 px-4 py-2.5 text-[12px]"
+              >
+                <span className="font-semibold text-amber-800">{row.row}</span>
+                <span className="font-medium text-slate-900">{row.name}</span>
+                <span className="text-slate-700">{row.field}</span>
+                <span className="w-fit rounded-full bg-amber-50 px-2 py-0.5 text-[11px] font-semibold text-amber-700">
+                  {row.type}
+                </span>
+                <span className="text-slate-600">{row.issue}</span>
+              </div>
+            ))}
+          </div>
+        )}
       </div>
 
-      <footer className="flex items-center justify-between border-t border-slate-200 bg-slate-50 px-6 py-4">
-        <div className="text-[12px] text-slate-500">Hệ thống chỉ nhập 35 dòng hợp lệ; 3 dòng lỗi được giữ lại để xuất và sửa.</div>
+      <footer className="shrink-0 flex items-center justify-between border-t border-slate-200 bg-slate-50 px-6 py-4">
+        <div className="text-[12px] text-slate-500">
+          {allValid
+            ? "Hệ thống sẽ nhập toàn bộ 38 hồ sơ sau khi xác nhận."
+            : "Hệ thống chỉ nhập 35 dòng hợp lệ; 3 dòng lỗi được giữ lại để xuất và sửa."}
+        </div>
         <div className="flex gap-2">
           <button
             onClick={onClose}
@@ -766,11 +860,500 @@ function ExcelImportDialog({ onClose }: { onClose: () => void }) {
             onClick={() => setImported(true)}
             className="inline-flex items-center gap-1.5 rounded-lg bg-blue-700 px-4 py-2 text-[13px] font-semibold text-white hover:bg-blue-800"
           >
-            <CheckCircle2 size={15} /> Nhập 35 hồ sơ hợp lệ
+            <CheckCircle2 size={15} /> Nhập {validCount} hồ sơ hợp lệ
           </button>
         </div>
       </footer>
     </section>
+  );
+}
+
+function LargePersonnelForm({
+  foreigner,
+  setForeigner,
+  duplicateId,
+  setDuplicateId,
+  showErrors,
+  setShowErrors,
+  degrees,
+  setDegrees,
+  certs,
+  setCerts,
+  onClose,
+  onSave,
+}: {
+  foreigner: boolean;
+  setForeigner: (value: boolean | ((value: boolean) => boolean)) => void;
+  duplicateId: boolean;
+  setDuplicateId: (value: boolean) => void;
+  showErrors: boolean;
+  setShowErrors: (value: boolean) => void;
+  degrees: { name: string; place: string }[];
+  setDegrees: (value: { name: string; place: string }[] | ((value: { name: string; place: string }[]) => { name: string; place: string }[])) => void;
+  certs: { name: string; place: string }[];
+  setCerts: (value: { name: string; place: string }[] | ((value: { name: string; place: string }[]) => { name: string; place: string }[])) => void;
+  onClose: () => void;
+  onSave: () => void;
+}) {
+  const hasErrors = showErrors || duplicateId;
+  const sections = [
+    { id: "identity", label: "Thông tin cá nhân", icon: <CircleUserRound size={15} />, state: hasErrors ? "error" : "done" },
+    { id: "contact", label: "Liên hệ & quốc tịch", icon: <Mail size={15} />, state: showErrors ? "error" : "done" },
+    { id: "work", label: "Công tác & lương", icon: <Building2 size={15} />, state: showErrors ? "error" : "done" },
+    { id: "education", label: "Học vấn", icon: <GraduationCap size={15} />, state: "done" },
+    { id: "documents", label: "Tài liệu", icon: <FileText size={15} />, state: showErrors ? "warning" : "done" },
+  ];
+
+  return (
+    <div className="flex h-[calc(100vh-96px)] w-full max-w-[1260px] flex-col overflow-hidden rounded-2xl bg-white shadow-2xl ring-1 ring-slate-200">
+      <div className="flex items-center justify-between border-b border-slate-200 px-5 py-3">
+        <div className="flex items-center gap-3">
+          <button
+            onClick={onClose}
+            className="grid size-9 place-items-center rounded-lg border border-slate-200 text-slate-500 hover:bg-slate-50"
+          >
+            <ArrowLeft size={17} />
+          </button>
+          <div>
+            <h1 className="text-[17px] font-semibold text-slate-900">Thêm hồ sơ nhân sự</h1>
+            <p className="text-[12px] text-slate-500">Form nhập liệu một trang · chia nhóm theo nghiệp vụ hồ sơ</p>
+          </div>
+        </div>
+        <div className="flex items-center gap-2">
+          <span className="hidden items-center gap-1 rounded-full bg-emerald-50 px-2.5 py-1 text-[12px] font-medium text-emerald-700 md:inline-flex">
+            <CheckCircle2 size={13} /> Đã lưu nháp lúc 09:42
+          </span>
+          <button
+            onClick={onClose}
+            className="grid size-9 place-items-center rounded-lg text-slate-400 hover:bg-slate-100"
+          >
+            <X size={18} />
+          </button>
+        </div>
+      </div>
+
+      <div className="min-h-0 flex-1 bg-slate-50/60">
+        <div className="grid h-full grid-cols-[196px_minmax(0,1fr)] gap-4 p-4">
+          <aside className="h-fit rounded-xl border border-slate-200 bg-white p-2.5">
+            <div className="px-2 pb-1.5 text-[11px] font-semibold uppercase tracking-wide text-slate-500">
+              Nhóm thông tin
+            </div>
+            <div className="space-y-1">
+              {sections.map((section) => (
+                <a
+                  key={section.id}
+                  href={`#${section.id}`}
+                  className="flex items-center justify-between rounded-lg px-2.5 py-1.5 text-[12px] font-medium text-slate-700 hover:bg-slate-50"
+                >
+                  <span className="flex items-center gap-2">
+                    {section.icon}
+                    {section.label}
+                  </span>
+                  {section.state === "error" ? (
+                    <AlertCircle size={14} className="text-red-600" />
+                  ) : section.state === "warning" ? (
+                    <AlertCircle size={14} className="text-amber-600" />
+                  ) : (
+                    <CheckCircle2 size={14} className="text-emerald-600" />
+                  )}
+                </a>
+              ))}
+            </div>
+          </aside>
+
+          <main className="min-h-0 space-y-4 overflow-y-auto overflow-x-hidden pr-1">
+            <div className="flex items-center justify-between gap-4 rounded-xl border border-slate-200 bg-white px-4 py-2.5">
+              <div className="flex items-center gap-3">
+                <div className={`grid size-8 place-items-center rounded-lg ${hasErrors ? "bg-red-50 text-red-600" : "bg-emerald-50 text-emerald-600"}`}>
+                  {hasErrors ? <AlertCircle size={18} /> : <CheckCircle2 size={18} />}
+                </div>
+                <div>
+                  <div className="text-[12.5px] font-semibold text-slate-900">
+                    {hasErrors ? "Còn lỗi cần sửa" : "Sẵn sàng lưu hồ sơ"}
+                  </div>
+                  <div className="text-[11.5px] text-slate-500">
+                    {hasErrors
+                      ? "Lỗi được đánh dấu tại trường nhập và nhóm thông tin tương ứng."
+                      : "Thông tin đã đủ điều kiện để lưu chính thức."}
+                  </div>
+                </div>
+              </div>
+              <div className="flex items-center gap-3">
+                <div className="rounded-lg bg-blue-50 px-3 py-1.5 ring-1 ring-blue-100">
+                  <div className="text-[10.5px] font-semibold uppercase tracking-wide text-blue-700">Mã dự kiến</div>
+                  <div className="font-mono text-[14px] font-bold text-blue-900">CB2026-0048</div>
+                </div>
+                <button
+                  onClick={() => {
+                    setShowErrors(true);
+                    setDuplicateId(true);
+                  }}
+                  className="rounded-lg border border-amber-200 bg-white px-3 py-1.5 text-[12.5px] font-semibold text-amber-700 hover:bg-amber-50"
+                >
+                  Kiểm tra dữ liệu
+                </button>
+              </div>
+            </div>
+            <section id="identity">
+              <SectionCard
+                title="Thông tin cá nhân"
+                description="Thông tin định danh chính theo CCCD và hồ sơ giấy."
+                icon={<CircleUserRound size={18} />}
+              >
+                <div className="grid grid-cols-[112px_1fr] gap-4">
+                  <div className="space-y-2">
+                    <div className="grid h-[128px] place-items-center rounded-lg border-2 border-dashed border-slate-300 bg-white text-slate-400">
+                      <div className="text-center">
+                        <Upload size={20} className="mx-auto" />
+                        <div className="mt-1 text-[11px]">Tải ảnh 3x4</div>
+                      </div>
+                    </div>
+                    <p className="text-[11px] text-slate-500">JPG/PNG, tối đa 2MB.</p>
+                  </div>
+                  <div className="grid min-w-0 grid-cols-2 gap-3">
+                    <Field label="Họ và tên" required error={showErrors ? "Họ và tên là trường bắt buộc." : undefined}>
+                      <Input value={showErrors ? "" : "Nguyễn Văn A"} state={showErrors ? "error" : "success"} />
+                    </Field>
+                    <Field label="Giới tính" required>
+                      <Select value="Nam" />
+                    </Field>
+                    <Field label="Ngày sinh" required error={showErrors ? "Ngày sinh không hợp lệ." : undefined}>
+                      <Input value={showErrors ? "32/13/2000" : "01/01/2000"} icon={<Calendar size={15} />} state={showErrors ? "error" : "default"} />
+                    </Field>
+                    <Field label="Quê quán" required>
+                      <Input value="Hà Nội" icon={<MapPin size={15} />} />
+                    </Field>
+                    <div className="col-span-2">
+                      <Field
+                        label="Số CCCD"
+                        required
+                        error={hasErrors ? "Đã tồn tại hồ sơ với CCCD này hoặc dữ liệu chưa hợp lệ." : undefined}
+                      >
+                        <div className="flex gap-2">
+                          <div className="min-w-0 flex-1">
+                            <Input value={hasErrors ? "001200001900" : "001200001901"} state={hasErrors ? "error" : "success"} />
+                          </div>
+                          <button
+                            type="button"
+                            onClick={() => {
+                              if (hasErrors) {
+                                setDuplicateId(false);
+                                setShowErrors(false);
+                              } else {
+                                setDuplicateId(true);
+                              }
+                            }}
+                            className="h-10 shrink-0 rounded-lg border border-slate-200 bg-white px-3 text-[12px] font-semibold text-slate-700 hover:bg-slate-50"
+                          >
+                            {hasErrors ? "Dùng CCCD hợp lệ" : "Kiểm tra trùng"}
+                          </button>
+                        </div>
+                      </Field>
+                    </div>
+                    <Field label="Mã số thuế" required>
+                      <Input value="1200001900" />
+                    </Field>
+                    <Field label="Số BHXH" required>
+                      <Input value="00120019" />
+                    </Field>
+                    <Field label="Số BHYT" required>
+                      <Input value="00120019" />
+                    </Field>
+                  </div>
+                </div>
+              </SectionCard>
+            </section>
+
+            <section id="contact">
+              <SectionCard
+                title="Liên hệ & quốc tịch"
+                description="Thông tin liên hệ và trường bổ sung nếu là cán bộ nước ngoài."
+                icon={<Mail size={18} />}
+                action={
+                  <button
+                    type="button"
+                    onClick={() => setForeigner((value) => !value)}
+                    className={`relative inline-flex h-6 w-11 items-center rounded-full transition ${
+                      foreigner ? "bg-blue-700" : "bg-slate-300"
+                    }`}
+                  >
+                    <span
+                      className={`inline-block size-5 transform rounded-full bg-white shadow transition ${
+                        foreigner ? "translate-x-5" : "translate-x-0.5"
+                      }`}
+                    />
+                  </button>
+                }
+              >
+                <div className="grid grid-cols-2 gap-3">
+                  <Field label="Email" required error={showErrors ? "Email không đúng định dạng." : undefined}>
+                    <Input value={showErrors ? "nguyenvana@" : "nguyenvana@tlu.edu.vn"} icon={<Mail size={15} />} state={showErrors ? "error" : "default"} />
+                  </Field>
+                  <Field label="Số điện thoại" required error={showErrors ? "Số điện thoại là trường bắt buộc." : undefined}>
+                    <Input value={showErrors ? "" : "0987654321"} icon={<Phone size={15} />} state={showErrors ? "error" : "default"} />
+                  </Field>
+                  <div className="col-span-2">
+                    <Field label="Địa chỉ thường trú" required error={showErrors ? "Vui lòng nhập địa chỉ thường trú." : undefined}>
+                      <Input value={showErrors ? "" : "Thanh Trì, Hà Nội"} icon={<MapPin size={15} />} state={showErrors ? "error" : "default"} />
+                    </Field>
+                  </div>
+                  {foreigner ? (
+                    <>
+                      <Field label="Số Visa" required>
+                        <Input placeholder="00-120-019" />
+                      </Field>
+                      <Field label="Ngày hết hạn Visa" required>
+                        <Input placeholder="01/01/2030" icon={<Calendar size={15} />} />
+                      </Field>
+                      <Field label="Số Hộ chiếu" required>
+                        <Input placeholder="00-120-019" />
+                      </Field>
+                      <Field label="Ngày hết hạn Hộ chiếu" required>
+                        <Input placeholder="01/01/2030" icon={<Calendar size={15} />} />
+                      </Field>
+                    </>
+                  ) : (
+                    <div className="col-span-2 rounded-lg border border-dashed border-slate-200 bg-white/60 px-4 py-3 text-[13px] text-slate-500">
+                      Cán bộ là người Việt Nam, không cần khai thông tin Visa và Hộ chiếu.
+                    </div>
+                  )}
+                </div>
+              </SectionCard>
+            </section>
+
+            <section id="work">
+              <div className="space-y-5">
+                <SectionCard
+                  title="Công tác"
+                  description="Gắn cán bộ mới vào đúng đơn vị, chức vụ và loại nhân sự."
+                  icon={<Building2 size={18} />}
+                >
+                  <div className="grid grid-cols-[260px_1fr] gap-4">
+                    <OrgTree />
+                    <div className="grid min-w-0 grid-cols-3 gap-3">
+                      <Field label="Đơn vị công tác" required hint="Được chọn từ cây tổ chức bên trái">
+                        <Select value="Khoa Công nghệ thông tin" state="success" />
+                      </Field>
+                      <Field label="Bộ môn / phòng ban trực thuộc">
+                        <Select value="Bộ môn Công nghệ phần mềm" state="success" />
+                      </Field>
+                      <Field label="Chức vụ hiện tại" required error={showErrors ? "Vui lòng chọn chức vụ hiện tại." : undefined}>
+                        <Select value={showErrors ? "Chưa chọn" : "Giảng viên"} state={showErrors ? "error" : "default"} />
+                      </Field>
+                      <Field label="Loại nhân sự" required>
+                        <Select value="Giảng viên cơ hữu" />
+                      </Field>
+                      <Field label="Ngày bắt đầu công tác" required>
+                        <Input value="01/06/2026" icon={<Calendar size={15} />} />
+                      </Field>
+                      <Field label="Trạng thái hồ sơ" required>
+                        <Select value="Đang hoàn thiện" />
+                      </Field>
+                    </div>
+                  </div>
+                </SectionCard>
+
+                <SectionCard title="Lương và phụ cấp dự kiến" icon={<Banknote size={18} />}>
+                  <div className="grid grid-cols-3 gap-3">
+                    <Field label="Ngạch / hạng chức danh" required>
+                      <Select value="Giảng viên hạng III" />
+                    </Field>
+                    <Field label="Bậc lương" required>
+                      <Select value="Bậc 1" />
+                    </Field>
+                    <Field label="Hệ số lương" required error={showErrors ? "Hệ số lương phải là số lớn hơn 0." : undefined}>
+                      <Input value={showErrors ? "abc" : "2.34"} state={showErrors ? "error" : "success"} />
+                    </Field>
+                    <Field label="Phụ cấp chức vụ">
+                      <Input value="0.00" />
+                    </Field>
+                    <Field label="Phụ cấp thâm niên">
+                      <Input value="0%" />
+                    </Field>
+                    <Field label="Nguồn chi trả" required>
+                      <Select value="Ngân sách nhà trường" />
+                    </Field>
+                  </div>
+                </SectionCard>
+              </div>
+            </section>
+
+            <section id="education">
+              <SectionCard title="Trình độ học vấn" icon={<GraduationCap size={18} />}>
+                <div className="grid grid-cols-4 gap-3">
+                  <Field label="Trình độ văn hóa" required>
+                    <Select value="12/12" />
+                  </Field>
+                  <Field label="Trình độ đào tạo" required>
+                    <Select value="Tiến sĩ" />
+                  </Field>
+                  <Field label="Chức danh nghề nghiệp" required>
+                    <Input value="Tiến sĩ" />
+                  </Field>
+                  <Field label="Học hàm / Học vị" required>
+                    <Input value="Tiến sĩ" />
+                  </Field>
+                </div>
+              </SectionCard>
+            </section>
+
+            <section id="documents">
+              <div className="space-y-5">
+                <SectionCard
+                  title="Tài liệu bắt buộc"
+                  description="Các tài liệu phải có trước khi lưu hồ sơ chính thức."
+                  icon={<FileText size={18} />}
+                >
+                  <div className="grid grid-cols-4 gap-2.5">
+                    {[
+                      ["CCCD/CMND bản scan", "Đã tải lên", "success"],
+                      ["Quyết định tuyển dụng", showErrors ? "Chưa có" : "Đã tải lên", showErrors ? "warn" : "success"],
+                      ["Sơ yếu lý lịch", "Đã tải lên", "success"],
+                      ["Ảnh thẻ 3x4", "Đã tải lên", "success"],
+                    ].map(([name, status, tone]) => (
+                      <div
+                        key={name}
+                        className={`rounded-lg border px-3 py-2.5 ${
+                          tone === "success" ? "border-emerald-200 bg-emerald-50" : "border-amber-200 bg-amber-50"
+                        }`}
+                      >
+                        <div className="text-[12.5px] font-semibold text-slate-900">{name}</div>
+                        <div className={`mt-0.5 text-[12px] ${tone === "success" ? "text-emerald-700" : "text-amber-700"}`}>
+                          {status}
+                        </div>
+                        <div className="mt-2">
+                          <FileButton label={tone === "success" ? "Thay file" : "Tải lên"} />
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </SectionCard>
+
+                  <div className="grid grid-cols-2 gap-4">
+                  <SectionCard
+                    title="Bằng cấp"
+                    icon={<Award size={18} />}
+                    action={
+                      <button
+                        type="button"
+                        onClick={() => setDegrees((items) => [...items, { name: "", place: "" }])}
+                        className="inline-flex items-center gap-1.5 rounded-lg border border-blue-200 bg-white px-2.5 py-1.5 text-[12px] font-medium text-blue-700 hover:bg-blue-50"
+                      >
+                        <Plus size={13} /> Thêm
+                      </button>
+                    }
+                  >
+                    <div className="overflow-hidden rounded-lg border border-slate-200">
+                      <div className="grid grid-cols-[1.1fr_1fr_64px_40px] bg-slate-50 px-3 py-2 text-[11px] font-bold uppercase tracking-wide text-slate-500">
+                        <span>Tên bằng</span>
+                        <span>Nơi cấp</span>
+                        <span>File</span>
+                        <span />
+                      </div>
+                      {degrees.map((d, i) => (
+                        <div key={`${d.name}-${i}`} className="grid grid-cols-[1.1fr_1fr_64px_40px] items-center border-t border-slate-100 px-3 py-2.5 text-[12px]">
+                          <span className="font-medium text-slate-900">{d.name || "Bằng mới"}</span>
+                          <span className="text-slate-600">{d.place || "Chưa nhập"}</span>
+                          <button className="inline-flex h-8 items-center justify-center rounded-md bg-blue-50 px-2 text-[11px] font-semibold text-blue-700">
+                            PDF
+                          </button>
+                          <button
+                            onClick={() => setDegrees((items) => items.filter((_, idx) => idx !== i))}
+                            className="grid size-8 place-items-center rounded-md text-red-500 hover:bg-red-50"
+                            aria-label="Xóa bằng cấp"
+                          >
+                            <Trash2 size={14} />
+                          </button>
+                        </div>
+                      ))}
+                    </div>
+                  </SectionCard>
+
+                  <SectionCard
+                    title="Chứng chỉ"
+                    icon={<FileBadge size={18} />}
+                    optional
+                    action={
+                      <button
+                        type="button"
+                        onClick={() => setCerts((items) => [...items, { name: "", place: "" }])}
+                        className="inline-flex items-center gap-1.5 rounded-lg border border-blue-200 bg-white px-2.5 py-1.5 text-[12px] font-medium text-blue-700 hover:bg-blue-50"
+                      >
+                        <Plus size={13} /> Thêm
+                      </button>
+                    }
+                  >
+                    <div className="overflow-hidden rounded-lg border border-slate-200">
+                      <div className="grid grid-cols-[1.1fr_1fr_64px_40px] bg-slate-50 px-3 py-2 text-[11px] font-bold uppercase tracking-wide text-slate-500">
+                        <span>Tên chứng chỉ</span>
+                        <span>Nơi cấp</span>
+                        <span>File</span>
+                        <span />
+                      </div>
+                      {certs.map((c, i) => (
+                        <div key={`${c.name}-${i}`} className="grid grid-cols-[1.1fr_1fr_64px_40px] items-center border-t border-slate-100 px-3 py-2.5 text-[12px]">
+                          <span className="font-medium text-slate-900">{c.name || "Chứng chỉ mới"}</span>
+                          <span className="text-slate-600">{c.place || "Chưa nhập"}</span>
+                          <button className="inline-flex h-8 items-center justify-center rounded-md bg-blue-50 px-2 text-[11px] font-semibold text-blue-700">
+                            PDF
+                          </button>
+                          <button
+                            onClick={() => setCerts((items) => items.filter((_, idx) => idx !== i))}
+                            className="grid size-8 place-items-center rounded-md text-red-500 hover:bg-red-50"
+                            aria-label="Xóa chứng chỉ"
+                          >
+                            <Trash2 size={14} />
+                          </button>
+                        </div>
+                      ))}
+                    </div>
+                  </SectionCard>
+                </div>
+              </div>
+            </section>
+          </main>
+
+        </div>
+      </div>
+
+      <div className="flex items-center justify-between gap-3 border-t border-slate-200 bg-white px-6 py-3.5">
+        <div className="flex items-center gap-2 text-[12.5px] text-slate-500">
+          {hasErrors ? (
+            <span className="inline-flex items-center gap-1 text-red-700">
+              <AlertCircle size={14} /> Vui lòng sửa các trường đang báo lỗi trước khi lưu chính thức.
+            </span>
+          ) : (
+            <span className="inline-flex items-center gap-1 text-emerald-700">
+              <CheckCircle2 size={14} /> Form đã được kiểm tra, có thể lưu hồ sơ.
+            </span>
+          )}
+        </div>
+        <div className="flex items-center gap-2">
+          <button
+            onClick={onClose}
+            className="rounded-lg border border-slate-200 bg-white px-4 py-2 text-[13px] font-medium text-slate-700 hover:bg-slate-50"
+          >
+            Hủy
+          </button>
+          <button className="inline-flex items-center gap-1.5 rounded-lg border border-slate-200 bg-white px-4 py-2 text-[13px] font-medium text-slate-700 hover:bg-slate-50">
+            <Save size={15} /> Lưu nháp
+          </button>
+          <button
+            onClick={() => {
+              if (!hasErrors) {
+                onSave();
+              }
+            }}
+            disabled={hasErrors}
+            className={`inline-flex items-center gap-1.5 rounded-lg px-4 py-2 text-[13px] font-semibold text-white ${
+              hasErrors ? "cursor-not-allowed bg-slate-300" : "bg-blue-700 hover:bg-blue-800"
+            }`}
+          >
+            <UserPlus size={15} /> Lưu hồ sơ chính thức
+          </button>
+        </div>
+      </div>
+    </div>
   );
 }
 
@@ -1041,6 +1624,30 @@ export default function App() {
                 </div>
 
                 <div className="absolute inset-0 flex items-start justify-center p-6 pt-7">
+                  <LargePersonnelForm
+                    foreigner={foreigner}
+                    setForeigner={setForeigner}
+                    duplicateId={duplicateId}
+                    setDuplicateId={setDuplicateId}
+                    showErrors={!!validationAttempted[0]}
+                    setShowErrors={(value) =>
+                      setValidationAttempted((current) => ({
+                        ...current,
+                        0: value,
+                        1: value,
+                        2: value,
+                        3: value,
+                        4: value,
+                      }))
+                    }
+                    degrees={degrees}
+                    setDegrees={setDegrees}
+                    certs={certs}
+                    setCerts={setCerts}
+                    onClose={closeModal}
+                    onSave={() => setSaved(true)}
+                  />
+                  {false ? (
               <div className="flex h-[calc(100vh-112px)] w-full max-w-[1180px] flex-col overflow-hidden rounded-2xl bg-white shadow-2xl ring-1 ring-slate-200">
                 {/* Modal header */}
                 <div className="flex items-center justify-between border-b border-slate-200 px-6 py-4">
@@ -1686,6 +2293,7 @@ export default function App() {
                   </div>
                 </div>
               </div>
+                  ) : null}
                 </div>
               </>
             ) : (
