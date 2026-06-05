@@ -111,12 +111,5 @@ Nội dung:
 - Cảnh báo: “Thao tác này sẽ ảnh hưởng đến tài khoản và trạng thái hợp đồng.”
 - Nút “Hủy” và nút đỏ “Xác nhận thôi việc”.
 
-Frame 05: “05_Storyboard_HoSo”
-Tạo storyboard 3 bước:
-1. Chuyên viên mở danh sách hồ sơ, nhập từ khóa và lọc theo đơn vị.
-2. Chuyên viên chọn một hồ sơ để xem chi tiết theo tab.
-3. Chuyên viên mở wizard thêm hồ sơ, nhập thông tin và lưu.
-
-Mỗi bước storyboard cần có caption ngắn, số thứ tự rõ ràng và hình giao diện minh họa.
 ```
 

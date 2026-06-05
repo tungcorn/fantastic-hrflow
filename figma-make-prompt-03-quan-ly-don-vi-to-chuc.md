@@ -9,21 +9,6 @@ Hãy tạo giao diện web app cho nhiệm vụ “Quản lý đơn vị tổ ch
 
 Mục tiêu: Thiết kế đầy đủ các màn hình để Quản trị viên hoặc Phòng Tổ chức - Cán bộ quản lý cây cơ cấu tổ chức, xem chi tiết đơn vị, thêm đơn vị con, sửa đơn vị, sáp nhập và giải thể đơn vị.
 
-Phong cách chung:
-- Giao diện tiếng Việt có dấu đầy đủ.
-- Desktop frame: 1440 x 1024.
-- Phong cách web admin dashboard hiện đại, rõ ràng.
-- Màu chủ đạo: xanh dương đậm, trắng, xám nhạt.
-- Cây tổ chức phải trực quan, dễ phân cấp.
-- Màu đỏ dùng cho thao tác “Giải thể”, màu cam dùng cho “Sáp nhập”.
-
-Layout chung:
-- Sidebar trái rộng khoảng 260px, nền xanh dương đậm.
-- Logo chữ: “TLU HRMS”.
-- Menu sidebar gồm: Tổng quan, Hồ sơ nhân sự, Hợp đồng lao động, Cơ cấu tổ chức, Tài khoản & phân quyền, Đào tạo, Báo cáo, Nhật ký hệ thống, Cài đặt.
-- Menu “Cơ cấu tổ chức” đang được chọn.
-- Topbar có breadcrumb “Trang chủ / Cơ cấu tổ chức”, ô tìm kiếm nhanh, icon thông báo, avatar và tên người dùng “Admin CNTT - Quản trị viên”.
-
 Frame 01: “01_DonVi_CoCauToChuc”
 Thiết kế màn hình “Cơ cấu tổ chức”.
 
@@ -123,12 +108,5 @@ Nội dung:
 - Nút “Hủy”.
 - Nút đỏ “Xác nhận giải thể”.
 
-Frame 06: “06_Storyboard_DonVi”
-Tạo storyboard 3 bước:
-1. Người dùng chọn đơn vị trong cây cơ cấu tổ chức.
-2. Người dùng thêm đơn vị con từ panel chi tiết.
-3. Người dùng xác nhận sáp nhập hoặc giải thể bằng modal cảnh báo.
-
-Mỗi bước storyboard cần có caption ngắn, số thứ tự rõ ràng và hình giao diện minh họa.
 ```
 

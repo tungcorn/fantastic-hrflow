@@ -9,21 +9,6 @@ Hãy tạo giao diện web app cho nhiệm vụ “Quản lý tài khoản và p
 
 Mục tiêu: Thiết kế đầy đủ các màn hình để Quản trị viên tìm kiếm tài khoản, thêm tài khoản, sửa thông tin, phân quyền, khóa/mở khóa, đặt lại mật khẩu và xem nhật ký tài khoản.
 
-Phong cách chung:
-- Giao diện tiếng Việt có dấu đầy đủ.
-- Desktop frame: 1440 x 1024.
-- Phong cách web admin dashboard hiện đại, rõ ràng, ưu tiên bảo mật và kiểm soát.
-- Màu chủ đạo: xanh dương đậm, trắng, xám nhạt.
-- Màu đỏ cho thao tác khóa tài khoản hoặc quyền nhạy cảm.
-- Badge vai trò và trạng thái phải dễ nhận biết.
-
-Layout chung:
-- Sidebar trái rộng khoảng 260px, nền xanh dương đậm.
-- Logo chữ: “TLU HRMS”.
-- Menu sidebar gồm: Tổng quan, Hồ sơ nhân sự, Hợp đồng lao động, Cơ cấu tổ chức, Tài khoản & phân quyền, Đào tạo, Báo cáo, Nhật ký hệ thống, Cài đặt.
-- Menu “Tài khoản & phân quyền” đang được chọn.
-- Topbar có breadcrumb “Trang chủ / Tài khoản & phân quyền”, ô tìm kiếm nhanh, icon thông báo, avatar và tên người dùng “Admin CNTT - Quản trị viên”.
-
 Frame 01: “01_TaiKhoan_DanhSach”
 Thiết kế màn hình “Quản lý tài khoản người dùng”.
 
@@ -128,12 +113,5 @@ Nội dung:
   - Khóa/mở khóa.
 - Mỗi dòng có thời gian, người thực hiện, địa chỉ IP, mô tả thay đổi.
 
-Frame 07: “07_Storyboard_TaiKhoan”
-Tạo storyboard 3 bước:
-1. Admin tìm tài khoản theo tên, email hoặc vai trò.
-2. Admin sửa vai trò và xem phạm vi quyền trước khi lưu.
-3. Admin khóa tài khoản và ghi lý do khóa.
-
-Mỗi bước storyboard cần có caption ngắn, số thứ tự rõ ràng và hình giao diện minh họa.
 ```
 
