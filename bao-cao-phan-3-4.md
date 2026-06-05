@@ -1,214 +1,338 @@
-# III. PHÁC HỌA THIẾT KẾ
+# III. PHÁC HỌA THIẾT KẾ THEO LUỒNG HOẠT ĐỘNG
 
-## 3.1. Thiết kế tổng quan
+Phần này viết lại luồng hoạt động theo hướng có thể dùng trực tiếp cho thiết kế giao diện. Thay vì chỉ mô tả chức năng, mỗi nhiệm vụ được tách thành: người sử dụng, mục tiêu, tiền điều kiện, màn hình cần thiết, thao tác của người sử dụng, phản hồi của hệ thống và các trạng thái ngoại lệ. Cách trình bày này giúp người thiết kế UI xác định rõ từng khung màn hình, thành phần điều khiển và trạng thái cần phác họa trong prototype.
 
-Trong giai đoạn phác họa thiết kế, nhóm tập trung vào 5 nhiệm vụ chính của hệ thống HRMS. Các nhiệm vụ này thuộc hai nghiệp vụ lõi: quản lý hồ sơ nhân sự và quản lý hợp đồng lao động. Đây là các luồng thao tác được Phòng Tổ chức - Cán bộ sử dụng thường xuyên, có dữ liệu liên quan trực tiếp đến trạng thái làm việc, hợp đồng, đơn vị công tác và các bước xử lý nhân sự tiếp theo.
+## 3.1. Nguyên tắc phác họa chung
 
-5 nhiệm vụ được chọn gồm:
+Hệ thống được phác họa theo mô hình ứng dụng web nội bộ cho công tác quản trị nhân sự. Các màn hình nghiệp vụ sử dụng cùng một cấu trúc để người sử dụng không phải học lại cách thao tác khi chuyển giữa các module.
 
-| STT | Nhiệm vụ | Người dùng chính | Mục tiêu thiết kế |
-| --- | --- | --- | --- |
-| 1 | Xem/Tìm kiếm danh sách hồ sơ nhân sự | Phòng TCCB, Phòng TCKT | Giúp người dùng tra cứu nhanh hồ sơ theo từ khóa và bộ lọc. |
-| 2 | Thêm hồ sơ nhân sự | Phòng TCCB | Hỗ trợ nhập hồ sơ mới theo từng bước, giảm thiếu sót dữ liệu. |
-| 3 | Xem/Tìm kiếm danh sách hợp đồng | Phòng TCCB | Theo dõi tình trạng hợp đồng, phát hiện hợp đồng sắp hết hạn. |
-| 4 | Thêm hợp đồng | Phòng TCCB | Tạo hợp đồng lao động mới, kiểm tra ràng buộc nghiệp vụ trước khi lưu. |
-| 5 | Gia hạn hợp đồng | Phòng TCCB | Tạo hợp đồng kế tiếp cho hợp đồng sắp hết hạn, tránh gián đoạn hiệu lực. |
+| Thành phần | Mô tả thiết kế | Ý nghĩa đối với luồng hoạt động |
+|---|---|---|
+| Sidebar trái | Hiển thị các module: Hồ sơ nhân sự, Hợp đồng lao động, Cơ cấu tổ chức, Tài khoản và phân quyền, Báo cáo | Cho biết người sử dụng đang ở module nào và có thể chuyển nhanh sang module liên quan |
+| Header trên | Chứa breadcrumb, tiêu đề nghiệp vụ, tìm kiếm nhanh và thông tin tài khoản | Giữ ngữ cảnh thao tác, đặc biệt khi người dùng mở dialog hoặc panel phụ |
+| Vùng nội dung chính | Hiển thị thẻ thống kê, bộ lọc, bảng dữ liệu, form nhập liệu hoặc wizard | Là nơi thực hiện từng bước của nhiệm vụ |
+| Màu sắc trạng thái | Xanh dương cho hành động chính, xanh lá cho thành công, vàng/cam cho cảnh báo, đỏ cho lỗi/nguy hiểm | Giúp người sử dụng nhận biết nhanh trạng thái xử lý và mức độ ưu tiên |
+| Phản hồi hệ thống | Toast, cảnh báo inline, empty state, dialog xác nhận, màn hình thành công | Đảm bảo mỗi thao tác đều có kết quả rõ ràng để tiếp tục bước kế tiếp |
 
-Thiết kế giao diện được xây dựng theo hướng web app quản trị nội bộ. Mỗi màn hình có cấu trúc thống nhất gồm: thanh điều hướng bên trái, thanh tiêu đề phía trên, vùng nội dung chính, bảng dữ liệu, bộ lọc và các nút thao tác chính. Các nghiệp vụ nhập liệu phức tạp như thêm hồ sơ, thêm hợp đồng và gia hạn hợp đồng được thiết kế dưới dạng hộp thoại lớn hoặc wizard nhiều bước để người dùng tập trung vào nhiệm vụ hiện tại mà vẫn nhìn được ngữ cảnh từ màn hình danh sách phía sau.
+Năm nhiệm vụ được chọn để phác họa gồm:
 
-Về nguyên tắc tương tác, nhóm ưu tiên ba yếu tố: hiển thị rõ trạng thái nghiệp vụ bằng badge màu, đặt nút hành động tại đúng vị trí người dùng cần thao tác, và kiểm tra lỗi ngay trên form thay vì để người dùng nhập xong mới phát hiện sai. Các trạng thái như "Đang hoạt động", "Đã thôi việc", "Chờ gia hạn", "Còn hiệu lực", "Sắp hết hạn" và "Hết hiệu lực" được thể hiện bằng nhãn màu để người dùng có thể quét bảng nhanh.
+1. Xem và tìm kiếm danh sách hồ sơ nhân sự.
+2. Thêm hồ sơ nhân sự.
+3. Xem và tìm kiếm danh sách hợp đồng lao động.
+4. Thêm hợp đồng lao động.
+5. Gia hạn hợp đồng lao động.
 
-## 3.2. Thiết kế kịch bản mẫu
+## 3.2. Bản đồ màn hình cần thiết
 
-### 3.2.1. Nhiệm vụ 1: Xem/Tìm kiếm danh sách hồ sơ nhân sự
+| Mã màn hình | Tên màn hình | Nhiệm vụ liên quan | Thành phần UI cần có |
+|---|---|---|---|
+| HS-01 | Danh sách hồ sơ nhân sự | Xem/tìm kiếm hồ sơ, bắt đầu thêm hồ sơ | Thẻ thống kê, ô tìm kiếm, bộ lọc nâng cao, bảng hồ sơ, nút Thêm hồ sơ nhân sự |
+| HS-02 | Dialog chọn cách thêm hồ sơ | Thêm hồ sơ nhân sự | Menu Thêm thủ công, Nhập từ Excel, hướng dẫn ngắn về mỗi cách |
+| HS-03 | Wizard thêm hồ sơ nhân sự | Thêm hồ sơ nhân sự | Stepper 6 bước, form thông tin, nút Tiếp tục, Quay lại, Lưu nháp, Lưu hồ sơ chính thức |
+| HS-04 | Màn hình kết quả thêm hồ sơ | Thêm hồ sơ nhân sự | Mã viên chức được tạo, trạng thái hồ sơ, hành động xem hồ sơ hoặc thêm tiếp |
+| HĐ-01 | Danh sách hợp đồng lao động | Xem/tìm kiếm hợp đồng, bắt đầu tạo/gia hạn | Thẻ thống kê, cảnh báo sắp hết hạn, bộ lọc, bảng hợp đồng, nút Tạo hợp đồng |
+| HĐ-02 | Dialog tạo hợp đồng | Thêm hợp đồng lao động | Form chọn nhân sự, loại hợp đồng, ngày ký, ngày hiệu lực, lương, đơn vị, tệp PDF |
+| HĐ-03 | Dialog gia hạn hợp đồng | Gia hạn hợp đồng lao động | Thông tin hợp đồng cũ, gợi ý hợp đồng mới, ngày bắt đầu/kết thúc, tệp quyết định, cảnh báo |
+| HĐ-04 | Trạng thái lỗi/xác nhận hợp đồng | Thêm/gia hạn hợp đồng | Lỗi trùng thời gian, quá số lần ký, thiếu tệp, dialog xác nhận, toast thành công |
 
-**Mục tiêu.** Nhiệm vụ này giúp chuyên viên Phòng TCCB hoặc Phòng TCKT xem danh sách hồ sơ nhân sự và tìm nhanh hồ sơ cần tra cứu theo tên, mã nhân sự, đơn vị công tác, học hàm/học vị, trạng thái hợp đồng hoặc trạng thái làm việc.
+## 3.3. Luồng 1 - Xem và tìm kiếm danh sách hồ sơ nhân sự
 
 ![Phác họa màn hình danh sách hồ sơ nhân sự](.figma-review/01-danh-sach-ho-so.png)
 
-**Cửa sổ chính.** Màn hình "Hồ sơ nhân sự" là cửa sổ danh sách dạng bảng. Phần bên trái là cây thực đơn của nhóm chức năng nhân sự, gồm: Hồ sơ nhân sự, Hệ số lương, Phụ cấp, Hợp đồng và Thống kê. Mục "Hồ sơ nhân sự" được tô nổi để cho biết người dùng đang ở đúng module.
+| Thuộc tính | Nội dung |
+|---|---|
+| Người sử dụng chính | Phòng TCCB; Phòng TCKT có thể xem và tìm kiếm để đối chiếu thông tin |
+| Mục tiêu | Tìm đúng hồ sơ nhân sự theo từ khóa hoặc bộ lọc nghiệp vụ trong thời gian ngắn |
+| Tiền điều kiện | Người sử dụng đã đăng nhập và có quyền truy cập module Hồ sơ nhân sự |
+| Điểm bắt đầu | Sidebar > Hồ sơ nhân sự |
+| Kết quả mong đợi | Danh sách hiển thị đúng các hồ sơ phù hợp; người sử dụng có thể mở chi tiết, sửa hồ sơ hoặc bắt đầu thêm mới |
 
-**Vùng tìm kiếm và lọc.** Phía trên bảng có ô tìm kiếm nhanh và các bộ lọc dạng dropdown: Đơn vị công tác, Học hàm/học vị, Hợp đồng và Trạng thái. Thiết kế này hỗ trợ cả tìm kiếm theo từ khóa và lọc đa tiêu chí. Khi người dùng nhập từ khóa hoặc chọn bộ lọc, bảng bên dưới được cập nhật để chỉ hiển thị các hồ sơ phù hợp.
+| Bước | Màn hình/trạng thái | Thao tác của người sử dụng | Phản hồi của hệ thống | Gợi ý thiết kế UI |
+|---|---|---|---|---|
+| 1 | HS-01 - Danh sách mặc định | Mở module Hồ sơ nhân sự | Hiển thị tổng số hồ sơ, số đang làm việc, số sắp hết hợp đồng và bảng dữ liệu mới nhất | Cần có breadcrumb và tiêu đề rõ ràng để người dùng biết đang ở danh sách hồ sơ |
+| 2 | HS-01 - Tìm kiếm nhanh | Nhập tên, mã viên chức, CCCD, email hoặc số điện thoại vào ô tìm kiếm | Danh sách cập nhật theo từ khóa; phần trùng khớp nên được làm nổi bật | Ô tìm kiếm đặt trên bộ lọc, có placeholder nêu rõ loại dữ liệu có thể nhập |
+| 3 | HS-01 - Bộ lọc nâng cao | Chọn đơn vị, học hàm/học vị, vai trò trong đơn vị, trạng thái làm việc, trạng thái hợp đồng hoặc giới tính | Bảng dữ liệu chỉ hiển thị các hồ sơ thỏa điều kiện | Bộ lọc nên đặt trong panel/dropdown, có chip tóm tắt bộ lọc đang áp dụng |
+| 4 | HS-01 - Kết quả rỗng | Từ khóa hoặc bộ lọc không có kết quả | Hiển thị empty state kèm gợi ý xóa bộ lọc hoặc thêm hồ sơ mới | Empty state cần có thông điệp rõ: Không tìm thấy hồ sơ phù hợp |
+| 5 | HS-01 - Chọn bản ghi | Bấm vào dòng hồ sơ hoặc nút Xem | Mở chi tiết hồ sơ/panel thông tin để tiếp tục xem hoặc chỉnh sửa | Dòng dữ liệu cần có hover state và hành động rõ ràng |
 
-**Bảng dữ liệu.** Bảng hồ sơ hiển thị các cột quan trọng: Mã NS, Họ tên, Đơn vị công tác, Học hàm/Học vị, Chức vụ, Hợp đồng và Trạng thái. Các trạng thái được biểu diễn bằng badge màu để người dùng dễ nhận biết hồ sơ nào đang hoạt động, đã thôi việc hoặc đang chờ gia hạn hợp đồng.
+Ngoại lệ cần thiết kế:
 
-**Chức năng chính.** Người dùng có thể tìm kiếm, lọc, chuyển trang, xem trạng thái hồ sơ và nhấn biểu tượng chỉnh sửa ở từng dòng. Nút "Thêm hồ sơ nhân sự" ở góc phải phía trên là điểm chuyển sang nhiệm vụ 2.
+- Nếu người sử dụng không có quyền xem một nhóm hồ sơ, hệ thống không hiển thị dữ liệu ngoài phạm vi quyền.
+- Nếu hệ thống đang tải dữ liệu, bảng cần có loading skeleton để tránh hiểu nhầm là không có dữ liệu.
+- Nếu bộ lọc có quá nhiều điều kiện, giao diện cần có nút Xóa bộ lọc để quay về danh sách ban đầu.
 
-### 3.2.2. Nhiệm vụ 2: Thêm hồ sơ nhân sự
-
-**Mục tiêu.** Nhiệm vụ này giúp Phòng TCCB tạo mới hồ sơ nhân sự đầy đủ, đúng định dạng và có thể lưu nháp trong quá trình nhập. Hệ thống cần kiểm tra thông tin bắt buộc, tự sinh mã cán bộ và gán trạng thái ban đầu cho hồ sơ.
+## 3.4. Luồng 2 - Thêm hồ sơ nhân sự
 
 ![Phác họa hộp thoại thêm hồ sơ nhân sự](.figma-review/02-them-ho-so.png)
 
-**Hộp thoại/wizard.** Khi người dùng nhấn "Thêm hồ sơ nhân sự" từ màn hình danh sách, hệ thống mở hộp thoại lớn trên nền danh sách. Hộp thoại được thiết kế như một wizard gồm 6 bước: Thông tin định danh, Liên hệ & quốc tịch, Công tác & lương, Trình độ học vấn, Tài liệu đính kèm, Xem lại & xác nhận. Cách chia bước giúp biểu mẫu dài trở nên dễ kiểm soát hơn.
+| Thuộc tính | Nội dung |
+|---|---|
+| Người sử dụng chính | Phòng TCCB |
+| Mục tiêu | Tạo hồ sơ nhân sự mới và sinh mã viên chức chính thức sau khi dữ liệu hợp lệ |
+| Tiền điều kiện | Người sử dụng đã đăng nhập; có quyền thêm hồ sơ; nhân sự chưa tồn tại trong hệ thống |
+| Điểm bắt đầu | HS-01 > nút Thêm hồ sơ nhân sự |
+| Kết quả mong đợi | Hệ thống tạo hồ sơ mới, gán mã viên chức, trạng thái hợp đồng ban đầu là Chưa hợp đồng và trạng thái xét duyệt là Đang chờ xét |
 
-**Thanh tiến trình.** Phần đầu hộp thoại hiển thị tiến độ nhập liệu. Bước hiện tại được tô nổi, bước đã hoàn thành có trạng thái rõ ràng. Người dùng biết mình đang ở bước nào và còn bao nhiêu phần cần hoàn tất.
+| Bước | Màn hình/trạng thái | Thao tác của người sử dụng | Phản hồi của hệ thống | Gợi ý thiết kế UI |
+|---|---|---|---|---|
+| 1 | HS-02 - Chọn cách thêm | Bấm nút Thêm hồ sơ nhân sự | Hiển thị menu gồm Thêm thủ công và Nhập từ Excel | Menu cần đặt gần nút chính, mô tả ngắn ưu điểm của từng cách |
+| 2 | HS-03 - Bước 1: Thông tin định danh | Chọn Thêm thủ công, nhập họ tên, ngày sinh, giới tính, CCCD, ngày cấp, nơi cấp | Kiểm tra trường bắt buộc và cảnh báo nếu CCCD đã tồn tại | Cần có validate inline ngay tại trường lỗi, không đợi đến cuối wizard |
+| 3 | HS-03 - Bước 2: Liên hệ và quốc tịch | Nhập địa chỉ, email, số điện thoại, quốc tịch; nếu là người nước ngoài thì nhập hộ chiếu/thị thực/giấy phép lao động | Hiển thị thêm nhóm trường cho nhân sự nước ngoài khi bật toggle tương ứng | Toggle người nước ngoài cần làm thay đổi form một cách dễ nhận biết |
+| 4 | HS-03 - Bước 3: Công tác và lương | Chọn đơn vị, vị trí, chức danh, loại nhân sự, ngày bắt đầu, bậc/hệ số lương | Hệ thống gán người dùng vào đơn vị được chọn và kiểm tra ngày bắt đầu hợp lệ | Nên có cây đơn vị hoặc combobox có tìm kiếm để chọn đơn vị |
+| 5 | HS-03 - Bước 4: Trình độ/đào tạo | Nhập học hàm, học vị, chuyên môn, quá trình đào tạo | Lưu tạm dữ liệu và cập nhật tiến độ wizard | Stepper cần cho biết bước đã hoàn thành, bước đang làm và bước còn thiếu |
+| 6 | HS-03 - Bước 5: Tài liệu | Tải lên CCCD, sơ yếu lý lịch, bằng cấp và quyết định tuyển dụng | Hiển thị trạng thái đã tải/chưa tải của từng tài liệu; cảnh báo tài liệu bắt buộc còn thiếu | Danh sách tài liệu nên có badge Bắt buộc/Tùy chọn |
+| 7 | HS-03 - Bước 6: Xem lại và xác nhận | Kiểm tra thông tin tổng hợp, bấm Lưu hồ sơ chính thức | Hệ thống tạo mã viên chức và lưu hồ sơ | Nút Lưu hồ sơ chính thức chỉ nên bật khi các trường bắt buộc hợp lệ |
+| 8 | HS-04 - Thành công | Chọn Xem hồ sơ vừa tạo hoặc Thêm hồ sơ khác | Điều hướng về chi tiết hồ sơ hoặc reset wizard | Màn hình thành công cần hiển thị mã viên chức để người dùng đối chiếu |
 
-**Vùng nhập liệu.** Mỗi bước chỉ hiển thị nhóm trường liên quan. Ví dụ ở bước "Liên hệ & quốc tịch", hệ thống hiển thị Email, Số điện thoại, Địa chỉ thường trú và tùy chọn "Người nước ngoài". Nếu bật tùy chọn người nước ngoài, form có thể mở rộng thêm các trường visa, hộ chiếu hoặc giấy phép lao động theo đúng dữ liệu nghiệp vụ cần quản lý.
+Nhánh thay thế - Nhập từ Excel:
 
-**Chức năng chính.** Hộp thoại có các nút Quay lại, Lưu nháp và Tiếp tục. Thiết kế có trạng thái "Đã lưu nháp" ở phía trên để giảm lo lắng khi nhập hồ sơ dài. Các trường bắt buộc được đánh dấu bằng dấu sao, giúp người dùng biết dữ liệu nào cần nhập trước khi chuyển bước hoặc lưu hồ sơ.
+| Bước | Thao tác | Phản hồi hệ thống | Trạng thái UI cần có |
+|---|---|---|---|
+| 1 | Chọn Nhập từ Excel | Hiển thị màn hình tải file mẫu và upload file | Khu vực kéo thả file, nút Tải file mẫu |
+| 2 | Tải file Excel | Hệ thống đọc file và kiểm tra cột/dữ liệu | Loading state trong lúc kiểm tra |
+| 3 | Xem kết quả kiểm tra | Hiển thị số dòng hợp lệ, số dòng lỗi, danh sách lỗi | Bảng lỗi có cột dòng, trường lỗi, nội dung lỗi |
+| 4 | Chọn nhập toàn bộ hoặc nhập các dòng hợp lệ | Tạo hồ sơ cho các dòng hợp lệ; cho phép tải file lỗi | Success summary và nút Tải danh sách lỗi |
 
-### 3.2.3. Nhiệm vụ 3: Xem/Tìm kiếm danh sách hợp đồng
+Ngoại lệ cần thiết kế:
 
-**Mục tiêu.** Nhiệm vụ này giúp Phòng TCCB theo dõi toàn bộ hợp đồng lao động, tìm kiếm hợp đồng theo mã cán bộ, họ tên hoặc số hợp đồng, đồng thời ưu tiên xử lý các hợp đồng sắp hết hạn. Thiết kế sử dụng màn hình danh sách hợp đồng tổng hợp để người dùng quản lý tập trung các trạng thái hợp đồng.
+- CCCD, email hoặc số điện thoại trùng với hồ sơ đã có: hiển thị cảnh báo và chặn lưu chính thức.
+- Thiếu trường bắt buộc: hiển thị lỗi inline, đánh dấu bước chưa hợp lệ trên stepper.
+- Người sử dụng đóng wizard khi đang nhập: hiển thị dialog hỏi Lưu nháp hay Hủy thay đổi.
+- File Excel sai cấu trúc: hiển thị thông báo lỗi file và liên kết tải file mẫu đúng.
+
+## 3.5. Luồng 3 - Xem và tìm kiếm danh sách hợp đồng lao động
 
 ![Phác họa màn hình danh sách hợp đồng lao động](.figma-review/03-danh-sach-hop-dong.png)
 
-**Cửa sổ chính.** Màn hình "Hợp đồng lao động" sử dụng bố cục dashboard kết hợp bảng dữ liệu. Cây thực đơn bên trái gồm Tổng quan, Hồ sơ nhân sự, Hợp đồng lao động, Cơ cấu tổ chức, Tài khoản & phân quyền. Mục "Hợp đồng lao động" được tô nổi.
+| Thuộc tính | Nội dung |
+|---|---|
+| Người sử dụng chính | Phòng TCCB |
+| Mục tiêu | Theo dõi toàn bộ hợp đồng, phát hiện hợp đồng sắp hết hạn và chọn hợp đồng cần xử lý |
+| Tiền điều kiện | Người sử dụng đã đăng nhập và có quyền xem module Hợp đồng lao động |
+| Điểm bắt đầu | Sidebar > Hợp đồng lao động |
+| Kết quả mong đợi | Danh sách hợp đồng được lọc đúng theo nhu cầu; hợp đồng sắp hết hạn được nhận diện nhanh để gia hạn |
 
-**Khu vực tổng quan.** Phần đầu nội dung chính có các thẻ thống kê: Hợp đồng còn hiệu lực, Sắp hết hạn trong 30 ngày, Chờ gia hạn và Đã hết hiệu lực. Các con số này giúp chuyên viên nhận diện nhanh khối lượng công việc cần xử lý.
+| Bước | Màn hình/trạng thái | Thao tác của người sử dụng | Phản hồi của hệ thống | Gợi ý thiết kế UI |
+|---|---|---|---|---|
+| 1 | HĐ-01 - Dashboard hợp đồng | Mở module Hợp đồng lao động | Hiển thị thẻ thống kê tổng hợp và bảng hợp đồng | Các thẻ thống kê nên đặt trước bộ lọc để tạo tổng quan nhanh |
+| 2 | HĐ-01 - Cảnh báo sắp hết hạn | Quan sát banner cảnh báo hợp đồng sắp hết hạn trong 30 ngày | Hiển thị số lượng hợp đồng cần xử lý và nút lọc nhanh | Banner màu vàng/cam, nội dung ngắn gọn và có hành động Lọc ngay |
+| 3 | HĐ-01 - Tìm kiếm/bộ lọc | Nhập tên/mã nhân sự/số hợp đồng; chọn loại hợp đồng, trạng thái, khoảng ngày, đơn vị | Bảng hợp đồng cập nhật theo điều kiện | Bộ lọc cần giữ trạng thái đã chọn khi người dùng mở dialog xử lý rồi quay lại |
+| 4 | HĐ-01 - Bảng hợp đồng | Sắp xếp theo ngày hết hạn hoặc trạng thái | Hợp đồng sắp hết hạn nằm ở vị trí dễ thấy, badge trạng thái được cập nhật | Cột Ngày hết hạn và Trạng thái cần dễ quét bằng mắt |
+| 5 | HĐ-01 - Chọn hành động | Bấm Xem, Gia hạn hoặc Tạo hợp đồng | Mở màn hình/dialog tương ứng | Hành động nguy hiểm hoặc có điều kiện cần được vô hiệu hóa khi không hợp lệ |
 
-**Cảnh báo nghiệp vụ.** Bên dưới các thẻ thống kê có banner cảnh báo "12 hợp đồng sắp hết hạn trong 30 ngày". Đây là điểm nhấn quan trọng của thiết kế vì pain point của người dùng là trước đây không có cảnh báo hợp đồng sắp hết hạn.
+Ngoại lệ cần thiết kế:
 
-**Vùng tìm kiếm và lọc.** Màn hình có ô tìm kiếm nhanh và các bộ lọc: Loại hợp đồng, Trạng thái, Ngày hết hạn, Đơn vị. Người dùng có thể kết hợp nhiều tiêu chí để thu hẹp danh sách.
+- Không có hợp đồng phù hợp bộ lọc: hiển thị empty state và nút xóa bộ lọc.
+- Hợp đồng đã hết hiệu lực: không hiển thị hành động Gia hạn trực tiếp nếu quy định nghiệp vụ không cho phép.
+- Dữ liệu đang tải: bảng hợp đồng hiển thị skeleton/loading và không cho thao tác dòng.
 
-**Bảng dữ liệu và thao tác.** Bảng hiển thị Số hợp đồng, Mã cán bộ, Họ tên, Loại hợp đồng, Ngày hiệu lực, Ngày hết hạn, Trạng thái, Số ngày còn lại và Thao tác. Ở mỗi dòng có các thao tác Xem, Gia hạn và Chấm dứt. Điều này giúp nhiệm vụ xem danh sách liên kết trực tiếp sang nhiệm vụ thêm/gia hạn/chấm dứt hợp đồng.
-
-### 3.2.4. Nhiệm vụ 4: Thêm hợp đồng
-
-**Mục tiêu.** Nhiệm vụ này cho phép Phòng TCCB tạo hợp đồng lao động mới cho một nhân sự đã có hồ sơ. Hệ thống phải kiểm tra điều kiện tạo hợp đồng, kiểm tra thời gian hiệu lực, loại hợp đồng, số lần ký và file đính kèm.
+## 3.6. Luồng 4 - Thêm hợp đồng lao động
 
 ![Phác họa hộp thoại tạo hợp đồng](.figma-review/04-tao-hop-dong.png)
 
-**Hộp thoại tạo hợp đồng.** Khi người dùng nhấn "Tạo hợp đồng" từ màn hình hợp đồng, hệ thống mở hộp thoại lớn. Hộp thoại gồm tiêu đề, mô tả ngắn, vùng cảnh báo, form nhập liệu và vùng thông tin nhân sự liên kết.
+| Thuộc tính | Nội dung |
+|---|---|
+| Người sử dụng chính | Phòng TCCB |
+| Mục tiêu | Tạo hợp đồng lao động mới cho một nhân sự đã có hồ sơ trong hệ thống |
+| Tiền điều kiện | Hồ sơ nhân sự đã tồn tại; nhân sự đủ điều kiện ký hợp đồng; người sử dụng có tệp hợp đồng PDF/quyết định liên quan |
+| Điểm bắt đầu | HĐ-01 > nút Tạo hợp đồng |
+| Kết quả mong đợi | Hợp đồng mới được tạo, có trạng thái phù hợp và cập nhật trạng thái hợp đồng của hồ sơ nhân sự |
 
-**Vùng cảnh báo.** Thiết kế hiển thị nhóm cảnh báo ở đầu form, ví dụ: "Thời gian hợp đồng bị chồng lấn" hoặc "Loại hợp đồng không khả dụng". Cách đặt cảnh báo ở đầu giúp người dùng hiểu lý do chưa thể lưu hợp đồng trước khi rà soát từng trường.
+| Bước | Màn hình/trạng thái | Thao tác của người sử dụng | Phản hồi của hệ thống | Gợi ý thiết kế UI |
+|---|---|---|---|---|
+| 1 | HĐ-02 - Mở dialog tạo hợp đồng | Bấm Tạo hợp đồng | Hiển thị form tạo hợp đồng ở dạng dialog lớn hoặc side panel | Nên giữ nền danh sách hợp đồng phía sau để người dùng không mất ngữ cảnh |
+| 2 | HĐ-02 - Chọn nhân sự | Tìm và chọn nhân sự theo mã viên chức/họ tên | Hệ thống hiển thị thông tin tóm tắt, đơn vị, trạng thái hợp đồng hiện tại | Ô chọn nhân sự nên có autocomplete và card tóm tắt sau khi chọn |
+| 3 | HĐ-02 - Kiểm tra điều kiện | Hệ thống kiểm tra nhân sự có đủ điều kiện tạo hợp đồng hay không | Nếu không hợp lệ, hiển thị lỗi và không cho tiếp tục | Lỗi cần nói rõ lý do: đang có hợp đồng hiệu lực, quá số lần ký, chưa đủ thông tin |
+| 4 | HĐ-02 - Nhập thông tin hợp đồng | Chọn loại hợp đồng, ngày ký, ngày hiệu lực, ngày hết hạn, mức lương, đơn vị | Hệ thống kiểm tra ngày hợp lệ và cảnh báo nếu trùng/khoảng thời gian bị chồng lấn | Trường ngày nên có ràng buộc min/max và thông báo lỗi inline |
+| 5 | HĐ-02 - Tải tệp hợp đồng | Tải lên bản PDF/quyết định | Hiển thị tên tệp, dung lượng, trạng thái tải lên | Vùng upload cần chấp nhận kéo thả và có nút xóa/thay tệp |
+| 6 | HĐ-02 - Xác nhận tạo | Bấm Tạo hợp đồng | Hệ thống lưu hợp đồng, cập nhật bảng và hiển thị toast thành công | Sau khi tạo xong nên đóng dialog và đưa hợp đồng mới lên đầu danh sách |
 
-**Form nhập liệu.** Các trường chính gồm: Nhân sự liên kết, Loại hợp đồng, Số hợp đồng, Ngày ký, Ngày bắt đầu, Ngày kết thúc, Hệ số lương áp dụng, Phụ cấp, Đơn vị công tác theo hợp đồng và Upload file hợp đồng PDF. Các trường bắt buộc được đánh dấu rõ.
+Ngoại lệ cần thiết kế:
 
-**Khung thông tin nhân sự.** Bên phải form có thẻ thông tin nhân sự gồm họ tên, mã cán bộ, đơn vị, chức vụ và trạng thái hợp đồng hiện tại. Thành phần này giúp người dùng kiểm tra lại đúng người trước khi tạo hợp đồng.
+- Chưa chọn nhân sự: hiển thị lỗi tại trường chọn nhân sự.
+- Nhân sự đã có hợp đồng còn hiệu lực ngoài cửa sổ gia hạn: chặn tạo mới và gợi ý dùng chức năng gia hạn nếu phù hợp.
+- Ngày bắt đầu lớn hơn ngày kết thúc hoặc bị trùng với hợp đồng cũ: hiển thị lỗi inline và không cho lưu.
+- Quá số lần ký hợp đồng theo quy định: hiển thị cảnh báo nghiệp vụ, không chỉ hiển thị lỗi kỹ thuật.
+- Thiếu tệp PDF/quyết định: không cho tạo hợp đồng chính thức.
 
-**Chức năng chính.** Người dùng có thể Hủy, Lưu nháp hoặc Tạo hợp đồng. Nếu thông tin không hợp lệ, hệ thống đánh dấu lỗi ngay dưới từng trường và không cho lưu.
-
-### 3.2.5. Nhiệm vụ 5: Gia hạn hợp đồng
-
-**Mục tiêu.** Nhiệm vụ này giúp Phòng TCCB tạo hợp đồng kế tiếp cho hợp đồng sắp hết hạn. Thiết kế nhấn mạnh việc hiển thị hợp đồng cũ, kiểm tra điều kiện gia hạn và nhập thông tin hợp đồng mới một cách liền mạch.
+## 3.7. Luồng 5 - Gia hạn hợp đồng lao động
 
 ![Phác họa hộp thoại gia hạn hợp đồng](.figma-review/05-gia-han-hop-dong.png)
 
-**Điểm vào nhiệm vụ.** Từ màn hình danh sách hợp đồng, người dùng lọc các hợp đồng có trạng thái "Sắp hết hạn" hoặc "Chờ gia hạn", sau đó nhấn thao tác "Gia hạn" ở dòng hợp đồng cần xử lý.
+| Thuộc tính | Nội dung |
+|---|---|
+| Người sử dụng chính | Phòng TCCB |
+| Mục tiêu | Tạo hợp đồng kế tiếp cho nhân sự có hợp đồng sắp hết hạn mà không phải nhập lại toàn bộ dữ liệu từ đầu |
+| Tiền điều kiện | Hợp đồng hiện tại còn hiệu lực hoặc đang trong khoảng cần gia hạn; người sử dụng có quyền gia hạn |
+| Điểm bắt đầu | HĐ-01 > lọc Sắp hết hạn > hành động Gia hạn trên dòng hợp đồng |
+| Kết quả mong đợi | Hợp đồng mới được tạo liên tiếp với hợp đồng cũ; hợp đồng cũ được cập nhật trạng thái nếu cần |
 
-**Hộp thoại gia hạn.** Hộp thoại "Gia hạn hợp đồng" được tách riêng với hộp thoại tạo hợp đồng mới. Phần trên hiển thị cảnh báo nếu hợp đồng chưa đủ điều kiện gia hạn hoặc ngày bắt đầu mới chưa hợp lệ.
+| Bước | Màn hình/trạng thái | Thao tác của người sử dụng | Phản hồi của hệ thống | Gợi ý thiết kế UI |
+|---|---|---|---|---|
+| 1 | HĐ-01 - Lọc sắp hết hạn | Bấm banner cảnh báo hoặc chọn trạng thái Sắp hết hạn | Danh sách chỉ hiển thị các hợp đồng trong khoảng cần gia hạn | Nên có chip Sắp hết hạn để người dùng biết đang lọc |
+| 2 | HĐ-01 - Chọn hợp đồng | Bấm Gia hạn trên dòng hợp đồng | Hệ thống mở dialog gia hạn và truyền thông tin hợp đồng cũ | Nút Gia hạn chỉ hiển thị/enable với hợp đồng đủ điều kiện |
+| 3 | HĐ-03 - Kiểm tra hợp đồng cũ | Xem thông tin hợp đồng hiện tại, số lần đã ký, ngày hết hạn, loại hợp đồng | Hệ thống cảnh báo nếu hợp đồng không nằm trong khoảng gia hạn hoặc đã quá số lần ký | Thông tin hợp đồng cũ nên nằm ở card bên trên form mới |
+| 4 | HĐ-03 - Nhập thông tin gia hạn | Chọn loại hợp đồng mới, ngày bắt đầu, ngày kết thúc, mức lương/đơn vị nếu thay đổi | Hệ thống gợi ý ngày bắt đầu liên tiếp sau ngày hết hạn cũ và kiểm tra chồng lấn | Trường ngày bắt đầu có thể được điền sẵn để giảm lỗi nhập liệu |
+| 5 | HĐ-03 - Tải quyết định/tệp hợp đồng | Tải tệp PDF hợp đồng mới hoặc quyết định gia hạn | Hiển thị trạng thái tệp đã tải và cho phép thay tệp | Tệp bắt buộc cần có ký hiệu rõ trong form |
+| 6 | HĐ-03 - Xác nhận gia hạn | Bấm Xác nhận gia hạn | Hệ thống tạo hợp đồng mới, cập nhật danh sách, hiển thị toast thành công | Sau khi thành công nên đưa người dùng về danh sách Sắp hết hạn đã cập nhật |
 
-**Thông tin hợp đồng cũ.** Thiết kế dành một khối riêng để hiển thị Số hợp đồng, Loại hợp đồng, Ngày bắt đầu, Ngày hết hạn và Trạng thái của hợp đồng hiện tại. Đây là dữ liệu tham chiếu quan trọng để người dùng nhập đúng thông tin gia hạn.
+Ngoại lệ cần thiết kế:
 
-**Thông tin gia hạn.** Form gia hạn gồm Loại hợp đồng mới, Ngày bắt đầu mới, Ngày kết thúc mới, Hệ số lương, Phụ cấp và Upload file hợp đồng gia hạn. Ngày bắt đầu mới được thiết kế để liền sau ngày hết hạn hiện tại, hạn chế lỗi chồng lấn thời gian.
+- Hợp đồng không còn trong thời gian được gia hạn: hiển thị cảnh báo và vô hiệu hóa nút xác nhận.
+- Ngày bắt đầu hợp đồng mới không liên tiếp hoặc bị chồng với hợp đồng cũ: hiển thị lỗi tại trường ngày.
+- Đã đạt giới hạn số lần ký: hiển thị thông báo nghiệp vụ và gợi ý chuyển sang loại hợp đồng phù hợp nếu có.
+- Người sử dụng hủy thao tác khi đã nhập thông tin: hiển thị dialog xác nhận rồi mới đóng.
 
-**Chức năng chính.** Người dùng có thể Hủy hoặc Xác nhận gia hạn. Khi xác nhận, hệ thống kiểm tra điều kiện gia hạn, kiểm tra thời gian và file đính kèm trước khi tạo hợp đồng kế tiếp.
+# IV. XÂY DỰNG STORYBOARD THEO KHUNG MÀN HÌNH
 
-# IV. XÂY DỰNG STORYBOARD
+Storyboard dưới đây chuyển mỗi nhiệm vụ thành chuỗi khung màn hình cụ thể. Mỗi bước gồm bối cảnh, hành động, phản hồi hệ thống và trạng thái thiết kế cần thể hiện trong prototype. Nhiều bước nhỏ được tách riêng để người thiết kế có thể vẽ đủ các frame, không bị thiếu màn hình trung gian như validation, empty state hoặc confirmation.
 
-## 4.1. Storyboard nhiệm vụ 1: Xem/Tìm kiếm danh sách hồ sơ nhân sự
+## 4.1. Storyboard - Xem và tìm kiếm danh sách hồ sơ nhân sự
 
-**Bối cảnh.** Chuyên viên Phòng TCCB cần tìm hồ sơ của một cán bộ để kiểm tra trạng thái làm việc và tình trạng hợp đồng. Trước đây thao tác này phải thực hiện trên nhiều file Excel, còn trong hệ thống mới người dùng thao tác trực tiếp trên màn hình danh sách hồ sơ.
-
-**Bước 1 - Mở module hồ sơ.** Người dùng đăng nhập vào hệ thống và chọn mục "Hồ sơ nhân sự" trên cây thực đơn bên trái. Hệ thống hiển thị danh sách hồ sơ có phân trang, kèm các cột thông tin chính như mã nhân sự, họ tên, đơn vị, học hàm/học vị, chức vụ, hợp đồng và trạng thái.
+| Bước | Khung hình | Hành động và phản hồi cần thể hiện |
+|---|---|---|
+| 1 | Mở module Hồ sơ nhân sự | Người sử dụng chọn module Hồ sơ nhân sự trên sidebar. Hệ thống hiển thị màn hình HS-01 với thẻ thống kê, bộ lọc và bảng hồ sơ mặc định. |
 
 ![Bước 1 - Mở module hồ sơ](.figma-review/storyboard/4-1-1-mo-danh-sach-ho-so.png)
 
-**Bước 2 - Nhập từ khóa hoặc chọn bộ lọc.** Người dùng nhập tên, mã nhân sự hoặc chọn các bộ lọc như đơn vị công tác, học hàm/học vị, trạng thái hợp đồng. Hệ thống cập nhật danh sách theo từ khóa hoặc tiêu chí lọc.
+| Bước | Khung hình | Hành động và phản hồi cần thể hiện |
+|---|---|---|
+| 2 | Tìm kiếm nhanh và mở bộ lọc | Người sử dụng nhập từ khóa hoặc mở bộ lọc nâng cao. Hệ thống giữ giá trị đã nhập và hiển thị các trường lọc theo đơn vị, trạng thái, hợp đồng, giới tính. |
 
 ![Bước 2 - Nhập từ khóa hoặc chọn bộ lọc](.figma-review/storyboard/4-1-2-tim-kiem-ho-so.png)
 
-**Bước 3 - Xem kết quả.** Các hồ sơ phù hợp được hiển thị trong bảng. Người dùng nhìn nhanh các badge trạng thái để biết hồ sơ đang hoạt động, đã thôi việc hay đang chờ gia hạn hợp đồng.
+| Bước | Khung hình | Hành động và phản hồi cần thể hiện |
+|---|---|---|
+| 3 | Kết quả lọc | Sau khi áp dụng bộ lọc, bảng chỉ hiển thị các hồ sơ phù hợp. Các chip bộ lọc đang áp dụng xuất hiện phía trên bảng; nếu không có kết quả thì hiển thị empty state và nút Xóa bộ lọc. |
 
 ![Bước 3 - Xem kết quả lọc hồ sơ](.figma-review/storyboard/4-1-3-ket-qua-loc-ho-so.png)
 
-**Bước 4 - Chuyển sang thao tác tiếp theo.** Nếu muốn xem hoặc sửa hồ sơ, người dùng nhấn biểu tượng thao tác ở dòng tương ứng. Nếu cần tạo hồ sơ mới, người dùng nhấn nút "Thêm hồ sơ nhân sự" để chuyển sang nhiệm vụ 2.
+| Bước | Khung hình | Hành động và phản hồi cần thể hiện |
+|---|---|---|
+| 4 | Chọn thao tác tiếp theo | Người sử dụng chọn một dòng hồ sơ để xem chi tiết hoặc bấm Thêm hồ sơ nhân sự. Hệ thống cần thể hiện hover/selected state trên dòng dữ liệu và menu hành động rõ ràng. |
 
 ![Bước 4 - Chuyển sang thao tác tiếp theo](.figma-review/storyboard/4-1-4-thao-tac-ho-so.png)
 
-## 4.2. Storyboard nhiệm vụ 2: Thêm hồ sơ nhân sự
+## 4.2. Storyboard - Thêm hồ sơ nhân sự
 
-**Bối cảnh.** Nhà trường tiếp nhận một cán bộ mới. Chuyên viên Phòng TCCB cần tạo hồ sơ nhân sự ban đầu để làm cơ sở cho các nghiệp vụ tiếp theo như lập hợp đồng, phân đơn vị công tác, cấu hình lương và phụ cấp.
-
-**Bước 1 - Bắt đầu từ danh sách hồ sơ.** Người dùng đang ở màn hình "Hồ sơ nhân sự" và nhấn nút "Thêm hồ sơ nhân sự" ở góc phải phía trên.
+| Bước | Khung hình | Hành động và phản hồi cần thể hiện |
+|---|---|---|
+| 1 | Bắt đầu từ danh sách hồ sơ | Người sử dụng bấm Thêm hồ sơ nhân sự. Hệ thống mở menu chọn Thêm thủ công hoặc Nhập từ Excel, đồng thời giữ nguyên danh sách hồ sơ phía sau. |
 
 ![Bước 1 - Bắt đầu từ danh sách hồ sơ](.figma-review/storyboard/4-2-1-tu-danh-sach-ho-so.png)
 
-**Bước 2 - Hệ thống mở wizard thêm hồ sơ.** Hộp thoại "Thêm hồ sơ nhân sự" xuất hiện trên nền danh sách. Thanh tiến trình cho biết form được chia thành 6 bước, giúp người dùng nhập dữ liệu theo từng nhóm thay vì nhập một form quá dài.
+| Bước | Khung hình | Hành động và phản hồi cần thể hiện |
+|---|---|---|
+| 2 | Wizard bước định danh | Người sử dụng chọn Thêm thủ công. Hệ thống mở wizard bước 1, hiển thị stepper 6 bước và các trường định danh. Khi CCCD trùng, lỗi inline xuất hiện ngay tại trường nhập. |
 
 ![Bước 2 - Hệ thống mở wizard thêm hồ sơ](.figma-review/storyboard/4-2-2-wizard-buoc-1.png)
 
-**Bước 3 - Nhập thông tin theo từng bước.** Người dùng nhập thông tin định danh, liên hệ, quốc tịch, công tác, lương, trình độ học vấn và tài liệu đính kèm. Ở mỗi bước, các trường bắt buộc được đánh dấu bằng dấu sao.
+| Bước | Khung hình | Hành động và phản hồi cần thể hiện |
+|---|---|---|
+| 3 | Nhập thông tin công tác và lương | Người sử dụng chuyển qua bước công tác, chọn đơn vị từ cây đơn vị, nhập vị trí, loại nhân sự, ngày bắt đầu và thông tin lương. Hệ thống đánh dấu bước đã hoàn thành và cảnh báo nếu thiếu trường bắt buộc. |
 
 ![Bước 3 - Nhập thông tin công tác và lương](.figma-review/storyboard/4-2-3-nhap-cong-tac-luong.png)
 
-**Bước 4 - Lưu nháp khi chưa đủ dữ liệu.** Nếu chưa có đủ giấy tờ, người dùng nhấn "Lưu nháp". Hệ thống hiển thị trạng thái đã lưu nháp, giúp người dùng có thể quay lại hoàn thiện sau.
+| Bước | Khung hình | Hành động và phản hồi cần thể hiện |
+|---|---|---|
+| 4 | Tài liệu và lưu nháp | Người sử dụng tải các tài liệu bắt buộc hoặc bấm Lưu nháp khi chưa đủ dữ liệu. Hệ thống hiển thị trạng thái đã tải/chưa tải và thông báo bản nháp đã được lưu. |
 
 ![Bước 4 - Lưu nháp khi chưa đủ dữ liệu](.figma-review/storyboard/4-2-4-tai-lieu-luu-nhap.png)
 
-**Bước 5 - Xem lại và xác nhận.** Khi đã nhập đủ dữ liệu, người dùng đến bước "Xem lại & xác nhận". Hệ thống kiểm tra tính đầy đủ và hợp lệ. Nếu hợp lệ, hồ sơ được lưu, mã cán bộ được tự động sinh và trạng thái ban đầu được gán cho hồ sơ mới.
+| Bước | Khung hình | Hành động và phản hồi cần thể hiện |
+|---|---|---|
+| 5 | Xem lại và xác nhận | Người sử dụng xem lại toàn bộ thông tin, bấm Lưu hồ sơ chính thức. Hệ thống tạo mã viên chức, hiển thị màn hình thành công và cho phép xem hồ sơ vừa tạo. |
 
 ![Bước 5 - Xem lại và xác nhận hồ sơ](.figma-review/storyboard/4-2-5-xem-lai-xac-nhan.png)
 
-## 4.3. Storyboard nhiệm vụ 3: Xem/Tìm kiếm danh sách hợp đồng
+## 4.3. Storyboard - Xem và tìm kiếm danh sách hợp đồng lao động
 
-**Bối cảnh.** Gần cuối tháng, chuyên viên Phòng TCCB cần rà soát các hợp đồng lao động sắp hết hạn để lập kế hoạch gia hạn. Đây là nhiệm vụ quan trọng vì nếu không có cảnh báo, hợp đồng có thể hết hạn mà chưa được xử lý.
-
-**Bước 1 - Mở màn hình hợp đồng lao động.** Người dùng chọn mục "Hợp đồng lao động" trên menu bên trái. Hệ thống hiển thị màn hình tổng quan hợp đồng với các thẻ số liệu.
+| Bước | Khung hình | Hành động và phản hồi cần thể hiện |
+|---|---|---|
+| 1 | Mở module Hợp đồng lao động | Người sử dụng chọn Hợp đồng lao động trên sidebar. Hệ thống hiển thị dashboard HĐ-01 với thẻ thống kê, bộ lọc và bảng hợp đồng. |
 
 ![Bước 1 - Mở màn hình hợp đồng lao động](.figma-review/storyboard/4-3-1-mo-hop-dong.png)
 
-**Bước 2 - Nhận cảnh báo.** Người dùng nhìn thấy thẻ "Sắp hết hạn trong 30 ngày" và banner cảnh báo "12 hợp đồng sắp hết hạn trong 30 ngày". Hệ thống gợi ý đây là nhóm hợp đồng cần ưu tiên xử lý.
+| Bước | Khung hình | Hành động và phản hồi cần thể hiện |
+|---|---|---|
+| 2 | Nhận cảnh báo sắp hết hạn | Hệ thống hiển thị banner cảnh báo số hợp đồng sắp hết hạn trong 30 ngày. Người sử dụng có thể bấm Lọc ngay để chỉ xem nhóm hợp đồng cần xử lý. |
 
 ![Bước 2 - Nhận cảnh báo hợp đồng sắp hết hạn](.figma-review/storyboard/4-3-2-canh-bao-hop-dong.png)
 
-**Bước 3 - Lọc danh sách.** Người dùng chọn trạng thái "Sắp hết hạn", khoảng ngày hết hạn "30 ngày tới" và đơn vị "Khoa CNTT". Sau đó nhấn "Tìm kiếm". Hệ thống chỉ hiển thị các hợp đồng thỏa điều kiện.
+| Bước | Khung hình | Hành động và phản hồi cần thể hiện |
+|---|---|---|
+| 3 | Lọc danh sách hợp đồng | Người sử dụng nhập từ khóa, chọn loại hợp đồng, trạng thái, khoảng ngày hoặc đơn vị. Hệ thống cập nhật bảng, hiển thị chip bộ lọc và empty state nếu không có kết quả. |
 
 ![Bước 3 - Lọc danh sách hợp đồng](.figma-review/storyboard/4-3-3-loc-hop-dong.png)
 
-**Bước 4 - Chọn hợp đồng cần xử lý.** Trong bảng kết quả, người dùng xem số ngày còn lại của từng hợp đồng. Với hợp đồng còn ít ngày, người dùng có thể nhấn "Xem" để kiểm tra chi tiết hoặc nhấn "Gia hạn" để chuyển sang nhiệm vụ 5.
+| Bước | Khung hình | Hành động và phản hồi cần thể hiện |
+|---|---|---|
+| 4 | Chọn hợp đồng cần xử lý | Người sử dụng bấm Xem, Gia hạn hoặc tạo hợp đồng mới. Hệ thống mở đúng dialog/panel, giữ lại bộ lọc đang áp dụng khi quay về danh sách. |
 
 ![Bước 4 - Chọn hợp đồng cần xử lý](.figma-review/storyboard/4-3-4-chon-thao-tac-hop-dong.png)
 
-## 4.4. Storyboard nhiệm vụ 4: Thêm hợp đồng
+## 4.4. Storyboard - Thêm hợp đồng lao động
 
-**Bối cảnh.** Một nhân sự đã có hồ sơ trên hệ thống và cần được lập hợp đồng lao động mới. Chuyên viên Phòng TCCB cần nhập thông tin hợp đồng, chọn loại hợp đồng, thời hạn, đơn vị công tác và tải lên file hợp đồng.
-
-**Bước 1 - Chọn tạo hợp đồng.** Từ màn hình "Hợp đồng lao động", người dùng nhấn nút "Tạo hợp đồng". Hệ thống mở hộp thoại tạo hợp đồng.
+| Bước | Khung hình | Hành động và phản hồi cần thể hiện |
+|---|---|---|
+| 1 | Chọn tạo hợp đồng | Từ HĐ-01, người sử dụng bấm Tạo hợp đồng. Hệ thống mở dialog HĐ-02 và đặt con trỏ vào trường chọn nhân sự. |
 
 ![Bước 1 - Chọn tạo hợp đồng](.figma-review/storyboard/4-4-1-tao-hop-dong-tu-danh-sach.png)
 
-**Bước 2 - Chọn nhân sự liên kết.** Người dùng chọn hoặc nhập mã cán bộ. Hệ thống kiểm tra nhân sự có tồn tại và có đủ điều kiện tạo hợp đồng mới hay không.
+| Bước | Khung hình | Hành động và phản hồi cần thể hiện |
+|---|---|---|
+| 2 | Chọn nhân sự liên kết | Người sử dụng tìm theo mã viên chức/họ tên và chọn nhân sự. Hệ thống hiển thị card tóm tắt hồ sơ, đơn vị, trạng thái hợp đồng hiện tại và kết quả kiểm tra điều kiện. |
 
 ![Bước 2 - Chọn nhân sự liên kết](.figma-review/storyboard/4-4-2-chon-nhan-su-hop-dong.png)
 
-**Bước 3 - Nhập thông tin hợp đồng.** Người dùng nhập số hợp đồng, loại hợp đồng, ngày ký, ngày bắt đầu, ngày kết thúc, hệ số lương, phụ cấp, đơn vị công tác và tải lên file PDF hợp đồng.
+| Bước | Khung hình | Hành động và phản hồi cần thể hiện |
+|---|---|---|
+| 3 | Nhập thông tin hợp đồng | Người sử dụng nhập loại hợp đồng, ngày ký, ngày hiệu lực, ngày hết hạn, mức lương, đơn vị và tải tệp PDF. Hệ thống hiển thị lỗi inline nếu trường bắt buộc còn thiếu. |
 
 ![Bước 3 - Nhập thông tin hợp đồng](.figma-review/storyboard/4-4-3-nhap-hop-dong.png)
 
-**Bước 4 - Hệ thống kiểm tra lỗi.** Nếu thời gian hợp đồng bị chồng lấn, loại hợp đồng không khả dụng, số hợp đồng trùng hoặc thiếu file PDF, hệ thống hiển thị cảnh báo ở đầu hộp thoại và lỗi chi tiết dưới từng trường.
+| Bước | Khung hình | Hành động và phản hồi cần thể hiện |
+|---|---|---|
+| 4 | Kiểm tra và lưu hợp đồng | Khi người sử dụng bấm Tạo hợp đồng, hệ thống kiểm tra trùng thời gian, giới hạn số lần ký và tệp đính kèm. Nếu hợp lệ, dialog đóng và hợp đồng mới xuất hiện trên bảng; nếu lỗi, cảnh báo hiển thị ngay trong dialog. |
 
 ![Bước 4 - Hệ thống kiểm tra lỗi hợp đồng](.figma-review/storyboard/4-4-4-kiem-tra-loi-hop-dong.png)
 
-**Bước 5 - Lưu hợp đồng.** Sau khi sửa dữ liệu hợp lệ, người dùng nhấn "Tạo hợp đồng". Hệ thống xác định trạng thái hợp đồng dựa vào ngày hiệu lực, lưu hợp đồng vào hồ sơ nhân sự và cập nhật trạng thái hợp đồng mới nhất.
+## 4.5. Storyboard - Gia hạn hợp đồng lao động
 
-## 4.5. Storyboard nhiệm vụ 5: Gia hạn hợp đồng
-
-**Bối cảnh.** Hợp đồng của một giảng viên sắp hết hạn trong 30 ngày. Chuyên viên Phòng TCCB cần tạo hợp đồng kế tiếp để bảo đảm quá trình làm việc không bị gián đoạn.
-
-**Bước 1 - Lọc hợp đồng sắp hết hạn.** Người dùng mở màn hình "Hợp đồng lao động", chọn trạng thái "Sắp hết hạn" và xem các hợp đồng còn ít ngày hiệu lực.
+| Bước | Khung hình | Hành động và phản hồi cần thể hiện |
+|---|---|---|
+| 1 | Lọc hợp đồng sắp hết hạn | Người sử dụng bấm banner cảnh báo hoặc chọn trạng thái Sắp hết hạn. Hệ thống chỉ hiển thị các hợp đồng cần gia hạn và sắp xếp theo ngày hết hạn gần nhất. |
 
 ![Bước 1 - Lọc hợp đồng sắp hết hạn](.figma-review/storyboard/4-5-1-loc-sap-het-han.png)
 
-**Bước 2 - Chọn thao tác gia hạn.** Người dùng nhấn "Gia hạn" ở dòng hợp đồng cần xử lý. Hệ thống mở hộp thoại "Gia hạn hợp đồng".
+| Bước | Khung hình | Hành động và phản hồi cần thể hiện |
+|---|---|---|
+| 2 | Mở dialog gia hạn | Người sử dụng bấm Gia hạn trên một dòng hợp đồng. Hệ thống mở dialog HĐ-03, hiển thị thông tin hợp đồng cũ và gợi ý thông tin hợp đồng mới. |
 
 ![Bước 2 - Chọn thao tác gia hạn](.figma-review/storyboard/4-5-2-mo-gia-han.png)
 
-**Bước 3 - Kiểm tra hợp đồng cũ.** Hộp thoại hiển thị thông tin hợp đồng cũ gồm số hợp đồng, loại hợp đồng, ngày bắt đầu, ngày hết hạn và trạng thái. Người dùng dùng thông tin này để kiểm tra xem hợp đồng có đúng đối tượng và đúng kỳ hạn cần gia hạn hay không.
+| Bước | Khung hình | Hành động và phản hồi cần thể hiện |
+|---|---|---|
+| 3 | Kiểm tra hợp đồng cũ | Hệ thống hiển thị ngày hết hạn, loại hợp đồng, số lần đã ký và cảnh báo nếu hợp đồng không đủ điều kiện gia hạn. Nút Xác nhận chỉ bật khi điều kiện hợp lệ. |
 
 ![Bước 3 - Kiểm tra hợp đồng cũ](.figma-review/storyboard/4-5-3-kiem-tra-hop-dong-cu.png)
 
-**Bước 4 - Nhập thông tin gia hạn.** Người dùng chọn loại hợp đồng mới, nhập ngày bắt đầu mới, ngày kết thúc mới, hệ số lương, phụ cấp và tải file hợp đồng gia hạn. Hệ thống kiểm tra ngày bắt đầu mới phải liền sau ngày hết hạn hiện tại và không được trùng với hợp đồng khác.
+| Bước | Khung hình | Hành động và phản hồi cần thể hiện |
+|---|---|---|
+| 4 | Nhập thông tin gia hạn và xác nhận | Người sử dụng kiểm tra ngày bắt đầu được gợi ý, nhập ngày kết thúc, mức lương/đơn vị nếu thay đổi, tải tệp hợp đồng và bấm Xác nhận gia hạn. Hệ thống tạo hợp đồng mới và cập nhật danh sách. |
 
 ![Bước 4 - Nhập thông tin gia hạn](.figma-review/storyboard/4-5-4-nhap-gia-han.png)
 
-**Bước 5 - Xác nhận gia hạn.** Nếu thông tin hợp lệ, người dùng nhấn "Xác nhận gia hạn". Hệ thống tạo hợp đồng kế tiếp, cập nhật trạng thái hợp đồng và giúp hồ sơ nhân sự không rơi vào trạng thái quá hạn.
+## 4.6. Tổng hợp trạng thái cần thiết kế
 
-## 4.6. Kết luận phần storyboard
+| Nhóm trạng thái | Áp dụng cho | Mô tả cần có trong prototype |
+|---|---|---|
+| Mặc định | HS-01, HĐ-01 | Dữ liệu mẫu, bộ lọc rỗng, bảng hiển thị các bản ghi gần nhất |
+| Đang tải | HS-01, HĐ-01, upload Excel/PDF | Skeleton hoặc spinner, vô hiệu hóa hành động tạo/sửa trong lúc xử lý |
+| Kết quả rỗng | Tìm kiếm hồ sơ, tìm kiếm hợp đồng | Thông điệp không có kết quả, nút xóa bộ lọc, gợi ý thay đổi từ khóa |
+| Lỗi nhập liệu | Wizard hồ sơ, dialog hợp đồng, dialog gia hạn | Lỗi inline gần trường, màu đỏ, thông điệp nêu rõ cách sửa |
+| Cảnh báo nghiệp vụ | Hợp đồng sắp hết hạn, quá số lần ký, hợp đồng trùng thời gian | Banner màu vàng/cam hoặc alert trong dialog, không chỉ dùng toast ngắn hạn |
+| Xác nhận | Hủy wizard, lưu hồ sơ chính thức, tạo/gia hạn hợp đồng | Dialog xác nhận nếu thao tác có ảnh hưởng đến dữ liệu chính thức |
+| Thành công | Thêm hồ sơ, tạo hợp đồng, gia hạn hợp đồng | Toast hoặc màn hình thành công, kèm hành động tiếp theo rõ ràng |
 
-5 storyboard trên cho thấy luồng thiết kế của nhóm đi từ màn hình danh sách đến thao tác chi tiết. Hai nhiệm vụ đầu tập trung vào hồ sơ nhân sự, ba nhiệm vụ sau tập trung vào hợp đồng lao động. Cách tổ chức này phù hợp với quy trình làm việc thực tế của Phòng TCCB: trước hết cần tìm hoặc tạo hồ sơ nhân sự, sau đó mới lập và theo dõi hợp đồng lao động cho nhân sự đó.
-
-Thiết kế cũng thể hiện rõ các điểm quan trọng của tương tác người - máy: người dùng luôn biết mình đang ở module nào nhờ menu bên trái; dữ liệu quan trọng được hiển thị bằng bảng và badge trạng thái; thao tác phức tạp được đưa vào hộp thoại riêng; lỗi được báo ngay tại vị trí nhập liệu; và các cảnh báo nghiệp vụ như hợp đồng sắp hết hạn được đặt ở vị trí nổi bật để giảm nguy cơ bỏ sót công việc.
-
+Với cách phác họa này, mỗi storyboard không chỉ cho biết người sử dụng đang làm gì mà còn chỉ ra UI phải phản hồi như thế nào. Nhóm thiết kế có thể đưa trực tiếp các màn hình HS-01 đến HĐ-04 vào Figma, sau đó tạo prototype theo đúng chuỗi thao tác, trạng thái và ngoại lệ đã mô tả.
