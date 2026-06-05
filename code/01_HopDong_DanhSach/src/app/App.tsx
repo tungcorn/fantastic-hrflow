@@ -1,7 +1,6 @@
 import { useEffect, useRef, useState, type ReactNode } from "react";
 import {
   AlertCircle,
-  AlertTriangle,
   BarChart3,
   Bell,
   Building2,
@@ -12,14 +11,11 @@ import {
   Download,
   Eye,
   FileText,
-  GraduationCap,
-  History,
-  LayoutDashboard,
   LayoutList,
+  MoreHorizontal,
   Plus,
   RotateCcw,
   Search,
-  Settings,
   ShieldCheck,
   Upload,
   X,
@@ -42,15 +38,11 @@ const frameOptions: { id: Frame; label: string }[] = [
 type SidebarItem = { label: string; icon: ReactNode; active?: boolean };
 
 const sidebarItems: SidebarItem[] = [
-  { label: "Tổng quan", icon: <LayoutDashboard size={17} /> },
   { label: "Hồ sơ nhân sự", icon: <CircleUserRound size={17} /> },
   { label: "Hợp đồng lao động", icon: <FileText size={17} />, active: true },
   { label: "Cơ cấu tổ chức", icon: <Building2 size={17} /> },
-  { label: "Tài khoản & phân quyền", icon: <ShieldCheck size={17} /> },
-  { label: "Đào tạo", icon: <GraduationCap size={17} /> },
-  { label: "Báo cáo", icon: <BarChart3 size={17} /> },
-  { label: "Nhật ký hệ thống", icon: <History size={17} /> },
-  { label: "Cài đặt", icon: <Settings size={17} /> },
+  { label: "Phụ cấp và hệ số lương", icon: <BarChart3 size={17} /> },
+  { label: "Tài khoản", icon: <ShieldCheck size={17} /> },
 ];
 
 const summaryCards = [
@@ -127,7 +119,7 @@ const contractRows: ContractRow[] = [
 const contractTypeOptions: DropdownOption[] = [
   { label: "Xác định thời hạn", description: "Áp dụng 12–36 tháng", tone: "success" },
   { label: "Không xác định thời hạn", description: "Không yêu cầu ngày kết thúc", tone: "success" },
-  { label: "Thử việc", description: "Ngừng sử dụng cho hợp đồng mới", tone: "disabled", disabled: true },
+  { label: "Thử việc", description: "Ngừng sử dụng cho hợp đồng mới" },
 ];
 
 const statusOptions: DropdownOption[] = [
@@ -136,12 +128,6 @@ const statusOptions: DropdownOption[] = [
   { label: "Sắp hết hạn", description: "Còn dưới 30 ngày", tone: "warning" },
   { label: "Chờ gia hạn", description: "Đang trong thời gian xử lý", tone: "warning" },
   { label: "Hết hiệu lực", description: "Đã kết thúc", tone: "danger" },
-];
-
-const dateRangeOptions: DropdownOption[] = [
-  { label: "7 ngày tới", description: "Ưu tiên xử lý ngay", tone: "danger" },
-  { label: "30 ngày tới", description: "Theo cảnh báo mặc định", tone: "warning" },
-  { label: "Quý hiện tại", description: "Lọc theo kỳ báo cáo" },
 ];
 
 const unitOptions: DropdownOption[] = [
@@ -224,13 +210,6 @@ function Header({ currentFrame, onFrameChange }: { currentFrame: Frame; onFrameC
       </div>
       <div className="flex items-center gap-3">
         <FrameSwitcher currentFrame={currentFrame} onFrameChange={onFrameChange} />
-        <div className="flex h-9 w-[240px] items-center gap-2 rounded-lg border border-slate-200 bg-white px-3 shadow-sm">
-          <Search size={14} className="text-slate-400" />
-          <input
-            className="min-w-0 flex-1 bg-transparent text-[12px] text-slate-900 placeholder:text-slate-400 focus:outline-none"
-            placeholder="Tìm kiếm nhanh"
-          />
-        </div>
         <button className="relative grid size-9 place-items-center rounded-lg border border-slate-200 bg-white text-slate-600 hover:bg-slate-50">
           <Bell size={17} />
           <span className="absolute right-2 top-2 size-1.5 rounded-full bg-rose-500" />
@@ -249,12 +228,8 @@ function Header({ currentFrame, onFrameChange }: { currentFrame: Frame; onFrameC
   );
 }
 
-function optionToneClass(option: DropdownOption) {
-  if (option.disabled || option.tone === "disabled") return "border-slate-100 bg-slate-50 text-slate-400";
-  if (option.tone === "success") return "border-emerald-100 bg-emerald-50/60 text-emerald-800";
-  if (option.tone === "warning") return "border-amber-100 bg-amber-50/70 text-amber-800";
-  if (option.tone === "danger") return "border-rose-100 bg-rose-50/70 text-rose-700";
-  return "border-slate-100 bg-white text-slate-800";
+function optionToneClass() {
+  return "border-transparent bg-white text-slate-700 hover:border-slate-200 hover:bg-slate-50 hover:text-slate-950";
 }
 
 function ExpandedSelect({
@@ -263,17 +238,25 @@ function ExpandedSelect({
   options,
   width = "w-[220px]",
   searchable,
+  hideLabelWhenSelected,
+  activeWhenSelected,
+  onChange,
 }: {
   label: string;
   value: string;
   options: DropdownOption[];
   width?: string;
   searchable?: boolean;
+  hideLabelWhenSelected?: boolean;
+  activeWhenSelected?: boolean;
+  onChange?: (value: string) => void;
 }) {
   const [open, setOpen] = useState(false);
   const [selected, setSelected] = useState(value);
   const [query, setQuery] = useState("");
   const rootRef = useRef<HTMLDivElement>(null);
+  const hasSelectedValue = selected.trim().length > 0;
+  const activeTrigger = activeWhenSelected && hasSelectedValue;
   const visibleOptions = searchable
     ? options.filter((option) => `${option.label} ${option.description ?? ""}`.toLowerCase().includes(query.toLowerCase()))
     : options;
@@ -303,23 +286,27 @@ function ExpandedSelect({
   }, [open]);
 
   return (
-    <div ref={rootRef} className={`relative ${width} shrink-0`}>
+    <div ref={rootRef} className={`relative ${open ? "z-50" : "z-0"} ${width} shrink-0`}>
       <button
         type="button"
         onClick={() => setOpen((current) => !current)}
-        className={`flex h-9 w-full items-center justify-between rounded-lg border bg-white px-3 text-left text-[12px] text-slate-700 shadow-sm ${
-          open ? "border-blue-300 ring-4 ring-blue-100" : "border-slate-300"
+        className={`flex min-h-9 w-full items-start justify-between gap-2 border bg-white px-3 py-2 text-left text-[12px] shadow-sm ${
+          activeTrigger
+            ? "rounded-2xl border-[#8EC5FF] font-semibold text-[#1447E6]"
+            : "rounded-lg text-slate-700"
+        } ${
+          open ? "border-blue-300 ring-4 ring-blue-100" : activeTrigger ? "" : "border-slate-300"
         }`}
       >
-        <span className="truncate">
-          <span className="text-slate-400">{label}: </span>
+        <span className="min-w-0 flex-1 whitespace-normal break-words leading-5">
+          {!hideLabelWhenSelected || !hasSelectedValue ? <span className="text-slate-400">{label}: </span> : null}
           {selected}
         </span>
-        <ChevronDown size={14} className={`text-slate-400 transition ${open ? "rotate-180" : ""}`} />
+        <ChevronDown size={14} className={`mt-0.5 shrink-0 text-slate-400 transition ${open ? "rotate-180" : ""}`} />
       </button>
 
       {open ? (
-      <div className="absolute left-0 top-[42px] z-30 w-full rounded-xl border border-slate-200 bg-white p-2 shadow-xl">
+      <div className="absolute left-0 top-[42px] z-50 w-full rounded-xl border border-slate-200 bg-white p-2 shadow-xl">
         {searchable ? (
           <div className="mb-2 flex h-8 items-center gap-2 rounded-lg border border-slate-200 bg-slate-50 px-2">
             <Search size={13} className="text-slate-400" />
@@ -335,20 +322,15 @@ function ExpandedSelect({
           {visibleOptions.map((option) => (
             <button
               key={option.label}
-              disabled={option.disabled}
               onClick={() => {
-                if (option.disabled) return;
                 setSelected(option.label);
+                onChange?.(option.label);
                 setOpen(false);
                 setQuery("");
               }}
-              className={`flex w-full items-start justify-between gap-3 rounded-lg border px-2.5 py-2 text-left text-[12px] ${optionToneClass(option)}`}
+              className={`flex w-full items-center justify-between gap-3 rounded-lg border px-2.5 py-2 text-left text-[12px] ${optionToneClass()}`}
             >
-              <span>
-                <span className="block font-semibold">{option.label}</span>
-                {option.description ? <span className="mt-0.5 block text-[11px] opacity-80">{option.description}</span> : null}
-              </span>
-              {option.disabled ? <span className="rounded-full bg-slate-200 px-1.5 py-0.5 text-[10px] font-semibold text-slate-500">Khóa</span> : null}
+              <span className="min-w-0 flex-1 whitespace-normal break-words font-medium">{option.label}</span>
             </button>
           ))}
           {visibleOptions.length === 0 ? <div className="rounded-lg bg-slate-50 px-2.5 py-2 text-[12px] text-slate-500">Không có kết quả phù hợp.</div> : null}
@@ -356,39 +338,6 @@ function ExpandedSelect({
       </div>
       ) : null}
     </div>
-  );
-}
-
-function ExceptionCard({ title, message, tone = "warning" }: { title: string; message: string; tone?: "warning" | "danger" | "info" }) {
-  const toneClass =
-    tone === "danger"
-      ? "border-rose-200 bg-rose-50 text-rose-700"
-      : tone === "info"
-        ? "border-blue-200 bg-blue-50 text-blue-800"
-        : "border-amber-200 bg-amber-50 text-amber-800";
-
-  return (
-    <div className={`flex items-start gap-2 rounded-lg border px-3 py-2.5 text-[12.5px] ${toneClass}`}>
-      <AlertTriangle size={15} className="mt-0.5 shrink-0" />
-      <div>
-        <div className="font-semibold">{title}</div>
-        <p className="mt-0.5 opacity-90">{message}</p>
-      </div>
-    </div>
-  );
-}
-
-function ExceptionSection({ children, title = "Thông báo xử lý" }: { children: ReactNode; title?: string }) {
-  return (
-    <section className="rounded-xl border border-slate-200 bg-white p-4">
-      <div className="mb-3 flex items-center justify-between gap-3">
-        <div>
-          <h3 className="text-[14px] font-semibold text-slate-950">{title}</h3>
-          <p className="text-[12px] text-slate-500">Vui lòng xử lý các cảnh báo bên dưới trước khi tiếp tục.</p>
-        </div>
-      </div>
-      <div className="space-y-2">{children}</div>
-    </section>
   );
 }
 
@@ -435,57 +384,78 @@ function SummaryCards() {
   );
 }
 
-function ExpiryAlertCard() {
-  return (
-    <section className="rounded-xl border border-amber-200 bg-amber-50 px-4 py-3 shadow-sm">
-      <div className="flex items-center justify-between gap-4">
-        <div className="flex items-center gap-3">
-          <div className="grid size-10 place-items-center rounded-xl bg-white text-amber-700 ring-1 ring-amber-200">
-            <AlertTriangle size={18} />
-          </div>
-          <div>
-            <div className="text-[14px] font-semibold text-amber-900">12 hợp đồng sắp hết hạn trong 30 ngày</div>
-            <p className="text-[12px] text-amber-800">Ưu tiên rà soát và lập kế hoạch gia hạn cho các đơn vị liên quan.</p>
-          </div>
-        </div>
-        <button className="h-9 rounded-lg bg-amber-600 px-3.5 text-[12px] font-semibold text-white shadow-sm hover:bg-amber-700">
-          Xem danh sách
-        </button>
-      </div>
-    </section>
-  );
-}
-
 function ContractFilters() {
+  const [keyword, setKeyword] = useState("");
+  const [contractType, setContractType] = useState("Xác định thời hạn");
+  const [status, setStatus] = useState("Sắp hết hạn");
+  const [expiryDate, setExpiryDate] = useState("30/06/2026");
+  const [unit, setUnit] = useState("Khoa CNTT");
+  const hasActiveFilters = [keyword, contractType, status, expiryDate, unit].some((item) => item.trim().length > 0);
+
+  const clearFilters = () => {
+    setKeyword("");
+    setContractType("");
+    setStatus("");
+    setExpiryDate("");
+    setUnit("");
+  };
+
   return (
-    <section className="rounded-xl border border-slate-200 bg-white p-4 shadow-sm">
+    <section className="relative z-20">
       <div className="flex flex-wrap items-center gap-2">
-        <div className="flex h-9 w-[310px] items-center gap-2 rounded-lg border border-slate-300 bg-white px-3 shadow-sm">
+        <div
+          className={`flex h-9 w-[310px] items-center gap-2 border bg-white px-3 shadow-sm ${
+            keyword.trim().length > 0 ? "rounded-2xl border-[#8EC5FF]" : "rounded-lg border-slate-300"
+          }`}
+        >
           <Search size={14} className="text-slate-400" />
           <input
-            className="min-w-0 flex-1 bg-transparent text-[12px] text-slate-900 placeholder:text-slate-400 focus:outline-none"
+            value={keyword}
+            onChange={(event) => setKeyword(event.target.value)}
+            className={`min-w-0 flex-1 bg-transparent text-[12px] placeholder:text-slate-400 focus:outline-none ${
+              keyword.trim().length > 0 ? "font-semibold text-[#1447E6]" : "text-slate-900"
+            }`}
             placeholder="Tìm theo mã cán bộ, họ tên, số hợp đồng..."
           />
         </div>
-        <ExpandedSelect label="Loại hợp đồng" value="Xác định thời hạn" options={contractTypeOptions} width="w-[230px]" />
-        <ExpandedSelect label="Trạng thái" value="Sắp hết hạn" options={statusOptions} width="w-[235px]" />
-        <ExpandedSelect label="Ngày hết hạn" value="30 ngày tới" options={dateRangeOptions} width="w-[220px]" />
-        <ExpandedSelect label="Đơn vị" value="Khoa CNTT" options={unitOptions} width="w-[245px]" searchable />
-        <button className="h-9 rounded-lg bg-blue-700 px-3.5 text-[12px] font-semibold text-white shadow-sm hover:bg-blue-800">
-          Tìm kiếm
-        </button>
-        <button className="h-9 rounded-lg border border-slate-300 bg-white px-3.5 text-[12px] font-semibold text-slate-600 shadow-sm hover:bg-slate-50">
-          Xóa lọc
-        </button>
+        <ExpandedSelect label="Loại hợp đồng" value={contractType} options={contractTypeOptions} width="w-[185px]" hideLabelWhenSelected activeWhenSelected onChange={setContractType} />
+        <ExpandedSelect label="Trạng thái" value={status} options={statusOptions} width="w-[155px]" hideLabelWhenSelected activeWhenSelected onChange={setStatus} />
+        <div
+          className={`flex h-9 w-[145px] items-center gap-2 border bg-white px-3 shadow-sm ${
+            expiryDate.trim().length > 0 ? "rounded-2xl border-[#8EC5FF]" : "rounded-lg border-slate-300"
+          }`}
+        >
+          <Calendar size={14} className="text-slate-400" />
+          <input
+            value={expiryDate}
+            onChange={(event) => setExpiryDate(event.target.value)}
+            className={`min-w-0 flex-1 bg-transparent text-[12px] placeholder:text-slate-400 focus:outline-none ${
+              expiryDate.trim().length > 0 ? "font-semibold text-[#1447E6]" : "text-slate-900"
+            }`}
+            placeholder="Ngày hết hạn"
+          />
+        </div>
+        <ExpandedSelect label="Đơn vị" value={unit} options={unitOptions} width="w-[260px]" searchable hideLabelWhenSelected activeWhenSelected onChange={setUnit} />
+        {hasActiveFilters ? (
+          <button onClick={clearFilters} className="inline-flex h-9 items-center gap-2 rounded-lg border border-slate-300 bg-white px-3.5 text-[12px] font-semibold text-slate-600 shadow-sm hover:bg-slate-50">
+            <svg width="13" height="13" viewBox="0 0 13 13" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+              <path d="M1.625 6.5C1.625 7.46418 1.91091 8.40672 2.44659 9.2084C2.98226 10.0101 3.74363 10.6349 4.63442 11.0039C5.52521 11.3729 6.50541 11.4694 7.45107 11.2813C8.39672 11.0932 9.26536 10.6289 9.94715 9.94715C10.6289 9.26536 11.0932 8.39672 11.2813 7.45107C11.4694 6.50541 11.3729 5.52521 11.0039 4.63442C10.6349 3.74363 10.0101 2.98226 9.2084 2.44659C8.40672 1.91091 7.46418 1.625 6.5 1.625C5.13714 1.63013 3.82903 2.16191 2.84917 3.10917L1.625 4.33333" stroke="#45556C" strokeWidth="1.08333" strokeLinecap="round" strokeLinejoin="round" />
+              <path d="M1.625 1.625V4.33333H4.33333" stroke="#45556C" strokeWidth="1.08333" strokeLinecap="round" strokeLinejoin="round" />
+            </svg>
+            Xóa lọc
+          </button>
+        ) : null}
       </div>
     </section>
   );
 }
 
 function ContractTable({ compact = false, onOpenFrame }: { compact?: boolean; onOpenFrame?: (frame: Frame) => void }) {
+  const [openActionFor, setOpenActionFor] = useState<string | null>(null);
+
   return (
-    <section className="overflow-hidden rounded-xl border border-slate-200 bg-white shadow-sm">
-      <div className="grid grid-cols-[1.15fr_0.8fr_1.1fr_1.15fr_0.85fr_0.85fr_0.95fr_0.8fr_1fr] bg-blue-100 px-4 py-3 text-[11px] font-bold uppercase tracking-wide text-slate-800">
+    <section className="relative z-0 rounded-xl border border-slate-200 bg-white shadow-sm">
+      <div className="grid grid-cols-[1.15fr_0.8fr_1.1fr_1.15fr_0.85fr_0.85fr_0.95fr_0.8fr_1fr] rounded-t-xl bg-blue-100 px-4 py-3 text-[11px] font-bold uppercase tracking-wide text-slate-800">
         <span>Số hợp đồng</span>
         <span>Mã cán bộ</span>
         <span>Họ tên</span>
@@ -493,46 +463,81 @@ function ContractTable({ compact = false, onOpenFrame }: { compact?: boolean; on
         <span>Ngày hiệu lực</span>
         <span>Ngày hết hạn</span>
         <span>Trạng thái</span>
-        <span>Số ngày còn lại</span>
-        <span>Thao tác</span>
+        <span className="text-center">Số ngày còn lại</span>
+        <span className="text-center">Thao tác</span>
       </div>
 
-      {contractRows.map((row) => (
-        <div
-          key={row.number}
-          className="grid min-h-[58px] grid-cols-[1.15fr_0.8fr_1.1fr_1.15fr_0.85fr_0.85fr_0.95fr_0.8fr_1fr] items-center border-b border-slate-100 px-4 text-[12px] text-slate-800 last:border-0"
-        >
-          <span className="font-mono text-[11px] font-semibold text-slate-700">{row.number}</span>
-          <span className="font-mono text-[11px] font-semibold text-slate-600">{row.code}</span>
-          <span className="font-medium text-slate-900">{row.name}</span>
-          <span>{row.type}</span>
-          <span>{row.start}</span>
-          <span>{row.end}</span>
-          <span>
-            <StatusBadge value={row.status} />
-          </span>
-          <span className={row.remaining === "Quá hạn" ? "font-medium text-rose-600" : "text-slate-600"}>{row.remaining}</span>
-          <div className="flex items-center gap-1.5">
-            <button className="inline-flex h-7 items-center gap-1 rounded-lg px-2 text-[11px] font-medium text-blue-700 hover:bg-blue-50">
-              <Eye size={13} /> Xem
-            </button>
-            <button
-              onClick={() => onOpenFrame?.("renew")}
-              className="inline-flex h-7 items-center gap-1 rounded-lg px-2 text-[11px] font-medium text-amber-700 hover:bg-amber-50"
-            >
-              <RotateCcw size={13} /> Gia hạn
-            </button>
-            {!compact ? (
-              <button
-                onClick={() => onOpenFrame?.("terminate")}
-                className="inline-flex h-7 items-center gap-1 rounded-lg px-2 text-[11px] font-medium text-rose-600 hover:bg-rose-50"
-              >
-                <X size={13} /> Chấm dứt
+      {contractRows.map((row) => {
+        const isActionMenuOpen = openActionFor === row.number;
+
+        return (
+          <div
+            key={row.number}
+            className={`relative grid min-h-[58px] grid-cols-[1.15fr_0.8fr_1.1fr_1.15fr_0.85fr_0.85fr_0.95fr_0.8fr_1fr] items-center border-b border-slate-100 px-4 text-[12px] text-slate-800 last:border-0 ${
+              isActionMenuOpen ? "z-20 bg-white" : ""
+            }`}
+          >
+            <span className="font-mono text-[11px] font-semibold text-slate-700">{row.number}</span>
+            <span className="font-mono text-[11px] font-semibold text-slate-600">{row.code}</span>
+            <span className="font-medium text-slate-900">{row.name}</span>
+            <span>{row.type}</span>
+            <span>{row.start}</span>
+            <span>{row.end}</span>
+            <span>
+              <StatusBadge value={row.status} />
+            </span>
+            <span className={`text-center ${row.remaining === "Quá hạn" ? "font-medium text-rose-600" : "text-slate-600"}`}>{row.remaining}</span>
+            <div className="flex items-center justify-center gap-1.5">
+              <button className="inline-flex h-7 items-center gap-1 rounded-lg px-2 text-[11px] font-medium text-blue-700 hover:bg-blue-50">
+                <Eye size={13} /> Xem
               </button>
-            ) : null}
+              {!compact ? (
+                <div className="relative">
+                  <button
+                    aria-label={`Mở menu thao tác cho ${row.number}`}
+                    onClick={() => setOpenActionFor(isActionMenuOpen ? null : row.number)}
+                    className={`grid size-7 place-items-center rounded-lg border text-slate-600 transition ${
+                      isActionMenuOpen ? "border-blue-200 bg-blue-50 text-blue-700" : "border-slate-200 bg-white hover:bg-slate-50"
+                    }`}
+                  >
+                    <MoreHorizontal size={15} />
+                  </button>
+                  {isActionMenuOpen ? (
+                    <div className="absolute right-0 top-8 z-30 w-52 rounded-xl border border-slate-200 bg-white p-1.5 text-left shadow-xl ring-1 ring-slate-100">
+                      <button
+                        onClick={() => {
+                          setOpenActionFor(null);
+                          onOpenFrame?.("renew");
+                        }}
+                        className="flex w-full items-start gap-2 rounded-lg px-2.5 py-2 text-left text-[12px] text-slate-700 hover:bg-amber-50 hover:text-amber-800"
+                      >
+                        <RotateCcw size={14} className="mt-0.5 shrink-0" />
+                        <span>
+                          <span className="block font-semibold">Gia hạn</span>
+                          <span className="block text-[11px] text-slate-500">Tạo hợp đồng kế tiếp</span>
+                        </span>
+                      </button>
+                      <button
+                        onClick={() => {
+                          setOpenActionFor(null);
+                          onOpenFrame?.("terminate");
+                        }}
+                        className="flex w-full items-start gap-2 rounded-lg px-2.5 py-2 text-left text-[12px] text-rose-700 hover:bg-rose-50"
+                      >
+                        <X size={14} className="mt-0.5 shrink-0" />
+                        <span>
+                          <span className="block font-semibold">Chấm dứt</span>
+                          <span className="block text-[11px] text-rose-500">Yêu cầu xác nhận riêng</span>
+                        </span>
+                      </button>
+                    </div>
+                  ) : null}
+                </div>
+              ) : null}
+            </div>
           </div>
-        </div>
-      ))}
+        );
+      })}
     </section>
   );
 }
@@ -560,7 +565,6 @@ function ContractListContent({ dimmed = false, onOpenFrame }: { dimmed?: boolean
 
       <div className="space-y-4">
         <SummaryCards />
-        <ExpiryAlertCard />
         <ContractFilters />
         <ContractTable compact={dimmed} onOpenFrame={onOpenFrame} />
       </div>
@@ -592,7 +596,7 @@ function Field({
 }) {
   return (
     <div className="space-y-1.5">
-      <label className="flex items-center gap-1 text-[13px] font-medium text-slate-700">
+      <label className="flex flex-wrap items-start gap-x-1 gap-y-0.5 text-[13px] font-medium leading-5 text-slate-700">
         {label}
         {required ? <span className="text-red-600">*</span> : null}
       </label>
@@ -627,7 +631,7 @@ function SelectBox({
   label?: string;
 }) {
   return (
-    <ExpandedSelect label={label} value={value} options={options} searchable={searchable} width="w-full" />
+    <ExpandedSelect label={label} value={value} options={options} searchable={searchable} width="w-full" hideLabelWhenSelected />
   );
 }
 
@@ -649,22 +653,24 @@ function ModalShell({
   children,
   footer,
   danger,
+  maxWidth = "max-w-[1440px]",
   onClose,
 }: {
   title: string;
-  subtitle: string;
+  subtitle?: string;
   children: ReactNode;
   footer: ReactNode;
   danger?: boolean;
+  maxWidth?: string;
   onClose: () => void;
 }) {
   return (
     <div className="absolute inset-0 flex items-start justify-center bg-slate-950/10 p-8">
-      <section className="flex max-h-[calc(100vh-122px)] w-full max-w-[1440px] flex-col overflow-hidden rounded-2xl bg-white shadow-2xl ring-1 ring-slate-200">
+      <section className={`flex max-h-[calc(100vh-122px)] w-full ${maxWidth} flex-col overflow-hidden rounded-2xl bg-white shadow-2xl ring-1 ring-slate-200`}>
         <header className="flex items-center justify-between border-b border-slate-200 px-8 py-4">
           <div>
             <h2 className={`text-[18px] font-semibold ${danger ? "text-rose-700" : "text-slate-950"}`}>{title}</h2>
-            <p className="mt-0.5 text-[12px] text-slate-500">{subtitle}</p>
+            {subtitle ? <p className="mt-0.5 text-[12px] text-slate-500">{subtitle}</p> : null}
           </div>
           <button onClick={onClose} className="grid size-9 place-items-center rounded-lg text-slate-400 hover:bg-slate-100">
             <X size={18} />
@@ -694,13 +700,6 @@ function CreateContractModal({ onClose }: { onClose: () => void }) {
       }
     >
       <div className="space-y-4">
-        {submitted ? (
-          <ExceptionSection title="Không thể tạo hợp đồng">
-            <ExceptionCard title="Thời gian hợp đồng bị chồng lấn" message="Khoảng thời gian hợp đồng bị chồng lấn với hợp đồng hiện có." tone="danger" />
-            <ExceptionCard title="Loại hợp đồng không khả dụng" message="Vui lòng chọn loại hợp đồng khác nếu option trong danh sách đang bị khóa." />
-          </ExceptionSection>
-        ) : null}
-
         <div className="grid grid-cols-[minmax(0,1fr)_360px] gap-6">
           <section className="rounded-xl border border-slate-200 bg-white p-5">
           <div className="grid grid-cols-2 gap-4">
@@ -791,23 +790,22 @@ function RenewContractModal({ onClose }: { onClose: () => void }) {
       }
     >
       <div className="space-y-4">
-        {submitted ? (
-          <ExceptionSection title="Không thể gia hạn hợp đồng">
-            <ExceptionCard title="Chưa đủ điều kiện gia hạn" message="Hợp đồng hiện tại chưa nằm trong thời gian chờ gia hạn nên không thể tạo hợp đồng kế tiếp." tone="danger" />
-            <ExceptionCard title="Kiểm tra lại thời gian" message="Ngày bắt đầu mới cần liền sau ngày hết hạn hiện tại và không trùng với hợp đồng khác." />
-          </ExceptionSection>
-        ) : null}
-
-        <section className="rounded-xl border border-slate-200 bg-white p-5">
-          <h3 className="mb-4 text-[15px] font-semibold text-slate-950">Hợp đồng cũ</h3>
+        <section className="rounded-xl border border-slate-200 bg-slate-50 p-5 ring-1 ring-slate-100">
+          <div className="mb-4 flex items-start justify-between gap-3">
+            <div>
+              <h3 className="text-[15px] font-semibold text-slate-950">Hợp đồng cũ</h3>
+              <p className="mt-1 text-[12px] leading-5 text-slate-500">Thông tin tham chiếu chỉ xem, dùng để đối chiếu trước khi tạo hợp đồng gia hạn.</p>
+            </div>
+            <span className="inline-flex h-6 items-center rounded-full border border-slate-200 bg-white px-2.5 text-[11px] font-semibold text-slate-500">Chỉ xem</span>
+          </div>
           <div className="grid grid-cols-5 gap-3 text-[13px]">
             {["HĐLĐ-2025-0098", "Xác định thời hạn 36 tháng", "01/07/2023", "30/06/2026"].map((value, index) => (
-              <div key={value} className="rounded-lg border border-slate-200 bg-slate-50 px-3 py-2.5">
+              <div key={value} className="rounded-lg border border-slate-200 bg-white px-3 py-2.5 shadow-sm">
                 <div className="text-[11px] text-slate-500">{["Số hợp đồng", "Loại hợp đồng", "Ngày bắt đầu", "Ngày hết hạn"][index]}</div>
                 <div className="mt-0.5 font-medium text-slate-900">{value}</div>
               </div>
             ))}
-            <div className="rounded-lg border border-slate-200 bg-slate-50 px-3 py-2.5">
+            <div className="rounded-lg border border-slate-200 bg-white px-3 py-2.5 shadow-sm">
               <div className="text-[11px] text-slate-500">Trạng thái</div>
               <div className="mt-1"><StatusBadge value="Sắp hết hạn" /></div>
             </div>
@@ -849,8 +847,8 @@ function TerminateContractModal({ onClose }: { onClose: () => void }) {
   return (
     <ModalShell
       title="Chấm dứt hợp đồng trước hạn"
-      subtitle="Thao tác nguy hiểm cần có quyết định kèm theo trước khi xác nhận."
       danger
+      maxWidth="max-w-[940px]"
       onClose={onClose}
       footer={
         <>
@@ -860,43 +858,44 @@ function TerminateContractModal({ onClose }: { onClose: () => void }) {
       }
     >
       <div className="mx-auto max-w-[860px] space-y-4">
-        <section className="rounded-xl border border-rose-200 bg-white p-5">
-          <div className="mb-4 flex items-start gap-3 rounded-lg bg-rose-50 px-3 py-3 text-rose-700">
-            <AlertTriangle size={18} className="mt-0.5 shrink-0" />
-            <div>
-              <div className="text-[14px] font-semibold">Hợp đồng sẽ chuyển sang trạng thái Hết hiệu lực.</div>
-              <p className="mt-0.5 text-[12px] text-rose-600">Vui lòng kiểm tra số hợp đồng, nhân sự và ngày chấm dứt trước khi xác nhận.</p>
-            </div>
+        <section className="rounded-xl border border-slate-200 bg-white p-5">
+          <div className="mb-4 flex items-center justify-between gap-3">
+            <h3 className="text-[15px] font-semibold text-slate-950">Thông tin hợp đồng bị chấm dứt</h3>
+            <span className="inline-flex h-6 items-center rounded-full bg-rose-50 px-2.5 text-[11px] font-semibold text-rose-700">Cần kiểm tra kỹ</span>
           </div>
-          <div className="grid grid-cols-2 gap-4">
+          <div className="grid grid-cols-3 gap-3 text-[13px]">
             <div className="rounded-lg border border-slate-200 bg-slate-50 px-3 py-2.5">
               <div className="text-[11px] text-slate-500">Số hợp đồng</div>
               <div className="mt-0.5 font-mono text-[13px] font-semibold text-slate-900">HĐLĐ-2026-0142</div>
             </div>
             <div className="rounded-lg border border-slate-200 bg-slate-50 px-3 py-2.5">
-              <div className="text-[11px] text-slate-500">Họ tên nhân sự</div>
+              <div className="text-[11px] text-slate-500">Nhân sự</div>
               <div className="mt-0.5 text-[13px] font-semibold text-slate-900">Nguyễn Văn An</div>
             </div>
-            <Field label="Ngày chấm dứt" required error={submitted ? "Ngày chấm dứt phải nằm trong thời gian hiệu lực của hợp đồng." : undefined}>
+            <div className="rounded-lg border border-slate-200 bg-slate-50 px-3 py-2.5">
+              <div className="text-[11px] text-slate-500">Trạng thái hiện tại</div>
+              <div className="mt-1"><StatusBadge value="Còn hiệu lực" /></div>
+            </div>
+          </div>
+        </section>
+
+        <section className="rounded-xl border border-rose-200 bg-white p-5">
+          <h3 className="mb-4 text-[15px] font-semibold text-slate-950">Xác nhận chấm dứt</h3>
+          <div className="grid grid-cols-2 gap-4">
+            <Field label="Ngày chấm dứt hiệu lực" required error={submitted ? "Ngày chấm dứt phải nằm trong thời gian hiệu lực của hợp đồng." : undefined}>
               <InputBox value="30/06/2026" icon={<Calendar size={15} />} />
             </Field>
             <Field label="Lý do chấm dứt" required error={submitted ? "Vui lòng chọn lý do chấm dứt." : undefined}>
               <SelectBox value="Theo quyết định của Nhà trường" options={reasonOptions} label="Lý do" />
             </Field>
             <div className="col-span-2">
-              <Field label="Upload file quyết định" required>
-                <FileUpload label="Tải file quyết định" error={submitted ? "Vui lòng tải file quyết định." : undefined} />
+              <Field label="Tài liệu xác nhận chấm dứt" required>
+                <FileUpload label="Tải quyết định / biên bản xác nhận" error={submitted ? "Vui lòng tải tài liệu xác nhận chấm dứt." : undefined} />
               </Field>
             </div>
           </div>
         </section>
 
-        {submitted ? (
-          <ExceptionSection title="Cần xác nhận thêm">
-            <ExceptionCard title="Hợp đồng hiệu lực cuối cùng" message="Đây là hợp đồng còn hiệu lực cuối cùng của nhân sự. Cần xem xét luồng Đánh dấu thôi việc nhân sự trước khi hoàn tất." />
-            <ExceptionCard title="Điều kiện chấm dứt" message="Chỉ được chấm dứt trước hạn khi hợp đồng đang ở trạng thái Còn hiệu lực." tone="info" />
-          </ExceptionSection>
-        ) : null}
       </div>
     </ModalShell>
   );
