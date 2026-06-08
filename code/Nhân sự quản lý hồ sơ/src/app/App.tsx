@@ -867,12 +867,19 @@ function LargePersonnelForm({
   const [captureOffset, setCaptureOffset] = useState(0);
   const captureViewport = !!captureSection && !figmaCopyMode;
   const validationState = !validationStarted ? "idle" : hasErrors ? "error" : "valid";
+  const errorCount = showErrors ? 9 : duplicateId ? 1 : 0;
+  const errorGroups = [
+    hasErrors ? "Thông tin cá nhân" : null,
+    showErrors ? "Liên hệ & quốc tịch" : null,
+    showErrors ? "Công tác & lương" : null,
+    showErrors ? "Tài liệu" : null,
+  ].filter(Boolean);
   const sections = [
     { id: "identity", label: "Thông tin cá nhân", icon: <CircleUserRound size={15} />, state: validationState === "idle" ? "idle" : hasErrors ? "error" : "done" },
     { id: "contact", label: "Liên hệ & quốc tịch", icon: <Mail size={15} />, state: validationState === "idle" ? "idle" : showErrors ? "error" : "done" },
     { id: "work", label: "Công tác & lương", icon: <Building2 size={15} />, state: validationState === "idle" ? "idle" : showErrors ? "error" : "done" },
     { id: "education", label: "Học vấn", icon: <GraduationCap size={15} />, state: validationState === "idle" ? "idle" : "done" },
-    { id: "documents", label: "Tài liệu", icon: <FileText size={15} />, state: validationState === "idle" ? "idle" : showErrors ? "warning" : "done" },
+    { id: "documents", label: "Tài liệu", icon: <FileText size={15} />, state: validationState === "idle" ? "idle" : showErrors ? "error" : "done" },
   ];
   const scrollToSection = (id: string) => {
     setCaptureSection(null);
@@ -923,8 +930,8 @@ function LargePersonnelForm({
           </div>
         </div>
         <div className="flex items-center gap-2">
-          <span className="hidden items-center gap-1 rounded-full bg-emerald-50 px-2.5 py-1 text-[12px] font-medium text-emerald-700 md:inline-flex">
-            <CheckCircle2 size={13} /> Đã lưu nháp lúc 09:42
+          <span className="hidden items-center gap-1 rounded-full bg-slate-100 px-2.5 py-1 text-[12px] font-medium text-slate-600 md:inline-flex">
+            <Save size={13} /> Bản nháp đã lưu lúc 09:42
           </span>
           <button
             onClick={onClose}
@@ -952,22 +959,34 @@ function LargePersonnelForm({
               </div>
               <div className="min-w-0">
                 <div className="text-[13px] font-semibold text-slate-950">
-                  {hasErrors ? "Không thể lưu hồ sơ" : "Dữ liệu đã hợp lệ"}
+                  {hasErrors ? "Chưa thể lưu hồ sơ chính thức" : "Dữ liệu đã hợp lệ"}
                 </div>
                 <p className="mt-0.5 text-[12px] leading-5 text-slate-600">
                   {hasErrors
-                    ? "Hệ thống đã kiểm tra và phát hiện lỗi. Các nhóm có lỗi đã được đánh dấu ở mục lục bên trái và tại từng trường nhập."
+                    ? `Có ${errorCount} trường cần kiểm tra lại trước khi lưu hồ sơ chính thức.`
                     : "Hồ sơ đã qua bước kiểm tra, có thể lưu chính thức."}
                 </p>
+                {hasErrors ? (
+                  <div className="mt-2 flex flex-wrap gap-1.5">
+                    {errorGroups.map((group) => (
+                      <span
+                        key={group}
+                        className="rounded-full bg-white px-2 py-0.5 text-[11px] font-medium text-slate-700 ring-1 ring-red-100"
+                      >
+                        {group}
+                      </span>
+                    ))}
+                  </div>
+                ) : null}
               </div>
             </div>
             {hasErrors ? (
               <button
                 type="button"
                 onClick={() => scrollToSection("identity")}
-                className="shrink-0 rounded-lg border border-red-200 bg-white px-3 py-1.5 text-[12px] font-semibold text-red-700 hover:bg-red-50"
+                className="shrink-0 rounded-lg border border-slate-200 bg-white px-3 py-1.5 text-[12px] font-semibold text-slate-700 hover:bg-slate-50"
               >
-                Xem lỗi đầu tiên
+                Đến lỗi đầu tiên
               </button>
             ) : null}
           </div>
@@ -1377,8 +1396,8 @@ function LargePersonnelForm({
       <div className="flex items-center justify-between gap-3 border-t border-slate-200 bg-white px-6 py-3.5">
         <div className="flex items-center gap-2 text-[12.5px] text-slate-500">
           {hasErrors ? (
-            <span className="inline-flex items-center gap-1 text-red-700">
-              <AlertCircle size={14} /> Vui lòng sửa các trường đang báo lỗi trước khi lưu chính thức.
+            <span className="inline-flex items-center gap-1 text-slate-500">
+              <AlertCircle size={14} className="text-red-600" /> Còn lỗi cần sửa
             </span>
           ) : !validationStarted ? (
             <span className="inline-flex items-center gap-1 text-slate-500">
