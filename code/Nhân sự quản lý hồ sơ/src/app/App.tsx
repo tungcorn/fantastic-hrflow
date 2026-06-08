@@ -1,4 +1,4 @@
-import { useState, type ReactNode } from "react";
+import { useEffect, useRef, useState, type ReactNode } from "react";
 import {
   AlertCircle,
   ArrowLeft,
@@ -473,7 +473,7 @@ function ExcelImportDialog({ onClose }: { onClose: () => void }) {
 
   if (imported) {
     return (
-      <section className="w-full max-w-[620px] overflow-hidden rounded-2xl border border-emerald-200 bg-white shadow-2xl">
+      <section className="w-full max-w-[620px] overflow-hidden rounded-2xl border border-blue-200 bg-white shadow-2xl">
         <header className="flex justify-end px-5 pt-5">
           <button
             onClick={onClose}
@@ -483,7 +483,7 @@ function ExcelImportDialog({ onClose }: { onClose: () => void }) {
           </button>
         </header>
         <div className="px-8 pb-8 text-center">
-          <div className="mx-auto grid size-16 place-items-center rounded-full bg-emerald-50 text-emerald-600">
+          <div className="mx-auto grid size-16 place-items-center rounded-full bg-blue-50 text-blue-700">
             <CheckCircle2 size={34} />
           </div>
           <h1 className="mt-5 text-[21px] font-semibold text-slate-950">
@@ -495,9 +495,9 @@ function ExcelImportDialog({ onClose }: { onClose: () => void }) {
           </p>
 
           <div className="mt-6 grid grid-cols-3 gap-3 text-left">
-            <div className="rounded-xl border border-emerald-200 bg-emerald-50 p-4">
-              <div className="text-[11px] font-semibold uppercase tracking-wide text-emerald-700">Đã nhập</div>
-              <div className="mt-1 text-[24px] font-bold text-emerald-900">{validCount}</div>
+            <div className="rounded-xl border border-blue-200 bg-blue-50 p-4">
+              <div className="text-[11px] font-semibold uppercase tracking-wide text-blue-700">Đã nhập</div>
+              <div className="mt-1 text-[24px] font-bold text-blue-900">{validCount}</div>
             </div>
             <div className="rounded-xl border border-amber-200 bg-amber-50 p-4">
               <div className="text-[11px] font-semibold uppercase tracking-wide text-amber-700">Chưa nhập</div>
@@ -537,7 +537,7 @@ function ExcelImportDialog({ onClose }: { onClose: () => void }) {
       <section className="w-full max-w-[680px] overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-2xl">
         <header className="flex items-start justify-between border-b border-slate-200 px-6 py-5">
           <div className="flex gap-3">
-            <div className="grid size-10 shrink-0 place-items-center rounded-xl bg-emerald-50 text-emerald-700">
+            <div className="grid size-10 shrink-0 place-items-center rounded-xl bg-blue-50 text-blue-700">
               <FileText size={20} />
             </div>
             <div>
@@ -612,7 +612,7 @@ function ExcelImportDialog({ onClose }: { onClose: () => void }) {
     <section className="flex h-[calc(100vh-96px)] w-full max-w-[760px] flex-col overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-2xl">
       <header className="shrink-0 flex items-start justify-between border-b border-slate-200 px-6 py-5">
         <div className="flex gap-3">
-          <div className="grid size-10 shrink-0 place-items-center rounded-xl bg-emerald-50 text-emerald-700">
+          <div className="grid size-10 shrink-0 place-items-center rounded-xl bg-slate-100 text-slate-600">
             <FileText size={20} />
           </div>
           <div>
@@ -631,96 +631,53 @@ function ExcelImportDialog({ onClose }: { onClose: () => void }) {
       </header>
 
       <div className="min-h-0 flex-1 space-y-4 overflow-y-auto px-6 py-5">
-        <div className="grid grid-cols-[1fr_1.1fr] gap-4">
-          <div className="rounded-xl border border-blue-200 bg-blue-50/70 p-4">
-            <div className="flex items-start justify-between gap-3">
+        <div className="grid grid-cols-2 gap-4">
+          <div className="flex min-h-[132px] rounded-xl border border-slate-200 bg-slate-50 p-4">
+            <div className="flex w-full flex-col justify-between gap-3">
               <div>
-                <div className="text-[13px] font-semibold text-blue-900">File mẫu</div>
-                <p className="mt-1 text-[12px] leading-5 text-blue-800">
+                <div className="text-[11px] font-semibold uppercase tracking-wide text-slate-500">File mẫu</div>
+                <div className="mt-0.5 text-[13.5px] font-semibold text-slate-950">Mẫu nhập hồ sơ nhân sự</div>
+                <p className="mt-1 text-[12px] leading-5 text-slate-600">
                   Mẫu gồm định danh, đơn vị công tác, học vị, hợp đồng và tài liệu cần bổ sung.
                 </p>
               </div>
-              <button className="inline-flex h-9 shrink-0 items-center gap-2 rounded-lg border border-blue-200 bg-white px-3 text-[12.5px] font-semibold text-blue-700 hover:bg-blue-50">
-                <FileText size={15} /> Tải mẫu
-              </button>
+              <div className="flex justify-end">
+                <button className="inline-flex h-9 shrink-0 items-center gap-2 rounded-lg border border-slate-200 bg-white px-3 text-[12.5px] font-semibold text-slate-700 hover:bg-slate-50">
+                  <FileText size={15} /> Tải mẫu
+                </button>
+              </div>
             </div>
           </div>
 
-          <div className="rounded-xl border border-dashed border-slate-300 bg-white p-4">
-            <div className="flex min-h-[112px] items-center gap-4 rounded-lg bg-slate-50 px-4">
-              <div className="grid size-10 place-items-center rounded-full bg-white text-slate-500 shadow-sm">
-                <Upload size={18} />
-              </div>
-              <div className="min-w-0 flex-1">
-                <div className="truncate text-[13px] font-semibold text-slate-900">
+          <div className="flex min-h-[132px] rounded-xl border border-dashed border-slate-300 bg-slate-50 p-4">
+            <div className="flex w-full flex-col justify-center gap-3">
+              <div className="min-w-0">
+                <div className="text-[11px] font-semibold uppercase tracking-wide text-slate-500">File đã chọn</div>
+                <div className="mt-0.5 truncate text-[13.5px] font-semibold text-slate-950">
                   Danh_sach_nhan_su_moi.xlsx
                 </div>
-                <div className="mt-1 text-[11.5px] text-slate-500">Đã chọn · 38 dòng dữ liệu</div>
+                <p className="mt-1 text-[12px] leading-5 text-slate-600">
+                  Đã chọn file Excel gồm 38 dòng dữ liệu để kiểm tra trước khi nhập.
+                </p>
               </div>
-              <button
-                onClick={() => setAllValid(true)}
-                className="rounded-lg border border-slate-200 bg-white px-3 py-1.5 text-[12px] font-medium text-slate-700 hover:bg-slate-50"
-              >
-                {allValid ? "Chọn file khác" : "Chọn file đã sửa"}
-              </button>
-            </div>
-          </div>
-        </div>
-
-        <div className="grid grid-cols-4 gap-3">
-          <div className="rounded-xl border border-slate-200 bg-white p-4">
-            <div className="text-[11px] font-semibold uppercase tracking-wide text-slate-500">Tổng dòng</div>
-            <div className="mt-1 text-[24px] font-bold text-slate-950">38</div>
-          </div>
-          <div className="rounded-xl border border-emerald-200 bg-emerald-50 p-4">
-            <div className="text-[11px] font-semibold uppercase tracking-wide text-emerald-700">Hợp lệ</div>
-            <div className="mt-1 text-[24px] font-bold text-emerald-900">{validCount}/38</div>
-          </div>
-          <div
-            className={`rounded-xl border p-4 ${
-              allValid ? "border-emerald-200 bg-emerald-50" : "border-amber-200 bg-amber-50"
-            }`}
-          >
-            <div
-              className={`text-[11px] font-semibold uppercase tracking-wide ${
-                allValid ? "text-emerald-700" : "text-amber-700"
-              }`}
-            >
-              Dòng lỗi
-            </div>
-            <div
-              className={`mt-1 text-[24px] font-bold ${
-                allValid ? "text-emerald-900" : "text-amber-900"
-              }`}
-            >
-              {invalidCount}
-            </div>
-          </div>
-          <div
-            className={`rounded-xl border p-4 ${
-              allValid ? "border-emerald-200 bg-emerald-50" : "border-blue-200 bg-blue-50"
-            }`}
-          >
-            <div
-              className={`text-[11px] font-semibold uppercase tracking-wide ${
-                allValid ? "text-emerald-700" : "text-blue-700"
-              }`}
-            >
-              Tổng lỗi
-            </div>
-            <div
-              className={`mt-1 text-[24px] font-bold ${
-                allValid ? "text-emerald-900" : "text-blue-900"
-              }`}
-            >
-              {errorCount}
+              <div className="flex items-center justify-between gap-3">
+                <span className="inline-flex items-center gap-1.5 text-[11.5px] font-medium text-slate-500">
+                  <Upload size={13} /> .xlsx
+                </span>
+                <button
+                  onClick={() => setAllValid(true)}
+                  className="rounded-lg border border-slate-200 bg-white px-3 py-1.5 text-[12px] font-medium text-slate-700 hover:bg-slate-50"
+                >
+                  Chọn file Excel
+                </button>
+              </div>
             </div>
           </div>
         </div>
 
         <div
           className={`overflow-hidden rounded-xl border bg-white ${
-            allValid ? "border-emerald-200" : "border-slate-200"
+            allValid ? "border-blue-200" : "border-slate-200"
           }`}
         >
           <div className="flex items-center justify-between border-b border-slate-100 px-4 py-3">
@@ -728,13 +685,13 @@ function ExcelImportDialog({ onClose }: { onClose: () => void }) {
               <div className="text-[13px] font-semibold text-slate-900">Kết quả kiểm tra file</div>
               <div className="text-[11.5px] text-slate-500">
                 {allValid
-                  ? "Toàn bộ 38 hồ sơ đạt điều kiện nhập vào hệ thống."
-                  : "File có thể nhập một phần, nhưng cần sửa lỗi nếu muốn nhập đủ 38 hồ sơ."}
+                  ? "File đạt điều kiện nhập toàn bộ hồ sơ."
+                  : "File có thể nhập phần hợp lệ; các dòng lỗi cần sửa trong Excel."}
               </div>
             </div>
             <span
               className={`inline-flex items-center gap-1 rounded-full px-2.5 py-1 text-[11.5px] font-semibold ${
-                allValid ? "bg-emerald-50 text-emerald-700" : "bg-amber-50 text-amber-700"
+                allValid ? "bg-blue-50 text-blue-700" : "bg-amber-50 text-amber-700"
               }`}
             >
               {allValid ? <CheckCircle2 size={13} /> : <AlertCircle size={13} />}
@@ -742,45 +699,42 @@ function ExcelImportDialog({ onClose }: { onClose: () => void }) {
             </span>
           </div>
 
-          <div className="grid grid-cols-[1fr_1fr] gap-4 p-4">
-            <div className="rounded-xl border border-emerald-200 bg-emerald-50 p-4">
-              <div className="flex items-start gap-3">
-                <div className="grid size-9 place-items-center rounded-full bg-white text-emerald-700 shadow-sm">
-                  <CheckCircle2 size={18} />
+          <div className="p-4">
+            <div className="grid grid-cols-[1fr_auto] items-center gap-4">
+              <div>
+                <div className="flex items-baseline gap-2">
+                  <span className="text-[26px] font-bold text-slate-950">
+                    {validCount}/38
+                  </span>
+                  <span className="text-[12.5px] font-medium text-slate-600">dòng hợp lệ</span>
                 </div>
-                <div>
-                  <div className="text-[13px] font-semibold text-emerald-900">Có thể nhập ngay</div>
-                  <p className="mt-1 text-[12px] leading-5 text-emerald-800">
-                    {allValid
-                      ? "38 hồ sơ hợp lệ sẽ được tạo sau khi xác nhận nhập file."
-                      : "35 hồ sơ hợp lệ sẽ được tạo nếu chọn nhập phần hợp lệ. Các dòng lỗi không được đưa vào hệ thống."}
-                  </p>
+                <div className="mt-3 h-2 overflow-hidden rounded-full bg-slate-100">
+                  <div
+                    className={`h-full rounded-full ${allValid ? "bg-blue-700" : "bg-amber-500"}`}
+                    style={{ width: allValid ? "100%" : "92%" }}
+                  />
+                </div>
+                <div className="mt-2 flex items-center gap-4 text-[11.5px] text-slate-500">
+                  <span>Tổng 38 dòng dữ liệu</span>
+                  {!allValid ? <span>3 dòng cần sửa</span> : <span>Không phát hiện dòng lỗi</span>}
                 </div>
               </div>
-            </div>
 
-            <div
-              className={`rounded-xl border p-4 ${
-                allValid ? "border-emerald-200 bg-emerald-50" : "border-amber-200 bg-amber-50"
-              }`}
-            >
-              <div className="flex items-start gap-3">
-                <div
-                  className={`grid size-9 place-items-center rounded-full bg-white shadow-sm ${
-                    allValid ? "text-emerald-700" : "text-amber-700"
-                  }`}
-                >
-                  {allValid ? <CheckCircle2 size={18} /> : <AlertCircle size={18} />}
+              <div
+                className={`min-w-[168px] rounded-xl border px-4 py-3 ${
+                  allValid ? "border-blue-200 bg-blue-50" : "border-slate-200 bg-white"
+                }`}
+              >
+                <div className={`text-[11px] font-semibold uppercase tracking-wide ${allValid ? "text-blue-700" : "text-slate-500"}`}>
+                  {allValid ? "Trạng thái" : "Cần xử lý"}
+                </div>
+                <div className={`mt-1 text-[18px] font-bold ${allValid ? "text-blue-900" : "text-amber-900"}`}>
+                  {allValid ? "Hợp lệ" : `${errorCount} lỗi`}
                 </div>
                 <div>
-                  <div className={`text-[13px] font-semibold ${allValid ? "text-emerald-900" : "text-amber-900"}`}>
-                    {allValid ? "Không còn lỗi dữ liệu" : "Cần sửa trong file"}
-                  </div>
-                  <p className={`mt-1 text-[12px] leading-5 ${allValid ? "text-emerald-800" : "text-amber-800"}`}>
-                    {allValid
-                      ? "Không phát hiện thiếu trường bắt buộc, sai định dạng, sai danh mục hoặc trùng dữ liệu."
-                      : "3 dòng đang có lỗi. Xuất danh sách lỗi, sửa file Excel, rồi chọn lại file để kiểm tra lần nữa."}
-                  </p>
+                  <span className={`text-[11.5px] ${allValid ? "text-blue-700" : "text-slate-500"}`}>
+                    {allValid ? "Sẵn sàng nhập" : "Xem bảng lỗi bên dưới"}
+                  </span>
                 </div>
               </div>
             </div>
@@ -788,10 +742,10 @@ function ExcelImportDialog({ onClose }: { onClose: () => void }) {
         </div>
 
         {allValid ? (
-          <div className="overflow-hidden rounded-xl border border-emerald-200 bg-white">
-            <div className="border-b border-emerald-100 bg-emerald-50 px-4 py-3">
-              <div className="text-[13px] font-semibold text-emerald-900">Các kiểm tra đã đạt</div>
-              <div className="text-[11.5px] text-emerald-700">File đã sẵn sàng để nhập toàn bộ hồ sơ.</div>
+          <div className="overflow-hidden rounded-xl border border-blue-200 bg-white">
+            <div className="border-b border-blue-100 bg-blue-50 px-4 py-3">
+              <div className="text-[13px] font-semibold text-blue-900">Các kiểm tra đã đạt</div>
+              <div className="text-[11.5px] text-blue-700">File đã sẵn sàng để nhập toàn bộ hồ sơ.</div>
             </div>
             <div className="grid grid-cols-2 gap-3 p-4">
               {[
@@ -800,7 +754,7 @@ function ExcelImportDialog({ onClose }: { onClose: () => void }) {
                 "Đơn vị công tác khớp danh mục",
                 "Không phát hiện CCCD trùng",
               ].map((item) => (
-                <div key={item} className="flex items-center gap-2 rounded-lg border border-emerald-100 bg-emerald-50/70 px-3 py-2.5 text-[12.5px] font-medium text-emerald-800">
+                <div key={item} className="flex items-center gap-2 rounded-lg border border-blue-100 bg-blue-50/70 px-3 py-2.5 text-[12.5px] font-medium text-blue-800">
                   <CheckCircle2 size={15} className="shrink-0" />
                   {item}
                 </div>
@@ -808,13 +762,13 @@ function ExcelImportDialog({ onClose }: { onClose: () => void }) {
             </div>
           </div>
         ) : (
-          <div className="overflow-hidden rounded-xl border border-amber-200 bg-white">
-            <div className="flex items-center justify-between border-b border-amber-100 bg-amber-50 px-4 py-3">
+          <div className="overflow-hidden rounded-xl border border-slate-200 bg-white">
+            <div className="flex items-center justify-between border-b border-slate-100 bg-slate-50 px-4 py-3">
               <div>
-                <div className="text-[13px] font-semibold text-amber-900">Thông tin không hợp lệ</div>
-                <div className="text-[11.5px] text-amber-700">Cần sửa trước khi nhập toàn bộ file.</div>
+                <div className="text-[13px] font-semibold text-slate-900">Thông tin không hợp lệ</div>
+                <div className="text-[11.5px] text-slate-600">Cần sửa trước khi nhập toàn bộ file.</div>
               </div>
-              <button className="rounded-lg border border-amber-200 bg-white px-3 py-1.5 text-[12px] font-semibold text-amber-700 hover:bg-amber-50">
+              <button className="rounded-lg border border-slate-200 bg-white px-3 py-1.5 text-[12px] font-semibold text-slate-700 hover:bg-slate-50">
                 Xuất danh sách lỗi
               </button>
             </div>
@@ -828,12 +782,12 @@ function ExcelImportDialog({ onClose }: { onClose: () => void }) {
             {invalidRows.map((row) => (
               <div
                 key={`${row.row}-${row.field}`}
-                className="grid grid-cols-[0.68fr_1.05fr_1fr_1fr_1.45fr] items-center border-t border-amber-100 px-4 py-2.5 text-[12px]"
+                className="grid grid-cols-[0.68fr_1.05fr_1fr_1fr_1.45fr] items-center border-t border-slate-100 px-4 py-2.5 text-[12px]"
               >
-                <span className="font-semibold text-amber-800">{row.row}</span>
+                <span className="font-semibold text-slate-900">{row.row}</span>
                 <span className="font-medium text-slate-900">{row.name}</span>
                 <span className="text-slate-700">{row.field}</span>
-                <span className="w-fit rounded-full bg-amber-50 px-2 py-0.5 text-[11px] font-semibold text-amber-700">
+                <span className="w-fit rounded-full bg-slate-100 px-2 py-0.5 text-[11px] font-semibold text-slate-700">
                   {row.type}
                 </span>
                 <span className="text-slate-600">{row.issue}</span>
@@ -846,8 +800,8 @@ function ExcelImportDialog({ onClose }: { onClose: () => void }) {
       <footer className="shrink-0 flex items-center justify-between border-t border-slate-200 bg-slate-50 px-6 py-4">
         <div className="text-[12px] text-slate-500">
           {allValid
-            ? "Hệ thống sẽ nhập toàn bộ 38 hồ sơ sau khi xác nhận."
-            : "Hệ thống chỉ nhập 35 dòng hợp lệ; 3 dòng lỗi được giữ lại để xuất và sửa."}
+            ? "Hệ thống sẽ tạo hồ sơ sau khi xác nhận nhập file."
+            : "Dòng hợp lệ được nhập trước; dòng lỗi được giữ lại để xuất và sửa."}
         </div>
         <div className="flex gap-2">
           <button
@@ -860,7 +814,7 @@ function ExcelImportDialog({ onClose }: { onClose: () => void }) {
             onClick={() => setImported(true)}
             className="inline-flex items-center gap-1.5 rounded-lg bg-blue-700 px-4 py-2 text-[13px] font-semibold text-white hover:bg-blue-800"
           >
-            <CheckCircle2 size={15} /> Nhập {validCount} hồ sơ hợp lệ
+            <CheckCircle2 size={15} /> {allValid ? "Nhập toàn bộ hồ sơ" : "Nhập phần hợp lệ"}
           </button>
         </div>
       </footer>
@@ -879,6 +833,12 @@ function LargePersonnelForm({
   setDegrees,
   certs,
   setCerts,
+  figmaCopyMode,
+  setFigmaCopyMode,
+  validationStarted,
+  setValidationStarted,
+  captureSection,
+  setCaptureSection,
   onClose,
   onSave,
 }: {
@@ -892,20 +852,63 @@ function LargePersonnelForm({
   setDegrees: (value: { name: string; place: string }[] | ((value: { name: string; place: string }[]) => { name: string; place: string }[])) => void;
   certs: { name: string; place: string }[];
   setCerts: (value: { name: string; place: string }[] | ((value: { name: string; place: string }[]) => { name: string; place: string }[])) => void;
+  figmaCopyMode: boolean;
+  setFigmaCopyMode: (value: boolean) => void;
+  validationStarted: boolean;
+  setValidationStarted: (value: boolean) => void;
+  captureSection: string | null;
+  setCaptureSection: (value: string | null) => void;
   onClose: () => void;
   onSave: () => void;
 }) {
   const hasErrors = showErrors || duplicateId;
+  const formScrollRef = useRef<HTMLElement>(null);
+  const [activeSection, setActiveSection] = useState("identity");
+  const [captureOffset, setCaptureOffset] = useState(0);
+  const captureViewport = !!captureSection && !figmaCopyMode;
+  const validationState = !validationStarted ? "idle" : hasErrors ? "error" : "valid";
   const sections = [
-    { id: "identity", label: "Thông tin cá nhân", icon: <CircleUserRound size={15} />, state: hasErrors ? "error" : "done" },
-    { id: "contact", label: "Liên hệ & quốc tịch", icon: <Mail size={15} />, state: showErrors ? "error" : "done" },
-    { id: "work", label: "Công tác & lương", icon: <Building2 size={15} />, state: showErrors ? "error" : "done" },
-    { id: "education", label: "Học vấn", icon: <GraduationCap size={15} />, state: "done" },
-    { id: "documents", label: "Tài liệu", icon: <FileText size={15} />, state: showErrors ? "warning" : "done" },
+    { id: "identity", label: "Thông tin cá nhân", icon: <CircleUserRound size={15} />, state: validationState === "idle" ? "idle" : hasErrors ? "error" : "done" },
+    { id: "contact", label: "Liên hệ & quốc tịch", icon: <Mail size={15} />, state: validationState === "idle" ? "idle" : showErrors ? "error" : "done" },
+    { id: "work", label: "Công tác & lương", icon: <Building2 size={15} />, state: validationState === "idle" ? "idle" : showErrors ? "error" : "done" },
+    { id: "education", label: "Học vấn", icon: <GraduationCap size={15} />, state: validationState === "idle" ? "idle" : "done" },
+    { id: "documents", label: "Tài liệu", icon: <FileText size={15} />, state: validationState === "idle" ? "idle" : showErrors ? "warning" : "done" },
   ];
+  const scrollToSection = (id: string) => {
+    setCaptureSection(null);
+    const container = formScrollRef.current;
+    const target = container?.querySelector<HTMLElement>(`#${id}`);
+    if (!container || !target) return;
+    setActiveSection(id);
+    container.scrollTo({ top: target.offsetTop, behavior: "smooth" });
+  };
+  const syncActiveSection = () => {
+    const container = formScrollRef.current;
+    if (!container) return;
+    const current = sections.reduce((active, section) => {
+      const element = container.querySelector<HTMLElement>(`#${section.id}`);
+      return element && element.offsetTop <= container.scrollTop + 72 ? section.id : active;
+    }, sections[0].id);
+    setActiveSection(current);
+  };
+  useEffect(() => {
+    if (!captureViewport || !captureSection) {
+      setCaptureOffset(0);
+      return;
+    }
+
+    const element = formScrollRef.current?.querySelector<HTMLElement>(`#${captureSection}`);
+    if (!element) return;
+    setActiveSection(captureSection);
+    setCaptureOffset(Math.max(0, element.offsetTop - 8));
+  }, [captureViewport, captureSection, showErrors, duplicateId, foreigner, degrees.length, certs.length]);
 
   return (
-    <div className="flex h-[calc(100vh-96px)] w-full max-w-[1260px] flex-col overflow-hidden rounded-2xl bg-white shadow-2xl ring-1 ring-slate-200">
+    <div
+      className={`relative flex w-full max-w-[1260px] flex-col rounded-2xl bg-white shadow-2xl ring-1 ring-slate-200 ${
+        figmaCopyMode ? "overflow-visible" : "h-[calc(100vh-96px)] overflow-hidden"
+      }`}
+    >
       <div className="flex items-center justify-between border-b border-slate-200 px-5 py-3">
         <div className="flex items-center gap-3">
           <button
@@ -932,36 +935,103 @@ function LargePersonnelForm({
         </div>
       </div>
 
-      <div className="min-h-0 flex-1 bg-slate-50/60">
-        <div className="grid h-full grid-cols-[196px_minmax(0,1fr)] gap-4 p-4">
+      {validationStarted ? (
+        <div className="border-b border-slate-200 bg-white px-5 py-3">
+          <div
+            className={`flex items-start justify-between gap-4 rounded-xl border px-4 py-3 ${
+              hasErrors ? "border-red-200 bg-red-50/70" : "border-blue-200 bg-blue-50/70"
+            }`}
+          >
+            <div className="flex items-start gap-3">
+              <div
+                className={`mt-0.5 grid size-8 shrink-0 place-items-center rounded-full bg-white ${
+                  hasErrors ? "text-red-600" : "text-blue-700"
+                }`}
+              >
+                {hasErrors ? <AlertCircle size={17} /> : <CheckCircle2 size={17} />}
+              </div>
+              <div className="min-w-0">
+                <div className="text-[13px] font-semibold text-slate-950">
+                  {hasErrors ? "Không thể lưu hồ sơ" : "Dữ liệu đã hợp lệ"}
+                </div>
+                <p className="mt-0.5 text-[12px] leading-5 text-slate-600">
+                  {hasErrors
+                    ? "Hệ thống đã kiểm tra và phát hiện lỗi. Các nhóm có lỗi đã được đánh dấu ở mục lục bên trái và tại từng trường nhập."
+                    : "Hồ sơ đã qua bước kiểm tra, có thể lưu chính thức."}
+                </p>
+              </div>
+            </div>
+            {hasErrors ? (
+              <button
+                type="button"
+                onClick={() => scrollToSection("identity")}
+                className="shrink-0 rounded-lg border border-red-200 bg-white px-3 py-1.5 text-[12px] font-semibold text-red-700 hover:bg-red-50"
+              >
+                Xem lỗi đầu tiên
+              </button>
+            ) : null}
+          </div>
+        </div>
+      ) : null}
+
+      <div className={`${figmaCopyMode ? "" : "min-h-0 flex-1"} bg-slate-50/60`}>
+        <div
+          className={`grid grid-cols-[196px_minmax(0,1fr)] gap-4 p-4 ${
+            figmaCopyMode ? "" : "h-full"
+          }`}
+        >
           <aside className="h-fit rounded-xl border border-slate-200 bg-white p-2.5">
             <div className="px-2 pb-1.5 text-[11px] font-semibold uppercase tracking-wide text-slate-500">
               Nhóm thông tin
             </div>
             <div className="space-y-1">
-              {sections.map((section) => (
-                <a
-                  key={section.id}
-                  href={`#${section.id}`}
-                  className="flex items-center justify-between rounded-lg px-2.5 py-1.5 text-[12px] font-medium text-slate-700 hover:bg-slate-50"
-                >
-                  <span className="flex items-center gap-2">
-                    {section.icon}
-                    {section.label}
-                  </span>
-                  {section.state === "error" ? (
-                    <AlertCircle size={14} className="text-red-600" />
-                  ) : section.state === "warning" ? (
-                    <AlertCircle size={14} className="text-amber-600" />
-                  ) : (
-                    <CheckCircle2 size={14} className="text-emerald-600" />
-                  )}
-                </a>
-              ))}
+              {sections.map((section) => {
+                const active = activeSection === section.id;
+                return (
+                  <button
+                    key={section.id}
+                    type="button"
+                    onClick={() => scrollToSection(section.id)}
+                    className={`flex w-full items-center justify-between rounded-lg px-2.5 py-1.5 text-left text-[12px] font-medium transition ${
+                      active
+                        ? "bg-blue-50 text-blue-700 ring-1 ring-blue-100"
+                        : "text-slate-700 hover:bg-slate-50"
+                    }`}
+                  >
+                    <span className="flex items-center gap-2">
+                      {section.icon}
+                      {section.label}
+                    </span>
+                    {section.state === "idle" ? (
+                      <ChevronRight size={14} className={active ? "text-blue-600" : "text-slate-300"} />
+                    ) : section.state === "error" ? (
+                      <AlertCircle size={14} className={active ? "text-red-600" : "text-red-600"} />
+                    ) : section.state === "warning" ? (
+                      <AlertCircle size={14} className={active ? "text-amber-600" : "text-amber-600"} />
+                    ) : (
+                      <CheckCircle2 size={14} className={active ? "text-blue-700" : "text-emerald-600"} />
+                    )}
+                  </button>
+                );
+              })}
             </div>
           </aside>
 
-          <main className="min-h-0 space-y-4 overflow-y-auto overflow-x-hidden pr-1">
+          <main
+            ref={formScrollRef}
+            onScroll={syncActiveSection}
+            className={`space-y-4 pr-1 ${
+              figmaCopyMode
+                ? "overflow-visible"
+                : captureViewport
+                ? "relative min-h-0 overflow-hidden"
+                : "min-h-0 overflow-y-auto overflow-x-hidden"
+            }`}
+          >
+            <div
+              className="space-y-4"
+              style={captureViewport ? { transform: `translateY(-${captureOffset}px)` } : undefined}
+            >
             <section id="identity">
               <SectionCard
                 title="Thông tin cá nhân"
@@ -980,7 +1050,7 @@ function LargePersonnelForm({
                   </div>
                   <div className="grid min-w-0 grid-cols-2 gap-3">
                     <Field label="Họ và tên" required error={showErrors ? "Họ và tên là trường bắt buộc." : undefined}>
-                      <Input value={showErrors ? "" : "Nguyễn Văn A"} state={showErrors ? "error" : "success"} />
+                      <Input value={showErrors ? "" : "Nguyễn Văn A"} state={showErrors ? "error" : validationStarted ? "success" : "default"} />
                     </Field>
                     <Field label="Giới tính" required>
                       <Select value="Nam" />
@@ -999,7 +1069,7 @@ function LargePersonnelForm({
                       >
                         <div className="flex gap-2">
                           <div className="min-w-0 flex-1">
-                            <Input value={hasErrors ? "001200001900" : "001200001901"} state={hasErrors ? "error" : "success"} />
+                            <Input value={hasErrors ? "001200001900" : "001200001901"} state={hasErrors ? "error" : validationStarted ? "success" : "default"} />
                           </div>
                           <button
                             type="button"
@@ -1007,8 +1077,10 @@ function LargePersonnelForm({
                               if (hasErrors) {
                                 setDuplicateId(false);
                                 setShowErrors(false);
+                                setValidationStarted(true);
                               } else {
                                 setDuplicateId(true);
+                                setValidationStarted(true);
                               }
                             }}
                             className="h-10 shrink-0 rounded-lg border border-slate-200 bg-white px-3 text-[12px] font-semibold text-slate-700 hover:bg-slate-50"
@@ -1130,7 +1202,7 @@ function LargePersonnelForm({
                       <Select value="Bậc 1" />
                     </Field>
                     <Field label="Hệ số lương" required error={showErrors ? "Hệ số lương phải là số lớn hơn 0." : undefined}>
-                      <Input value={showErrors ? "abc" : "2.34"} state={showErrors ? "error" : "success"} />
+                      <Input value={showErrors ? "abc" : "2.34"} state={showErrors ? "error" : validationStarted ? "success" : "default"} />
                     </Field>
                     <Field label="Phụ cấp chức vụ">
                       <Input value="0.00" />
@@ -1279,6 +1351,24 @@ function LargePersonnelForm({
                 </div>
               </div>
             </section>
+            </div>
+            {captureViewport ? (
+              <div className="pointer-events-none absolute right-0 top-0 h-full w-2 rounded-full bg-slate-100">
+                <div
+                  className="absolute right-0.5 h-28 w-1 rounded-full bg-slate-400"
+                  style={{
+                    top:
+                      captureSection === "documents"
+                        ? "72%"
+                        : captureSection === "work"
+                        ? "42%"
+                        : captureSection === "contact"
+                        ? "22%"
+                        : "4%",
+                  }}
+                />
+              </div>
+            ) : null}
           </main>
 
         </div>
@@ -1290,9 +1380,13 @@ function LargePersonnelForm({
             <span className="inline-flex items-center gap-1 text-red-700">
               <AlertCircle size={14} /> Vui lòng sửa các trường đang báo lỗi trước khi lưu chính thức.
             </span>
+          ) : !validationStarted ? (
+            <span className="inline-flex items-center gap-1 text-slate-500">
+              Nhấn lưu để hệ thống kiểm tra và tạo hồ sơ chính thức.
+            </span>
           ) : (
             <span className="inline-flex items-center gap-1 text-emerald-700">
-              <CheckCircle2 size={14} /> Nhấn lưu để hệ thống kiểm tra và tạo hồ sơ chính thức.
+              <CheckCircle2 size={14} /> Form đã được kiểm tra, có thể lưu hồ sơ chính thức.
             </span>
           )}
         </div>
@@ -1308,12 +1402,16 @@ function LargePersonnelForm({
           </button>
           <button
             onClick={() => {
-              if (hasErrors) {
+              setValidationStarted(true);
+              if (!validationStarted || hasErrors) {
                 setShowErrors(true);
                 setDuplicateId(true);
-              } else {
-                onSave();
+                setCaptureSection(null);
+                setActiveSection("identity");
+                formScrollRef.current?.scrollTo({ top: 0, behavior: "smooth" });
+                return;
               }
+              onSave();
             }}
             className="inline-flex items-center gap-1.5 rounded-lg bg-blue-700 px-4 py-2 text-[13px] font-semibold text-white hover:bg-blue-800"
           >
@@ -1379,11 +1477,66 @@ export default function App() {
   const [modalOpen, setModalOpen] = useState(true);
   const [addMenuOpen, setAddMenuOpen] = useState(true);
   const [excelImportOpen, setExcelImportOpen] = useState(false);
+  const [figmaCopyMode, setFigmaCopyMode] = useState(false);
+  const [formValidationStarted, setFormValidationStarted] = useState(false);
+  const [captureSection, setCaptureSection] = useState<string | null>(null);
   const [degrees, setDegrees] = useState([
     { name: "Bằng Cử nhân chuyên ngành Kỹ thuật phần mềm", place: "Trường Đại học Thủy lợi" },
     { name: "Bằng Kỹ sư Khoa học máy tính", place: "Trường Đại học Thủy lợi" },
   ]);
   const [certs, setCerts] = useState([{ name: "IELTS 7.5", place: "British Council" }]);
+
+  useEffect(() => {
+    const handlePrototypeShortcut = (event: KeyboardEvent) => {
+      if (event.key === "Escape") {
+        setFigmaCopyMode(false);
+        setCaptureSection(null);
+        return;
+      }
+      if (!event.altKey) return;
+
+      if (event.key.toLowerCase() === "c") {
+        setCaptureSection(null);
+        setFigmaCopyMode(true);
+        return;
+      }
+
+      const showErrorFrame = (section: string | null) => {
+        setSaved(false);
+        setModalOpen(true);
+        setAddMenuOpen(false);
+        setExcelImportOpen(false);
+        setFigmaCopyMode(false);
+        setFormValidationStarted(true);
+        setDuplicateId(true);
+        setValidationAttempted({ 0: true, 1: true, 2: true, 3: true, 4: true });
+        setCaptureSection(section);
+      };
+
+      if (event.key === "1") {
+        setFormValidationStarted(false);
+        setDuplicateId(false);
+        setValidationAttempted({});
+        setCaptureSection(null);
+      }
+      if (event.key === "2") showErrorFrame(null);
+      if (event.key === "3") showErrorFrame("work");
+      if (event.key === "4") showErrorFrame("documents");
+      if (event.key === "5") {
+        setSaved(false);
+        setModalOpen(true);
+        setAddMenuOpen(false);
+        setExcelImportOpen(false);
+        setFigmaCopyMode(false);
+        setFormValidationStarted(true);
+        setDuplicateId(false);
+        setValidationAttempted({});
+        setCaptureSection(null);
+      }
+    };
+    window.addEventListener("keydown", handlePrototypeShortcut);
+    return () => window.removeEventListener("keydown", handlePrototypeShortcut);
+  }, []);
 
   const goto = (idx: number) => {
     if (idx <= currentStep || completed[idx - 1]) setCurrentStep(idx);
@@ -1401,16 +1554,24 @@ export default function App() {
     setModalOpen(true);
     setAddMenuOpen(false);
     setExcelImportOpen(false);
+    setFormValidationStarted(false);
+    setDuplicateId(false);
+    setValidationAttempted({});
+    setCaptureSection(null);
   };
   const closeModal = () => {
     setModalOpen(false);
     setAddMenuOpen(true);
     setExcelImportOpen(false);
+    setFigmaCopyMode(false);
+    setCaptureSection(null);
   };
   const openExcelImport = () => {
     setModalOpen(false);
     setAddMenuOpen(false);
     setExcelImportOpen(true);
+    setFigmaCopyMode(false);
+    setCaptureSection(null);
   };
   const closeExcelImport = () => {
     setExcelImportOpen(false);
@@ -1516,6 +1677,8 @@ export default function App() {
                         setCompleted({});
                         setDuplicateId(false);
                         setValidationAttempted({});
+                        setFormValidationStarted(false);
+                        setCaptureSection(null);
                         setModalOpen(true);
                         setAddMenuOpen(false);
                         setExcelImportOpen(false);
@@ -1536,7 +1699,7 @@ export default function App() {
 
   return (
     <div className="min-h-screen bg-white font-['Be_Vietnam_Pro'] text-slate-900">
-      <div className="flex min-h-screen overflow-hidden bg-white">
+      <div className={`flex min-h-screen bg-white ${figmaCopyMode ? "overflow-visible" : "overflow-hidden"}`}>
         {/* App sidebar */}
         <aside className="w-[252px] shrink-0 border-r border-slate-200 bg-white">
           <div className="flex items-center gap-3 px-5 py-4">
@@ -1584,21 +1747,34 @@ export default function App() {
             </div>
           </header>
 
-          <div className="relative min-h-[calc(100vh-58px)] overflow-hidden bg-white">
-            {modalOpen ? (
-              <>
-                <div className="opacity-25">
-                  <PersonnelListBackground />
-                </div>
+            <div
+              className={`relative min-h-[calc(100vh-58px)] bg-white ${
+                figmaCopyMode ? "overflow-visible" : "overflow-hidden"
+              }`}
+            >
+              {modalOpen ? (
+                <>
+                  <div
+                    className={`opacity-25 ${
+                      figmaCopyMode ? "pointer-events-none absolute inset-0" : ""
+                    }`}
+                  >
+                    <PersonnelListBackground />
+                  </div>
 
-                <div className="absolute inset-0 flex items-start justify-center p-6 pt-7">
+                  <div
+                    className={`flex items-start justify-center p-6 pt-7 ${
+                      figmaCopyMode ? "relative" : "absolute inset-0"
+                    }`}
+                  >
                   <LargePersonnelForm
                     foreigner={foreigner}
                     setForeigner={setForeigner}
                     duplicateId={duplicateId}
                     setDuplicateId={setDuplicateId}
                     showErrors={!!validationAttempted[0]}
-                    setShowErrors={(value) =>
+                    setShowErrors={(value) => {
+                      if (value) setFormValidationStarted(true);
                       setValidationAttempted((current) => ({
                         ...current,
                         0: value,
@@ -1606,12 +1782,18 @@ export default function App() {
                         2: value,
                         3: value,
                         4: value,
-                      }))
-                    }
+                      }));
+                    }}
                     degrees={degrees}
                     setDegrees={setDegrees}
                     certs={certs}
                     setCerts={setCerts}
+                    figmaCopyMode={figmaCopyMode}
+                    setFigmaCopyMode={setFigmaCopyMode}
+                    validationStarted={formValidationStarted}
+                    setValidationStarted={setFormValidationStarted}
+                    captureSection={captureSection}
+                    setCaptureSection={setCaptureSection}
                     onClose={closeModal}
                     onSave={() => setSaved(true)}
                   />
