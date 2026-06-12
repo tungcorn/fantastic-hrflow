@@ -1289,14 +1289,14 @@ function LargePersonnelForm({
                     }
                   >
                     <div className="overflow-hidden rounded-lg border border-slate-200">
-                      <div className="grid grid-cols-[1.1fr_1fr_64px_56px] bg-slate-50 px-3 py-2 text-[11px] font-bold uppercase tracking-wide text-slate-500">
+                      <div className="grid grid-cols-[1.1fr_1fr_64px_72px] bg-slate-50 px-3 py-2 text-[11px] font-bold uppercase tracking-wide text-slate-500">
                         <span>Tên bằng</span>
                         <span>Nơi cấp</span>
                         <span className="text-center">File</span>
-                        <span className="text-center">Thao tác</span>
+                        <span className="text-center whitespace-nowrap"></span>
                       </div>
                       {degrees.map((d, i) => (
-                        <div key={`${d.name}-${i}`} className="grid grid-cols-[1.1fr_1fr_64px_56px] items-center border-t border-slate-100 px-3 py-2.5 text-[12px]">
+                        <div key={`${d.name}-${i}`} className="grid grid-cols-[1.1fr_1fr_64px_72px] items-center border-t border-slate-100 px-3 py-2.5 text-[12px]">
                           <span className="font-medium text-slate-900">{d.name || "Bằng mới"}</span>
                           <span className="text-slate-600">{d.place || "Chưa nhập"}</span>
                           <button className="inline-flex h-8 w-11 items-center justify-center justify-self-center rounded-md bg-blue-50 px-2 text-[11px] font-semibold text-blue-700">
@@ -1329,14 +1329,14 @@ function LargePersonnelForm({
                     }
                   >
                     <div className="overflow-hidden rounded-lg border border-slate-200">
-                      <div className="grid grid-cols-[1.1fr_1fr_64px_56px] bg-slate-50 px-3 py-2 text-[11px] font-bold uppercase tracking-wide text-slate-500">
+                      <div className="grid grid-cols-[1.1fr_1fr_64px_72px] bg-slate-50 px-3 py-2 text-[11px] font-bold uppercase tracking-wide text-slate-500">
                         <span>Tên chứng chỉ</span>
                         <span>Nơi cấp</span>
                         <span className="text-center">File</span>
-                        <span className="text-center">Thao tác</span>
+                        <span className="text-center whitespace-nowrap"></span>
                       </div>
                       {certs.map((c, i) => (
-                        <div key={`${c.name}-${i}`} className="grid grid-cols-[1.1fr_1fr_64px_56px] items-center border-t border-slate-100 px-3 py-2.5 text-[12px]">
+                        <div key={`${c.name}-${i}`} className="grid grid-cols-[1.1fr_1fr_64px_72px] items-center border-t border-slate-100 px-3 py-2.5 text-[12px]">
                           <span className="font-medium text-slate-900">{c.name || "Chứng chỉ mới"}</span>
                           <span className="text-slate-600">{c.place || "Chưa nhập"}</span>
                           <button className="inline-flex h-8 w-11 items-center justify-center justify-self-center rounded-md bg-blue-50 px-2 text-[11px] font-semibold text-blue-700">
@@ -2212,16 +2212,16 @@ export default function App() {
                           }
                         >
                           <div className="overflow-hidden rounded-lg border border-slate-200">
-                            <div className="grid grid-cols-[1.1fr_1fr_64px_56px] bg-slate-50 px-3 py-2 text-[11px] font-bold uppercase tracking-wide text-slate-500">
+                            <div className="grid grid-cols-[1.1fr_1fr_64px_72px] bg-slate-50 px-3 py-2 text-[11px] font-bold uppercase tracking-wide text-slate-500">
                               <span>Tên bằng</span>
                               <span>Nơi cấp</span>
                               <span className="text-center">File</span>
-                              <span className="text-center">Thao tác</span>
+                              <span className="text-center whitespace-nowrap"></span>
                             </div>
                             {degrees.map((d, i) => (
                               <div
                                 key={`${d.name}-${i}`}
-                                className="grid grid-cols-[1.1fr_1fr_64px_56px] items-center border-t border-slate-100 px-3 py-2.5 text-[12px]"
+                                className="grid grid-cols-[1.1fr_1fr_64px_72px] items-center border-t border-slate-100 px-3 py-2.5 text-[12px]"
                               >
                                 <span className="font-medium text-slate-900">{d.name || "Bằng mới"}</span>
                                 <span className="text-slate-600">{d.place || "Chưa nhập"}</span>
@@ -2260,16 +2260,16 @@ export default function App() {
                           }
                         >
                           <div className="overflow-hidden rounded-lg border border-slate-200">
-                            <div className="grid grid-cols-[1.1fr_1fr_64px_56px] bg-slate-50 px-3 py-2 text-[11px] font-bold uppercase tracking-wide text-slate-500">
+                            <div className="grid grid-cols-[1.1fr_1fr_64px_72px] bg-slate-50 px-3 py-2 text-[11px] font-bold uppercase tracking-wide text-slate-500">
                               <span>Tên chứng chỉ</span>
                               <span>Nơi cấp</span>
                               <span className="text-center">File</span>
-                              <span className="text-center">Thao tác</span>
+                              <span className="text-center whitespace-nowrap"></span>
                             </div>
                             {certs.map((c, i) => (
                               <div
                                 key={`${c.name}-${i}`}
-                                className="grid grid-cols-[1.1fr_1fr_64px_56px] items-center border-t border-slate-100 px-3 py-2.5 text-[12px]"
+                                className="grid grid-cols-[1.1fr_1fr_64px_72px] items-center border-t border-slate-100 px-3 py-2.5 text-[12px]"
                               >
                                 <span className="font-medium text-slate-900">{c.name || "Chứng chỉ mới"}</span>
                                 <span className="text-slate-600">{c.place || "Chưa nhập"}</span>
