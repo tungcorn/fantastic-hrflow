@@ -1289,22 +1289,22 @@ function LargePersonnelForm({
                     }
                   >
                     <div className="overflow-hidden rounded-lg border border-slate-200">
-                      <div className="grid grid-cols-[1.1fr_1fr_64px_40px] bg-slate-50 px-3 py-2 text-[11px] font-bold uppercase tracking-wide text-slate-500">
+                      <div className="grid grid-cols-[1.1fr_1fr_64px_56px] bg-slate-50 px-3 py-2 text-[11px] font-bold uppercase tracking-wide text-slate-500">
                         <span>Tên bằng</span>
                         <span>Nơi cấp</span>
-                        <span>File</span>
-                        <span />
+                        <span className="text-center">File</span>
+                        <span className="text-center">Thao tác</span>
                       </div>
                       {degrees.map((d, i) => (
-                        <div key={`${d.name}-${i}`} className="grid grid-cols-[1.1fr_1fr_64px_40px] items-center border-t border-slate-100 px-3 py-2.5 text-[12px]">
+                        <div key={`${d.name}-${i}`} className="grid grid-cols-[1.1fr_1fr_64px_56px] items-center border-t border-slate-100 px-3 py-2.5 text-[12px]">
                           <span className="font-medium text-slate-900">{d.name || "Bằng mới"}</span>
                           <span className="text-slate-600">{d.place || "Chưa nhập"}</span>
-                          <button className="inline-flex h-8 items-center justify-center rounded-md bg-blue-50 px-2 text-[11px] font-semibold text-blue-700">
+                          <button className="inline-flex h-8 w-11 items-center justify-center justify-self-center rounded-md bg-blue-50 px-2 text-[11px] font-semibold text-blue-700">
                             PDF
                           </button>
                           <button
                             onClick={() => setDegrees((items) => items.filter((_, idx) => idx !== i))}
-                            className="grid size-8 place-items-center rounded-md text-red-500 hover:bg-red-50"
+                            className="grid size-8 place-items-center justify-self-center rounded-md text-red-500 hover:bg-red-50"
                             aria-label="Xóa bằng cấp"
                           >
                             <Trash2 size={14} />
@@ -1329,22 +1329,22 @@ function LargePersonnelForm({
                     }
                   >
                     <div className="overflow-hidden rounded-lg border border-slate-200">
-                      <div className="grid grid-cols-[1.1fr_1fr_64px_40px] bg-slate-50 px-3 py-2 text-[11px] font-bold uppercase tracking-wide text-slate-500">
+                      <div className="grid grid-cols-[1.1fr_1fr_64px_56px] bg-slate-50 px-3 py-2 text-[11px] font-bold uppercase tracking-wide text-slate-500">
                         <span>Tên chứng chỉ</span>
                         <span>Nơi cấp</span>
-                        <span>File</span>
-                        <span />
+                        <span className="text-center">File</span>
+                        <span className="text-center">Thao tác</span>
                       </div>
                       {certs.map((c, i) => (
-                        <div key={`${c.name}-${i}`} className="grid grid-cols-[1.1fr_1fr_64px_40px] items-center border-t border-slate-100 px-3 py-2.5 text-[12px]">
+                        <div key={`${c.name}-${i}`} className="grid grid-cols-[1.1fr_1fr_64px_56px] items-center border-t border-slate-100 px-3 py-2.5 text-[12px]">
                           <span className="font-medium text-slate-900">{c.name || "Chứng chỉ mới"}</span>
                           <span className="text-slate-600">{c.place || "Chưa nhập"}</span>
-                          <button className="inline-flex h-8 items-center justify-center rounded-md bg-blue-50 px-2 text-[11px] font-semibold text-blue-700">
+                          <button className="inline-flex h-8 w-11 items-center justify-center justify-self-center rounded-md bg-blue-50 px-2 text-[11px] font-semibold text-blue-700">
                             PDF
                           </button>
                           <button
                             onClick={() => setCerts((items) => items.filter((_, idx) => idx !== i))}
-                            className="grid size-8 place-items-center rounded-md text-red-500 hover:bg-red-50"
+                            className="grid size-8 place-items-center justify-self-center rounded-md text-red-500 hover:bg-red-50"
                             aria-label="Xóa chứng chỉ"
                           >
                             <Trash2 size={14} />
@@ -1905,7 +1905,7 @@ export default function App() {
                           </div>
                           <div className="grid flex-1 grid-cols-2 gap-4">
                             <Field label="Họ và tên" required>
-                              <Input value={showStepError ? "" : "Nguyễn Văn A"} state={showStepError ? "error" : "success"} />
+                              <Input value={showStepError ? "" : "Nguyễn Văn A"} state={showStepError ? "error" : "default"} />
                               {showStepError ? (
                                 <div className="flex items-start gap-1.5 text-[12px] text-red-600">
                                   <AlertCircle size={13} className="mt-0.5 shrink-0" />
@@ -1936,7 +1936,7 @@ export default function App() {
                                 <div className="min-w-0 flex-1">
                                   <Input
                                     value={duplicateId || showStepError ? "001200001900" : "001200001901"}
-                                    state={duplicateId || showStepError ? "error" : "success"}
+                                    state={duplicateId || showStepError ? "error" : "default"}
                                   />
                                 </div>
                                 <button
@@ -2078,10 +2078,10 @@ export default function App() {
                           <OrgTree />
                           <div className="grid grid-cols-2 gap-4">
                             <Field label="Đơn vị công tác" required hint="Được chọn từ cây tổ chức bên trái">
-                              <Select value="Khoa Công nghệ thông tin" state="success" />
+                              <Select value="Khoa Công nghệ thông tin" />
                             </Field>
                             <Field label="Bộ môn / phòng ban trực thuộc">
-                              <Select value="Bộ môn Công nghệ phần mềm" state="success" />
+                              <Select value="Bộ môn Công nghệ phần mềm" />
                             </Field>
                             <Field
                               label="Chức vụ hiện tại"
@@ -2119,7 +2119,7 @@ export default function App() {
                             required
                             error={showStepError ? "Hệ số lương phải là số lớn hơn 0." : undefined}
                           >
-                            <Input value={showStepError ? "abc" : "2.34"} state={showStepError ? "error" : "success"} />
+                            <Input value={showStepError ? "abc" : "2.34"} state={showStepError ? "error" : "default"} />
                           </Field>
                           <Field label="Phụ cấp chức vụ">
                             <Input value="0.00" />
@@ -2167,30 +2167,30 @@ export default function App() {
                       >
                         <div className="grid grid-cols-2 gap-3">
                           {[
-                            ["CCCD/CMND bản scan", "Đã tải lên", "success"],
-                            ["Quyết định tuyển dụng", showStepError ? "Chưa có" : "Đã tải lên", showStepError ? "warn" : "success"],
-                            ["Sơ yếu lý lịch", "Đã tải lên", "success"],
-                            ["Ảnh thẻ 3x4", "Đã tải lên", "success"],
+                            ["CCCD/CMND bản scan", "Đã tải lên", "default"],
+                            ["Quyết định tuyển dụng", showStepError ? "Thiếu tài liệu" : "Đã tải lên", showStepError ? "error" : "default"],
+                            ["Sơ yếu lý lịch", "Đã tải lên", "default"],
+                            ["Ảnh thẻ 3x4", "Đã tải lên", "default"],
                           ].map(([name, status, tone]) => (
                             <div
                               key={name}
                               className={`flex items-center justify-between rounded-lg border px-4 py-3 ${
-                                tone === "success"
-                                  ? "border-emerald-200 bg-emerald-50"
-                                  : "border-amber-200 bg-amber-50"
+                                tone === "error"
+                                  ? "border-red-200 bg-red-50"
+                                  : "border-slate-200 bg-white"
                               }`}
                             >
                               <div>
                                 <div className="text-[13px] font-semibold text-slate-900">{name}</div>
                                 <div
                                   className={`text-[12px] ${
-                                    tone === "success" ? "text-emerald-700" : "text-amber-700"
+                                  tone === "error" ? "text-red-700" : "text-slate-500"
                                   }`}
                                 >
                                   {status}
                                 </div>
                               </div>
-                              <FileButton label={tone === "success" ? "Thay file" : "Tải lên"} />
+                              <FileButton label={tone === "error" ? "Tải lên" : "Thay file"} />
                             </div>
                           ))}
                         </div>
@@ -2212,32 +2212,32 @@ export default function App() {
                           }
                         >
                           <div className="overflow-hidden rounded-lg border border-slate-200">
-                            <div className="grid grid-cols-[1.1fr_1fr_64px_40px] bg-slate-50 px-3 py-2 text-[11px] font-bold uppercase tracking-wide text-slate-500">
+                            <div className="grid grid-cols-[1.1fr_1fr_64px_56px] bg-slate-50 px-3 py-2 text-[11px] font-bold uppercase tracking-wide text-slate-500">
                               <span>Tên bằng</span>
                               <span>Nơi cấp</span>
-                              <span>File</span>
-                              <span />
+                              <span className="text-center">File</span>
+                              <span className="text-center">Thao tác</span>
                             </div>
                             {degrees.map((d, i) => (
                               <div
                                 key={`${d.name}-${i}`}
-                                className="grid grid-cols-[1.1fr_1fr_64px_40px] items-center border-t border-slate-100 px-3 py-2.5 text-[12px]"
+                                className="grid grid-cols-[1.1fr_1fr_64px_56px] items-center border-t border-slate-100 px-3 py-2.5 text-[12px]"
                               >
                                 <span className="font-medium text-slate-900">{d.name || "Bằng mới"}</span>
                                 <span className="text-slate-600">{d.place || "Chưa nhập"}</span>
-                                <button className="inline-flex h-8 items-center justify-center rounded-md bg-blue-50 px-2 text-[11px] font-semibold text-blue-700">
+                                <button className="inline-flex h-8 w-11 items-center justify-center justify-self-center rounded-md border border-slate-200 bg-white px-2 text-[11px] font-semibold text-slate-700">
                                   PDF
                                 </button>
                                 {degrees.length > 1 ? (
                                   <button
                                     onClick={() => setDegrees((arr) => arr.filter((_, idx) => idx !== i))}
-                                    className="grid size-8 place-items-center rounded-md text-red-500 hover:bg-red-50"
+                                    className="grid size-8 place-items-center justify-self-center rounded-md text-red-500 hover:bg-red-50"
                                     aria-label="Xóa bằng cấp"
                                   >
                                     <Trash2 size={14} />
                                   </button>
                                 ) : (
-                                  <span />
+                                  <span className="size-8 justify-self-center" />
                                 )}
                               </div>
                             ))}
@@ -2260,32 +2260,32 @@ export default function App() {
                           }
                         >
                           <div className="overflow-hidden rounded-lg border border-slate-200">
-                            <div className="grid grid-cols-[1.1fr_1fr_64px_40px] bg-slate-50 px-3 py-2 text-[11px] font-bold uppercase tracking-wide text-slate-500">
+                            <div className="grid grid-cols-[1.1fr_1fr_64px_56px] bg-slate-50 px-3 py-2 text-[11px] font-bold uppercase tracking-wide text-slate-500">
                               <span>Tên chứng chỉ</span>
                               <span>Nơi cấp</span>
-                              <span>File</span>
-                              <span />
+                              <span className="text-center">File</span>
+                              <span className="text-center">Thao tác</span>
                             </div>
                             {certs.map((c, i) => (
                               <div
                                 key={`${c.name}-${i}`}
-                                className="grid grid-cols-[1.1fr_1fr_64px_40px] items-center border-t border-slate-100 px-3 py-2.5 text-[12px]"
+                                className="grid grid-cols-[1.1fr_1fr_64px_56px] items-center border-t border-slate-100 px-3 py-2.5 text-[12px]"
                               >
                                 <span className="font-medium text-slate-900">{c.name || "Chứng chỉ mới"}</span>
                                 <span className="text-slate-600">{c.place || "Chưa nhập"}</span>
-                                <button className="inline-flex h-8 items-center justify-center rounded-md bg-blue-50 px-2 text-[11px] font-semibold text-blue-700">
+                                <button className="inline-flex h-8 w-11 items-center justify-center justify-self-center rounded-md border border-slate-200 bg-white px-2 text-[11px] font-semibold text-slate-700">
                                   PDF
                                 </button>
                                 {certs.length > 1 ? (
                                   <button
                                     onClick={() => setCerts((arr) => arr.filter((_, idx) => idx !== i))}
-                                    className="grid size-8 place-items-center rounded-md text-red-500 hover:bg-red-50"
+                                    className="grid size-8 place-items-center justify-self-center rounded-md text-red-500 hover:bg-red-50"
                                     aria-label="Xóa chứng chỉ"
                                   >
                                     <Trash2 size={14} />
                                   </button>
                                 ) : (
-                                  <span />
+                                  <span className="size-8 justify-self-center" />
                                 )}
                               </div>
                             ))}
