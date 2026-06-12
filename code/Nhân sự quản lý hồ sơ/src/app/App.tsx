@@ -141,7 +141,7 @@ function FileButton({ label = "Tải PDF" }: { label?: string }) {
   return (
     <button
       type="button"
-      className="inline-flex h-8 shrink-0 items-center gap-1.5 rounded-lg border border-blue-200 bg-blue-50 px-2.5 text-[12px] font-medium text-blue-700 hover:bg-blue-100"
+      className="inline-flex h-8 shrink-0 items-center gap-1.5 rounded-lg border border-slate-200 bg-white px-2.5 text-[12px] font-medium text-slate-700 hover:bg-slate-50"
     >
       <Upload size={15} /> {label}
     </button>
@@ -942,53 +942,39 @@ function LargePersonnelForm({
         </div>
       </div>
 
-      {validationStarted ? (
+      {hasErrors ? (
         <div className="border-b border-slate-200 bg-white px-5 py-3">
-          <div
-            className={`flex items-start justify-between gap-4 rounded-xl border px-4 py-3 ${
-              hasErrors ? "border-red-200 bg-red-50/70" : "border-blue-200 bg-blue-50/70"
-            }`}
-          >
+          <div className="flex items-start justify-between gap-4 rounded-xl border border-red-200 bg-red-50/70 px-4 py-3">
             <div className="flex items-start gap-3">
-              <div
-                className={`mt-0.5 grid size-8 shrink-0 place-items-center rounded-full bg-white ${
-                  hasErrors ? "text-red-600" : "text-blue-700"
-                }`}
-              >
-                {hasErrors ? <AlertCircle size={17} /> : <CheckCircle2 size={17} />}
+              <div className="mt-0.5 grid size-8 shrink-0 place-items-center rounded-full bg-white text-red-600">
+                <AlertCircle size={17} />
               </div>
               <div className="min-w-0">
                 <div className="text-[13px] font-semibold text-slate-950">
-                  {hasErrors ? "Chưa thể lưu hồ sơ chính thức" : "Dữ liệu đã hợp lệ"}
+                  Chưa thể lưu hồ sơ chính thức
                 </div>
                 <p className="mt-0.5 text-[12px] leading-5 text-slate-600">
-                  {hasErrors
-                    ? `Có ${errorCount} trường cần kiểm tra lại trước khi lưu hồ sơ chính thức.`
-                    : "Hồ sơ đã qua bước kiểm tra, có thể lưu chính thức."}
+                  Có {errorCount} trường cần kiểm tra lại trước khi lưu hồ sơ chính thức.
                 </p>
-                {hasErrors ? (
-                  <div className="mt-2 flex flex-wrap gap-1.5">
-                    {errorGroups.map((group) => (
-                      <span
-                        key={group}
-                        className="rounded-full bg-white px-2 py-0.5 text-[11px] font-medium text-slate-700 ring-1 ring-red-100"
-                      >
-                        {group}
-                      </span>
-                    ))}
-                  </div>
-                ) : null}
+                <div className="mt-2 flex flex-wrap gap-1.5">
+                  {errorGroups.map((group) => (
+                    <span
+                      key={group}
+                      className="rounded-full bg-white px-2 py-0.5 text-[11px] font-medium text-slate-700 ring-1 ring-red-100"
+                    >
+                      {group}
+                    </span>
+                  ))}
+                </div>
               </div>
             </div>
-            {hasErrors ? (
-              <button
-                type="button"
-                onClick={() => scrollToSection("identity")}
-                className="shrink-0 rounded-lg border border-slate-200 bg-white px-3 py-1.5 text-[12px] font-semibold text-slate-700 hover:bg-slate-50"
-              >
-                Đến lỗi đầu tiên
-              </button>
-            ) : null}
+            <button
+              type="button"
+              onClick={() => scrollToSection("identity")}
+              className="shrink-0 rounded-lg border border-slate-200 bg-white px-3 py-1.5 text-[12px] font-semibold text-slate-700 hover:bg-slate-50"
+            >
+              Đến lỗi đầu tiên
+            </button>
           </div>
         </div>
       ) : null}
@@ -1028,7 +1014,7 @@ function LargePersonnelForm({
                     ) : section.state === "warning" ? (
                       <AlertCircle size={14} className={active ? "text-amber-600" : "text-amber-600"} />
                     ) : (
-                      <CheckCircle2 size={14} className={active ? "text-blue-700" : "text-emerald-600"} />
+                      <CheckCircle2 size={14} className={active ? "text-blue-700" : "text-slate-400"} />
                     )}
                   </button>
                 );
@@ -1069,7 +1055,7 @@ function LargePersonnelForm({
                   </div>
                   <div className="grid min-w-0 grid-cols-2 gap-3">
                     <Field label="Họ và tên" required error={showErrors ? "Họ và tên là trường bắt buộc." : undefined}>
-                      <Input value={showErrors ? "" : "Nguyễn Văn A"} state={showErrors ? "error" : validationStarted ? "success" : "default"} />
+                      <Input value={showErrors ? "" : "Nguyễn Văn A"} state={showErrors ? "error" : "default"} />
                     </Field>
                     <Field label="Giới tính" required>
                       <Select value="Nam" />
@@ -1088,7 +1074,7 @@ function LargePersonnelForm({
                       >
                         <div className="flex gap-2">
                           <div className="min-w-0 flex-1">
-                            <Input value={hasErrors ? "001200001900" : "001200001901"} state={hasErrors ? "error" : validationStarted ? "success" : "default"} />
+                            <Input value={hasErrors ? "001200001900" : "001200001901"} state={hasErrors ? "error" : "default"} />
                           </div>
                           <button
                             type="button"
@@ -1189,10 +1175,10 @@ function LargePersonnelForm({
                 >
                   <div className="grid min-w-0 grid-cols-3 gap-3">
                       <Field label="Đơn vị công tác" required>
-                        <Select value="Khoa Công nghệ thông tin" state="success" />
+                        <Select value="Khoa Công nghệ thông tin" />
                       </Field>
                       <Field label="Bộ môn / phòng ban trực thuộc">
-                        <Select value="Bộ môn Công nghệ phần mềm" state="success" />
+                        <Select value="Bộ môn Công nghệ phần mềm" />
                       </Field>
                       <Field label="Chức vụ hiện tại" required error={showErrors ? "Vui lòng chọn chức vụ hiện tại." : undefined}>
                         <Select value={showErrors ? "Chưa chọn" : "Giảng viên"} state={showErrors ? "error" : "default"} />
@@ -1221,7 +1207,7 @@ function LargePersonnelForm({
                       <Select value="Bậc 1" />
                     </Field>
                     <Field label="Hệ số lương" required error={showErrors ? "Hệ số lương phải là số lớn hơn 0." : undefined}>
-                      <Input value={showErrors ? "abc" : "2.34"} state={showErrors ? "error" : validationStarted ? "success" : "default"} />
+                      <Input value={showErrors ? "abc" : "2.34"} state={showErrors ? "error" : "default"} />
                     </Field>
                     <Field label="Phụ cấp chức vụ">
                       <Input value="0.00" />
@@ -1265,23 +1251,23 @@ function LargePersonnelForm({
                 >
                   <div className="grid grid-cols-4 gap-2.5">
                     {[
-                      ["CCCD/CMND bản scan", "Đã tải lên", "success"],
-                      ["Quyết định tuyển dụng", showErrors ? "Chưa có" : "Đã tải lên", showErrors ? "warn" : "success"],
-                      ["Sơ yếu lý lịch", "Đã tải lên", "success"],
-                      ["Ảnh thẻ 3x4", "Đã tải lên", "success"],
+                      ["CCCD/CMND bản scan", "Đã tải lên", "default"],
+                      ["Quyết định tuyển dụng", showErrors ? "Thiếu tài liệu" : "Đã tải lên", showErrors ? "error" : "default"],
+                      ["Sơ yếu lý lịch", "Đã tải lên", "default"],
+                      ["Ảnh thẻ 3x4", "Đã tải lên", "default"],
                     ].map(([name, status, tone]) => (
                       <div
                         key={name}
                         className={`rounded-lg border px-3 py-2.5 ${
-                          tone === "success" ? "border-emerald-200 bg-emerald-50" : "border-amber-200 bg-amber-50"
+                          tone === "error" ? "border-red-200 bg-red-50" : "border-slate-200 bg-white"
                         }`}
                       >
                         <div className="text-[12.5px] font-semibold text-slate-900">{name}</div>
-                        <div className={`mt-0.5 text-[12px] ${tone === "success" ? "text-emerald-700" : "text-amber-700"}`}>
+                        <div className={`mt-0.5 text-[12px] ${tone === "error" ? "text-red-700" : "text-slate-500"}`}>
                           {status}
                         </div>
                         <div className="mt-2">
-                          <FileButton label={tone === "success" ? "Thay file" : "Tải lên"} />
+                          <FileButton label={tone === "error" ? "Tải lên" : "Thay file"} />
                         </div>
                       </div>
                     ))}
@@ -1404,8 +1390,8 @@ function LargePersonnelForm({
               Nhấn lưu để hệ thống kiểm tra và tạo hồ sơ chính thức.
             </span>
           ) : (
-            <span className="inline-flex items-center gap-1 text-emerald-700">
-              <CheckCircle2 size={14} /> Form đã được kiểm tra, có thể lưu hồ sơ chính thức.
+            <span className="inline-flex items-center gap-1 text-slate-500">
+              Sẵn sàng lưu hồ sơ chính thức.
             </span>
           )}
         </div>
