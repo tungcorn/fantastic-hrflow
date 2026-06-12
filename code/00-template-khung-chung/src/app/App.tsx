@@ -147,6 +147,7 @@ function AddPersonnelButton() {
     <button className="flex h-9 items-center gap-2 rounded-lg bg-blue-700 px-3.5 text-[12px] font-semibold text-white shadow-sm hover:bg-blue-800">
       <Plus size={14} />
       Thêm hồ sơ nhân sự
+      <ChevronDown size={14} />
     </button>
   );
 }
