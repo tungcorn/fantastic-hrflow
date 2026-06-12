@@ -9,17 +9,9 @@ Hãy tạo giao diện web app cho nhiệm vụ “Đăng ký khóa đào tạo 
 
 Mục tiêu: Thiết kế đầy đủ các màn hình để Cán bộ/Giảng viên/Nhân viên xem khóa đào tạo đang mở, xem chi tiết khóa, đăng ký, hủy đăng ký và theo dõi các khóa đã đăng ký.
 
-Phong cách chung:
-- Giao diện tiếng Việt có dấu đầy đủ.
-- Desktop frame: 1440 x 1024.
-- Giao diện đơn giản hơn dashboard quản trị, dễ dùng cho người dùng cuối.
-- Màu chủ đạo: xanh dương đậm, trắng, xám nhạt.
-- Badge xanh lá cho “Đã đăng ký” hoặc “Hoàn thành”.
-- Badge cam cho “Còn ít ngày đăng ký”.
-- Nút đăng ký nổi bật, dễ nhìn.
 
 Layout self-service:
-- Sidebar trái rộng khoảng 240px, nền xanh dương đậm.
+- Sidebar trái rộng khoảng 240px.
 - Logo chữ: “TLU HRMS”.
 - Menu sidebar gồm:
   - Trang cá nhân.
@@ -133,12 +125,5 @@ Nội dung:
 - Nút “Không hủy”.
 - Nút đỏ “Xác nhận hủy đăng ký”.
 
-Frame 07: “07_Storyboard_DaoTao”
-Tạo storyboard 3 bước:
-1. Giảng viên xem danh sách khóa đào tạo đang mở.
-2. Giảng viên xem chi tiết khóa và xác nhận đăng ký.
-3. Hệ thống hiển thị đăng ký thành công và khóa xuất hiện trong “Khóa đào tạo của tôi”.
-
-Mỗi bước storyboard cần có caption ngắn, số thứ tự rõ ràng và hình giao diện minh họa.
 ```
 
