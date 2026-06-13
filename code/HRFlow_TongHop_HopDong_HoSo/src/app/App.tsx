@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState, type ReactNode } from "react";
+import { useEffect, useMemo, useRef, useState, type ReactNode } from "react";
 import {
   AlertCircle,
   ArrowLeft,
@@ -6,6 +6,7 @@ import {
   Award,
   Banknote,
   BarChart3,
+  Bell,
   Building2,
   Calendar,
   CheckCircle2,
@@ -37,12 +38,12 @@ import {
 } from "lucide-react";
 import tluLogoIcon from "./tlu-logo-icon.png";
 
-type View = "ho-so" | "hop-dong" | "co-cau" | "luong-phu-cap" | "tai-khoan";
-type SidebarItem = { id: View; label: string; icon: ReactNode };
+type View = "ho-so" | "hop-dong";
+type SidebarItem = { id: string; view?: View; label: string; icon: ReactNode };
 
 const sidebarItems: SidebarItem[] = [
-  { id: "ho-so", label: "Hồ sơ nhân sự", icon: <CircleUserRound size={17} /> },
-  { id: "hop-dong", label: "Hợp đồng lao động", icon: <FileText size={17} /> },
+  { id: "ho-so", view: "ho-so", label: "Hồ sơ nhân sự", icon: <CircleUserRound size={17} /> },
+  { id: "hop-dong", view: "hop-dong", label: "Hợp đồng lao động", icon: <FileText size={17} /> },
   { id: "co-cau", label: "Cơ cấu tổ chức", icon: <Building2 size={17} /> },
   { id: "luong-phu-cap", label: "Phụ cấp và hệ số lương", icon: <BarChart3 size={17} /> },
   { id: "tai-khoan", label: "Tài khoản", icon: <ShieldCheck size={17} /> },
@@ -208,14 +209,531 @@ const personnelRows = [
   ["NS008", "Vũ Thị Hạnh", "Khoa Kinh tế", "Phó Giáo sư", "Giảng viên", "Đang hoạt động", "Đang hoạt động"],
   ["NS009", "Bùi Văn Khôi", "Khoa CNTT", "Thạc sĩ", "Giảng viên chính", "Đã thôi việc", "Đã thôi việc"],
   ["NS010", "Lý Thị Mai", "Khoa Kinh tế", "Thạc sĩ", "Giảng viên cao cấp", "Đang hoạt động", "Đang hoạt động"],
+  // Expanded generated records to back the 392-contract summary while preserving the original seed rows.
+  ["CB2026-2001", "Bùi Văn An", "Ban Giám hiệu", "Phó Giáo sư", "Chuyên viên", "Còn hiệu lực", "Đang hoạt động"],
+  ["CB2026-2002", "Đỗ Văn An", "Phòng Tổ chức - Cán bộ", "Giáo sư", "Phó trưởng phòng", "Còn hiệu lực", "Đang hoạt động"],
+  ["CB2026-2003", "Hồ Văn An", "Phòng Tài chính - Kế toán", "Cử nhân", "Phó trưởng phòng", "Còn hiệu lực", "Đang hoạt động"],
+  ["CB2026-2004", "Ngô Văn An", "Khoa Công nghệ thông tin", "Kỹ sư", "Trưởng bộ môn", "Còn hiệu lực", "Đang hoạt động"],
+  ["CB2026-2005", "Dương Văn An", "Khoa Kinh tế và Quản lý", "Thạc sĩ", "Giảng viên", "Còn hiệu lực", "Đang hoạt động"],
+  ["CB2026-2006", "Lý Văn An", "Ban Giám hiệu", "Tiến sĩ", "Trợ lý", "Hết hiệu lực", "Đã thôi việc"],
+  ["CB2026-2007", "Mai Văn An", "Phòng Tổ chức - Cán bộ", "Phó Giáo sư", "Trưởng nhóm hồ sơ", "Còn hiệu lực", "Đang hoạt động"],
+  ["CB2026-2008", "Tạ Văn An", "Phòng Tài chính - Kế toán", "Giáo sư", "Kiểm soát viên", "Còn hiệu lực", "Đang hoạt động"],
+  ["CB2026-2009", "Cao Văn An", "Khoa Công nghệ thông tin", "Cử nhân", "Giảng viên", "Sắp hết hạn", "Đang hoạt động"],
+  ["CB2026-2010", "Đinh Văn An", "Khoa Kinh tế và Quản lý", "Kỹ sư", "Giảng viên chính", "Còn hiệu lực", "Đang hoạt động"],
+  ["CB2026-2011", "Trịnh Văn An", "Ban Giám hiệu", "Thạc sĩ", "Phó hiệu trưởng", "Còn hiệu lực", "Đang hoạt động"],
+  ["CB2026-2012", "Đoàn Văn An", "Phòng Tổ chức - Cán bộ", "Tiến sĩ", "Chuyên viên chính", "Còn hiệu lực", "Đang hoạt động"],
+  ["CB2026-2013", "Lương Văn An", "Phòng Tài chính - Kế toán", "Phó Giáo sư", "Kế toán viên", "Còn hiệu lực", "Đang hoạt động"],
+  ["CB2026-2014", "Tô Văn An", "Khoa Công nghệ thông tin", "Giáo sư", "Giảng viên chính", "Còn hiệu lực", "Đang hoạt động"],
+  ["CB2026-2015", "Nguyễn Thị An", "Khoa Kinh tế và Quản lý", "Cử nhân", "Trưởng bộ môn", "Chờ gia hạn", "Đang hoạt động"],
+  ["CB2026-2016", "Trần Thị An", "Ban Giám hiệu", "Kỹ sư", "Thư ký hội đồng", "Còn hiệu lực", "Đang hoạt động"],
+  ["CB2026-2017", "Lê Thị An", "Phòng Tổ chức - Cán bộ", "Thạc sĩ", "Chuyên viên nhân sự", "Còn hiệu lực", "Đang hoạt động"],
+  ["CB2026-2018", "Phạm Thị An", "Phòng Tài chính - Kế toán", "Tiến sĩ", "Chuyên viên tiền lương", "Hết hiệu lực", "Đã thôi việc"],
+  ["CB2026-2019", "Hoàng Thị An", "Khoa Công nghệ thông tin", "Phó Giáo sư", "Phó trưởng khoa", "Còn hiệu lực", "Đang hoạt động"],
+  ["CB2026-2020", "Huỳnh Thị An", "Khoa Kinh tế và Quản lý", "Giáo sư", "Cố vấn học tập", "Còn hiệu lực", "Đang hoạt động"],
+  ["CB2026-2021", "Phan Thị An", "Ban Giám hiệu", "Cử nhân", "Chuyên viên", "Còn hiệu lực", "Đang hoạt động"],
+  ["CB2026-2022", "Vũ Thị An", "Phòng Tổ chức - Cán bộ", "Kỹ sư", "Phó trưởng phòng", "Còn hiệu lực", "Đang hoạt động"],
+  ["CB2026-2023", "Võ Thị An", "Phòng Tài chính - Kế toán", "Thạc sĩ", "Phó trưởng phòng", "Còn hiệu lực", "Đang hoạt động"],
+  ["CB2026-2024", "Đặng Thị An", "Khoa Công nghệ thông tin", "Tiến sĩ", "Trưởng bộ môn", "Còn hiệu lực", "Đang hoạt động"],
+  ["CB2026-2025", "Bùi Thị An", "Khoa Kinh tế và Quản lý", "Phó Giáo sư", "Giảng viên", "Còn hiệu lực", "Đang hoạt động"],
+  ["CB2026-2026", "Đỗ Thị An", "Ban Giám hiệu", "Giáo sư", "Trợ lý", "Còn hiệu lực", "Đang hoạt động"],
+  ["CB2026-2027", "Hồ Thị An", "Phòng Tổ chức - Cán bộ", "Cử nhân", "Trưởng nhóm hồ sơ", "Hết hiệu lực", "Đã thôi việc"],
+  ["CB2026-2028", "Ngô Thị An", "Phòng Tài chính - Kế toán", "Kỹ sư", "Kiểm soát viên", "Còn hiệu lực", "Đang hoạt động"],
+  ["CB2026-2029", "Dương Thị An", "Khoa Công nghệ thông tin", "Thạc sĩ", "Giảng viên", "Còn hiệu lực", "Đang hoạt động"],
+  ["CB2026-2030", "Lý Thị An", "Khoa Kinh tế và Quản lý", "Tiến sĩ", "Giảng viên chính", "Còn hiệu lực", "Đang hoạt động"],
+  ["CB2026-2031", "Mai Thị An", "Ban Giám hiệu", "Phó Giáo sư", "Phó hiệu trưởng", "Còn hiệu lực", "Đang hoạt động"],
+  ["CB2026-2032", "Tạ Thị An", "Phòng Tổ chức - Cán bộ", "Giáo sư", "Chuyên viên chính", "Còn hiệu lực", "Đang hoạt động"],
+  ["CB2026-2033", "Cao Thị An", "Phòng Tài chính - Kế toán", "Cử nhân", "Kế toán viên", "Còn hiệu lực", "Đang hoạt động"],
+  ["CB2026-2034", "Đinh Thị An", "Khoa Công nghệ thông tin", "Kỹ sư", "Giảng viên chính", "Còn hiệu lực", "Đang hoạt động"],
+  ["CB2026-2035", "Trịnh Thị An", "Khoa Kinh tế và Quản lý", "Thạc sĩ", "Trưởng bộ môn", "Còn hiệu lực", "Đang hoạt động"],
+  ["CB2026-2036", "Đoàn Thị An", "Ban Giám hiệu", "Tiến sĩ", "Thư ký hội đồng", "Hết hiệu lực", "Đã thôi việc"],
+  ["CB2026-2037", "Lương Thị An", "Phòng Tổ chức - Cán bộ", "Phó Giáo sư", "Chuyên viên nhân sự", "Còn hiệu lực", "Đang hoạt động"],
+  ["CB2026-2038", "Tô Thị An", "Phòng Tài chính - Kế toán", "Giáo sư", "Chuyên viên tiền lương", "Sắp hết hạn", "Đang hoạt động"],
+  ["CB2026-2039", "Nguyễn Minh An", "Khoa Công nghệ thông tin", "Cử nhân", "Phó trưởng khoa", "Còn hiệu lực", "Đang hoạt động"],
+  ["CB2026-2040", "Trần Minh An", "Khoa Kinh tế và Quản lý", "Kỹ sư", "Cố vấn học tập", "Còn hiệu lực", "Đang hoạt động"],
+  ["CB2026-2041", "Lê Minh An", "Ban Giám hiệu", "Thạc sĩ", "Chuyên viên", "Còn hiệu lực", "Đang hoạt động"],
+  ["CB2026-2042", "Phạm Minh An", "Phòng Tổ chức - Cán bộ", "Tiến sĩ", "Phó trưởng phòng", "Còn hiệu lực", "Đang hoạt động"],
+  ["CB2026-2043", "Hoàng Minh An", "Phòng Tài chính - Kế toán", "Phó Giáo sư", "Phó trưởng phòng", "Còn hiệu lực", "Đang hoạt động"],
+  ["CB2026-2044", "Huỳnh Minh An", "Khoa Công nghệ thông tin", "Giáo sư", "Trưởng bộ môn", "Còn hiệu lực", "Đang hoạt động"],
+  ["CB2026-2045", "Phan Minh An", "Khoa Kinh tế và Quản lý", "Cử nhân", "Giảng viên", "Hết hiệu lực", "Đã thôi việc"],
+  ["CB2026-2046", "Vũ Minh An", "Ban Giám hiệu", "Kỹ sư", "Trợ lý", "Còn hiệu lực", "Đang hoạt động"],
+  ["CB2026-2047", "Võ Minh An", "Phòng Tổ chức - Cán bộ", "Thạc sĩ", "Trưởng nhóm hồ sơ", "Còn hiệu lực", "Đang hoạt động"],
+  ["CB2026-2048", "Đặng Minh An", "Phòng Tài chính - Kế toán", "Tiến sĩ", "Kiểm soát viên", "Còn hiệu lực", "Đang hoạt động"],
+  ["CB2026-2049", "Bùi Minh An", "Khoa Công nghệ thông tin", "Phó Giáo sư", "Giảng viên", "Còn hiệu lực", "Đang hoạt động"],
+  ["CB2026-2050", "Đỗ Minh An", "Khoa Kinh tế và Quản lý", "Giáo sư", "Giảng viên chính", "Còn hiệu lực", "Đang hoạt động"],
+  ["CB2026-2051", "Hồ Minh An", "Ban Giám hiệu", "Cử nhân", "Phó hiệu trưởng", "Còn hiệu lực", "Đang hoạt động"],
+  ["CB2026-2052", "Ngô Minh An", "Phòng Tổ chức - Cán bộ", "Kỹ sư", "Chuyên viên chính", "Còn hiệu lực", "Đang hoạt động"],
+  ["CB2026-2053", "Dương Minh An", "Phòng Tài chính - Kế toán", "Thạc sĩ", "Kế toán viên", "Còn hiệu lực", "Đang hoạt động"],
+  ["CB2026-2054", "Lý Minh An", "Khoa Công nghệ thông tin", "Tiến sĩ", "Giảng viên chính", "Hết hiệu lực", "Đã thôi việc"],
+  ["CB2026-2055", "Mai Minh An", "Khoa Kinh tế và Quản lý", "Phó Giáo sư", "Trưởng bộ môn", "Còn hiệu lực", "Đang hoạt động"],
+  ["CB2026-2056", "Tạ Minh An", "Ban Giám hiệu", "Giáo sư", "Thư ký hội đồng", "Còn hiệu lực", "Đang hoạt động"],
+  ["CB2026-2057", "Cao Minh An", "Phòng Tổ chức - Cán bộ", "Cử nhân", "Chuyên viên nhân sự", "Còn hiệu lực", "Đang hoạt động"],
+  ["CB2026-2058", "Đinh Minh An", "Phòng Tài chính - Kế toán", "Kỹ sư", "Chuyên viên tiền lương", "Còn hiệu lực", "Đang hoạt động"],
+  ["CB2026-2059", "Trịnh Minh An", "Khoa Công nghệ thông tin", "Thạc sĩ", "Phó trưởng khoa", "Còn hiệu lực", "Đang hoạt động"],
+  ["CB2026-2060", "Đoàn Minh An", "Khoa Kinh tế và Quản lý", "Tiến sĩ", "Cố vấn học tập", "Còn hiệu lực", "Đang hoạt động"],
+  ["CB2026-2061", "Lương Minh An", "Ban Giám hiệu", "Phó Giáo sư", "Chuyên viên", "Còn hiệu lực", "Đang hoạt động"],
+  ["CB2026-2062", "Tô Minh An", "Phòng Tổ chức - Cán bộ", "Giáo sư", "Phó trưởng phòng", "Còn hiệu lực", "Đang hoạt động"],
+  ["CB2026-2063", "Nguyễn Hữu An", "Phòng Tài chính - Kế toán", "Cử nhân", "Phó trưởng phòng", "Hết hiệu lực", "Đã thôi việc"],
+  ["CB2026-2064", "Trần Hữu An", "Khoa Công nghệ thông tin", "Kỹ sư", "Trưởng bộ môn", "Còn hiệu lực", "Đang hoạt động"],
+  ["CB2026-2065", "Lê Hữu An", "Khoa Kinh tế và Quản lý", "Thạc sĩ", "Giảng viên", "Sắp hết hạn", "Đang hoạt động"],
+  ["CB2026-2066", "Phạm Hữu An", "Ban Giám hiệu", "Tiến sĩ", "Trợ lý", "Còn hiệu lực", "Đang hoạt động"],
+  ["CB2026-2067", "Hoàng Hữu An", "Phòng Tổ chức - Cán bộ", "Phó Giáo sư", "Trưởng nhóm hồ sơ", "Còn hiệu lực", "Đang hoạt động"],
+  ["CB2026-2068", "Huỳnh Hữu An", "Phòng Tài chính - Kế toán", "Giáo sư", "Kiểm soát viên", "Còn hiệu lực", "Đang hoạt động"],
+  ["CB2026-2069", "Phan Hữu An", "Khoa Công nghệ thông tin", "Cử nhân", "Giảng viên", "Còn hiệu lực", "Đang hoạt động"],
+  ["CB2026-2070", "Vũ Hữu An", "Khoa Kinh tế và Quản lý", "Kỹ sư", "Giảng viên chính", "Còn hiệu lực", "Đang hoạt động"],
+  ["CB2026-2071", "Võ Hữu An", "Ban Giám hiệu", "Thạc sĩ", "Phó hiệu trưởng", "Còn hiệu lực", "Đang hoạt động"],
+  ["CB2026-2072", "Đặng Hữu An", "Phòng Tổ chức - Cán bộ", "Tiến sĩ", "Chuyên viên chính", "Hết hiệu lực", "Đã thôi việc"],
+  ["CB2026-2073", "Bùi Hữu An", "Phòng Tài chính - Kế toán", "Phó Giáo sư", "Kế toán viên", "Còn hiệu lực", "Đang hoạt động"],
+  ["CB2026-2074", "Đỗ Hữu An", "Khoa Công nghệ thông tin", "Giáo sư", "Giảng viên chính", "Còn hiệu lực", "Đang hoạt động"],
+  ["CB2026-2075", "Hồ Hữu An", "Khoa Kinh tế và Quản lý", "Cử nhân", "Trưởng bộ môn", "Còn hiệu lực", "Đang hoạt động"],
+  ["CB2026-2076", "Ngô Hữu An", "Ban Giám hiệu", "Kỹ sư", "Thư ký hội đồng", "Còn hiệu lực", "Đang hoạt động"],
+  ["CB2026-2077", "Dương Hữu An", "Phòng Tổ chức - Cán bộ", "Thạc sĩ", "Chuyên viên nhân sự", "Còn hiệu lực", "Đang hoạt động"],
+  ["CB2026-2078", "Lý Hữu An", "Phòng Tài chính - Kế toán", "Tiến sĩ", "Chuyên viên tiền lương", "Còn hiệu lực", "Đang hoạt động"],
+  ["CB2026-2079", "Mai Hữu An", "Khoa Công nghệ thông tin", "Phó Giáo sư", "Phó trưởng khoa", "Còn hiệu lực", "Đang hoạt động"],
+  ["CB2026-2080", "Tạ Hữu An", "Khoa Kinh tế và Quản lý", "Giáo sư", "Cố vấn học tập", "Còn hiệu lực", "Đang hoạt động"],
+  ["CB2026-2081", "Cao Hữu An", "Ban Giám hiệu", "Cử nhân", "Chuyên viên", "Hết hiệu lực", "Đã thôi việc"],
+  ["CB2026-2082", "Đinh Hữu An", "Phòng Tổ chức - Cán bộ", "Kỹ sư", "Phó trưởng phòng", "Còn hiệu lực", "Đang hoạt động"],
+  ["CB2026-2083", "Trịnh Hữu An", "Phòng Tài chính - Kế toán", "Thạc sĩ", "Phó trưởng phòng", "Còn hiệu lực", "Đang hoạt động"],
+  ["CB2026-2084", "Đoàn Hữu An", "Khoa Công nghệ thông tin", "Tiến sĩ", "Trưởng bộ môn", "Còn hiệu lực", "Đang hoạt động"],
+  ["CB2026-2085", "Lương Hữu An", "Khoa Kinh tế và Quản lý", "Phó Giáo sư", "Giảng viên", "Còn hiệu lực", "Đang hoạt động"],
+  ["CB2026-2086", "Tô Hữu An", "Ban Giám hiệu", "Giáo sư", "Trợ lý", "Còn hiệu lực", "Đang hoạt động"],
+  ["CB2026-2087", "Nguyễn Quang An", "Phòng Tổ chức - Cán bộ", "Cử nhân", "Trưởng nhóm hồ sơ", "Còn hiệu lực", "Đang hoạt động"],
+  ["CB2026-2088", "Trần Quang An", "Phòng Tài chính - Kế toán", "Kỹ sư", "Kiểm soát viên", "Còn hiệu lực", "Đang hoạt động"],
+  ["CB2026-2089", "Lê Quang An", "Khoa Công nghệ thông tin", "Thạc sĩ", "Giảng viên", "Còn hiệu lực", "Đang hoạt động"],
+  ["CB2026-2090", "Phạm Quang An", "Khoa Kinh tế và Quản lý", "Tiến sĩ", "Giảng viên chính", "Hết hiệu lực", "Đã thôi việc"],
+  ["CB2026-2091", "Hoàng Quang An", "Ban Giám hiệu", "Phó Giáo sư", "Phó hiệu trưởng", "Còn hiệu lực", "Đang hoạt động"],
+  ["CB2026-2092", "Huỳnh Quang An", "Phòng Tổ chức - Cán bộ", "Giáo sư", "Chuyên viên chính", "Còn hiệu lực", "Đang hoạt động"],
+  ["CB2026-2093", "Phan Quang An", "Phòng Tài chính - Kế toán", "Cử nhân", "Kế toán viên", "Còn hiệu lực", "Đang hoạt động"],
+  ["CB2026-2094", "Vũ Quang An", "Khoa Công nghệ thông tin", "Kỹ sư", "Giảng viên chính", "Sắp hết hạn", "Đang hoạt động"],
+  ["CB2026-2095", "Võ Quang An", "Khoa Kinh tế và Quản lý", "Thạc sĩ", "Trưởng bộ môn", "Còn hiệu lực", "Đang hoạt động"],
+  ["CB2026-2096", "Đặng Quang An", "Ban Giám hiệu", "Tiến sĩ", "Thư ký hội đồng", "Còn hiệu lực", "Đang hoạt động"],
+  ["CB2026-2097", "Bùi Quang An", "Phòng Tổ chức - Cán bộ", "Phó Giáo sư", "Chuyên viên nhân sự", "Còn hiệu lực", "Đang hoạt động"],
+  ["CB2026-2098", "Đỗ Quang An", "Phòng Tài chính - Kế toán", "Giáo sư", "Chuyên viên tiền lương", "Còn hiệu lực", "Đang hoạt động"],
+  ["CB2026-2099", "Hồ Quang An", "Khoa Công nghệ thông tin", "Cử nhân", "Phó trưởng khoa", "Hết hiệu lực", "Đã thôi việc"],
+  ["CB2026-2100", "Ngô Quang An", "Khoa Kinh tế và Quản lý", "Kỹ sư", "Cố vấn học tập", "Còn hiệu lực", "Đang hoạt động"],
+  ["CB2026-2101", "Dương Quang An", "Ban Giám hiệu", "Thạc sĩ", "Chuyên viên", "Còn hiệu lực", "Đang hoạt động"],
+  ["CB2026-2102", "Lý Quang An", "Phòng Tổ chức - Cán bộ", "Tiến sĩ", "Phó trưởng phòng", "Còn hiệu lực", "Đang hoạt động"],
+  ["CB2026-2103", "Mai Quang An", "Phòng Tài chính - Kế toán", "Phó Giáo sư", "Phó trưởng phòng", "Còn hiệu lực", "Đang hoạt động"],
+  ["CB2026-2104", "Tạ Quang An", "Khoa Công nghệ thông tin", "Giáo sư", "Trưởng bộ môn", "Còn hiệu lực", "Đang hoạt động"],
+  ["CB2026-2105", "Cao Quang An", "Khoa Kinh tế và Quản lý", "Cử nhân", "Giảng viên", "Còn hiệu lực", "Đang hoạt động"],
+  ["CB2026-2106", "Đinh Quang An", "Ban Giám hiệu", "Kỹ sư", "Trợ lý", "Còn hiệu lực", "Đang hoạt động"],
+  ["CB2026-2107", "Trịnh Quang An", "Phòng Tổ chức - Cán bộ", "Thạc sĩ", "Trưởng nhóm hồ sơ", "Còn hiệu lực", "Đang hoạt động"],
+  ["CB2026-2108", "Đoàn Quang An", "Phòng Tài chính - Kế toán", "Tiến sĩ", "Kiểm soát viên", "Hết hiệu lực", "Đã thôi việc"],
+  ["CB2026-2109", "Lương Quang An", "Khoa Công nghệ thông tin", "Phó Giáo sư", "Giảng viên", "Còn hiệu lực", "Đang hoạt động"],
+  ["CB2026-2110", "Tô Quang An", "Khoa Kinh tế và Quản lý", "Giáo sư", "Giảng viên chính", "Còn hiệu lực", "Đang hoạt động"],
+  ["CB2026-2111", "Nguyễn Thanh An", "Ban Giám hiệu", "Cử nhân", "Phó hiệu trưởng", "Còn hiệu lực", "Đang hoạt động"],
+  ["CB2026-2112", "Trần Thanh An", "Phòng Tổ chức - Cán bộ", "Kỹ sư", "Chuyên viên chính", "Còn hiệu lực", "Đang hoạt động"],
+  ["CB2026-2113", "Lê Thanh An", "Phòng Tài chính - Kế toán", "Thạc sĩ", "Kế toán viên", "Chờ gia hạn", "Đang hoạt động"],
+  ["CB2026-2114", "Phạm Thanh An", "Khoa Công nghệ thông tin", "Tiến sĩ", "Giảng viên chính", "Còn hiệu lực", "Đang hoạt động"],
+  ["CB2026-2115", "Hoàng Thanh An", "Khoa Kinh tế và Quản lý", "Phó Giáo sư", "Trưởng bộ môn", "Còn hiệu lực", "Đang hoạt động"],
+  ["CB2026-2116", "Huỳnh Thanh An", "Ban Giám hiệu", "Giáo sư", "Thư ký hội đồng", "Còn hiệu lực", "Đang hoạt động"],
+  ["CB2026-2117", "Phan Thanh An", "Phòng Tổ chức - Cán bộ", "Cử nhân", "Chuyên viên nhân sự", "Hết hiệu lực", "Đã thôi việc"],
+  ["CB2026-2118", "Vũ Thanh An", "Phòng Tài chính - Kế toán", "Kỹ sư", "Chuyên viên tiền lương", "Còn hiệu lực", "Đang hoạt động"],
+  ["CB2026-2119", "Võ Thanh An", "Khoa Công nghệ thông tin", "Thạc sĩ", "Phó trưởng khoa", "Còn hiệu lực", "Đang hoạt động"],
+  ["CB2026-2120", "Đặng Thanh An", "Khoa Kinh tế và Quản lý", "Tiến sĩ", "Cố vấn học tập", "Còn hiệu lực", "Đang hoạt động"],
+  ["CB2026-2121", "Bùi Thanh An", "Ban Giám hiệu", "Phó Giáo sư", "Chuyên viên", "Còn hiệu lực", "Đang hoạt động"],
+  ["CB2026-2122", "Đỗ Thanh An", "Phòng Tổ chức - Cán bộ", "Giáo sư", "Phó trưởng phòng", "Còn hiệu lực", "Đang hoạt động"],
+  ["CB2026-2123", "Hồ Thanh An", "Phòng Tài chính - Kế toán", "Cử nhân", "Phó trưởng phòng", "Còn hiệu lực", "Đang hoạt động"],
+  ["CB2026-2124", "Ngô Thanh An", "Khoa Công nghệ thông tin", "Kỹ sư", "Trưởng bộ môn", "Còn hiệu lực", "Đang hoạt động"],
+  ["CB2026-2125", "Dương Thanh An", "Khoa Kinh tế và Quản lý", "Thạc sĩ", "Giảng viên", "Còn hiệu lực", "Đang hoạt động"],
+  ["CB2026-2126", "Lý Thanh An", "Ban Giám hiệu", "Tiến sĩ", "Trợ lý", "Hết hiệu lực", "Đã thôi việc"],
+  ["CB2026-2127", "Mai Thanh An", "Phòng Tổ chức - Cán bộ", "Phó Giáo sư", "Trưởng nhóm hồ sơ", "Còn hiệu lực", "Đang hoạt động"],
+  ["CB2026-2128", "Tạ Thanh An", "Phòng Tài chính - Kế toán", "Giáo sư", "Kiểm soát viên", "Còn hiệu lực", "Đang hoạt động"],
+  ["CB2026-2129", "Cao Thanh An", "Khoa Công nghệ thông tin", "Cử nhân", "Giảng viên", "Sắp hết hạn", "Đang hoạt động"],
+  ["CB2026-2130", "Đinh Thanh An", "Khoa Kinh tế và Quản lý", "Kỹ sư", "Giảng viên chính", "Còn hiệu lực", "Đang hoạt động"],
+  ["CB2026-2131", "Trịnh Thanh An", "Ban Giám hiệu", "Thạc sĩ", "Phó hiệu trưởng", "Còn hiệu lực", "Đang hoạt động"],
+  ["CB2026-2132", "Đoàn Thanh An", "Phòng Tổ chức - Cán bộ", "Tiến sĩ", "Chuyên viên chính", "Còn hiệu lực", "Đang hoạt động"],
+  ["CB2026-2133", "Lương Thanh An", "Phòng Tài chính - Kế toán", "Phó Giáo sư", "Kế toán viên", "Còn hiệu lực", "Đang hoạt động"],
+  ["CB2026-2134", "Tô Thanh An", "Khoa Công nghệ thông tin", "Giáo sư", "Giảng viên chính", "Còn hiệu lực", "Đang hoạt động"],
+  ["CB2026-2135", "Nguyễn Ngọc An", "Khoa Kinh tế và Quản lý", "Cử nhân", "Trưởng bộ môn", "Hết hiệu lực", "Đã thôi việc"],
+  ["CB2026-2136", "Trần Ngọc An", "Ban Giám hiệu", "Kỹ sư", "Thư ký hội đồng", "Còn hiệu lực", "Đang hoạt động"],
+  ["CB2026-2137", "Lê Ngọc An", "Phòng Tổ chức - Cán bộ", "Thạc sĩ", "Chuyên viên nhân sự", "Còn hiệu lực", "Đang hoạt động"],
+  ["CB2026-2138", "Phạm Ngọc An", "Phòng Tài chính - Kế toán", "Tiến sĩ", "Chuyên viên tiền lương", "Còn hiệu lực", "Đang hoạt động"],
+  ["CB2026-2139", "Hoàng Ngọc An", "Khoa Công nghệ thông tin", "Phó Giáo sư", "Phó trưởng khoa", "Còn hiệu lực", "Đang hoạt động"],
+  ["CB2026-2140", "Huỳnh Ngọc An", "Khoa Kinh tế và Quản lý", "Giáo sư", "Cố vấn học tập", "Còn hiệu lực", "Đang hoạt động"],
+  ["CB2026-2141", "Phan Ngọc An", "Ban Giám hiệu", "Cử nhân", "Chuyên viên", "Còn hiệu lực", "Đang hoạt động"],
+  ["CB2026-2142", "Vũ Ngọc An", "Phòng Tổ chức - Cán bộ", "Kỹ sư", "Phó trưởng phòng", "Còn hiệu lực", "Đang hoạt động"],
+  ["CB2026-2143", "Võ Ngọc An", "Phòng Tài chính - Kế toán", "Thạc sĩ", "Phó trưởng phòng", "Còn hiệu lực", "Đang hoạt động"],
+  ["CB2026-2144", "Đặng Ngọc An", "Khoa Công nghệ thông tin", "Tiến sĩ", "Trưởng bộ môn", "Hết hiệu lực", "Đã thôi việc"],
+  ["CB2026-2145", "Bùi Ngọc An", "Khoa Kinh tế và Quản lý", "Phó Giáo sư", "Giảng viên", "Còn hiệu lực", "Đang hoạt động"],
+  ["CB2026-2146", "Đỗ Ngọc An", "Ban Giám hiệu", "Giáo sư", "Trợ lý", "Còn hiệu lực", "Đang hoạt động"],
+  ["CB2026-2147", "Hồ Ngọc An", "Phòng Tổ chức - Cán bộ", "Cử nhân", "Trưởng nhóm hồ sơ", "Còn hiệu lực", "Đang hoạt động"],
+  ["CB2026-2148", "Ngô Ngọc An", "Phòng Tài chính - Kế toán", "Kỹ sư", "Kiểm soát viên", "Còn hiệu lực", "Đang hoạt động"],
+  ["CB2026-2149", "Dương Ngọc An", "Khoa Công nghệ thông tin", "Thạc sĩ", "Giảng viên", "Còn hiệu lực", "Đang hoạt động"],
+  ["CB2026-2150", "Lý Ngọc An", "Khoa Kinh tế và Quản lý", "Tiến sĩ", "Giảng viên chính", "Còn hiệu lực", "Đang hoạt động"],
+  ["CB2026-2151", "Mai Ngọc An", "Ban Giám hiệu", "Phó Giáo sư", "Phó hiệu trưởng", "Còn hiệu lực", "Đang hoạt động"],
+  ["CB2026-2152", "Tạ Ngọc An", "Phòng Tổ chức - Cán bộ", "Giáo sư", "Chuyên viên chính", "Còn hiệu lực", "Đang hoạt động"],
+  ["CB2026-2153", "Cao Ngọc An", "Phòng Tài chính - Kế toán", "Cử nhân", "Kế toán viên", "Hết hiệu lực", "Đã thôi việc"],
+  ["CB2026-2154", "Đinh Ngọc An", "Khoa Công nghệ thông tin", "Kỹ sư", "Giảng viên chính", "Còn hiệu lực", "Đang hoạt động"],
+  ["CB2026-2155", "Trịnh Ngọc An", "Khoa Kinh tế và Quản lý", "Thạc sĩ", "Trưởng bộ môn", "Còn hiệu lực", "Đang hoạt động"],
+  ["CB2026-2156", "Đoàn Ngọc An", "Ban Giám hiệu", "Tiến sĩ", "Thư ký hội đồng", "Còn hiệu lực", "Đang hoạt động"],
+  ["CB2026-2157", "Lương Ngọc An", "Phòng Tổ chức - Cán bộ", "Phó Giáo sư", "Chuyên viên nhân sự", "Còn hiệu lực", "Đang hoạt động"],
+  ["CB2026-2158", "Tô Ngọc An", "Phòng Tài chính - Kế toán", "Giáo sư", "Chuyên viên tiền lương", "Còn hiệu lực", "Đang hoạt động"],
+  ["CB2026-2159", "Nguyễn Đức An", "Khoa Công nghệ thông tin", "Cử nhân", "Phó trưởng khoa", "Còn hiệu lực", "Đang hoạt động"],
+  ["CB2026-2160", "Trần Đức An", "Khoa Kinh tế và Quản lý", "Kỹ sư", "Cố vấn học tập", "Còn hiệu lực", "Đang hoạt động"],
+  ["CB2026-2161", "Lê Đức An", "Ban Giám hiệu", "Thạc sĩ", "Chuyên viên", "Còn hiệu lực", "Đang hoạt động"],
+  ["CB2026-2162", "Phạm Đức An", "Phòng Tổ chức - Cán bộ", "Tiến sĩ", "Phó trưởng phòng", "Hết hiệu lực", "Đã thôi việc"],
+  ["CB2026-2163", "Hoàng Đức An", "Phòng Tài chính - Kế toán", "Phó Giáo sư", "Phó trưởng phòng", "Còn hiệu lực", "Đang hoạt động"],
+  ["CB2026-2164", "Huỳnh Đức An", "Khoa Công nghệ thông tin", "Giáo sư", "Trưởng bộ môn", "Còn hiệu lực", "Đang hoạt động"],
+  ["CB2026-2165", "Phan Đức An", "Khoa Kinh tế và Quản lý", "Cử nhân", "Giảng viên", "Còn hiệu lực", "Đang hoạt động"],
+  ["CB2026-2166", "Vũ Đức An", "Ban Giám hiệu", "Kỹ sư", "Trợ lý", "Còn hiệu lực", "Đang hoạt động"],
+  ["CB2026-2167", "Võ Đức An", "Phòng Tổ chức - Cán bộ", "Thạc sĩ", "Trưởng nhóm hồ sơ", "Sắp hết hạn", "Đang hoạt động"],
+  ["CB2026-2168", "Đặng Đức An", "Phòng Tài chính - Kế toán", "Tiến sĩ", "Kiểm soát viên", "Còn hiệu lực", "Đang hoạt động"],
+  ["CB2026-2169", "Bùi Đức An", "Khoa Công nghệ thông tin", "Phó Giáo sư", "Giảng viên", "Còn hiệu lực", "Đang hoạt động"],
+  ["CB2026-2170", "Đỗ Đức An", "Khoa Kinh tế và Quản lý", "Giáo sư", "Giảng viên chính", "Còn hiệu lực", "Đang hoạt động"],
+  ["CB2026-2171", "Hồ Đức An", "Ban Giám hiệu", "Cử nhân", "Phó hiệu trưởng", "Hết hiệu lực", "Đã thôi việc"],
+  ["CB2026-2172", "Ngô Đức An", "Phòng Tổ chức - Cán bộ", "Kỹ sư", "Chuyên viên chính", "Còn hiệu lực", "Đang hoạt động"],
+  ["CB2026-2173", "Dương Đức An", "Phòng Tài chính - Kế toán", "Thạc sĩ", "Kế toán viên", "Còn hiệu lực", "Đang hoạt động"],
+  ["CB2026-2174", "Lý Đức An", "Khoa Công nghệ thông tin", "Tiến sĩ", "Giảng viên chính", "Còn hiệu lực", "Đang hoạt động"],
+  ["CB2026-2175", "Mai Đức An", "Khoa Kinh tế và Quản lý", "Phó Giáo sư", "Trưởng bộ môn", "Còn hiệu lực", "Đang hoạt động"],
+  ["CB2026-2176", "Tạ Đức An", "Ban Giám hiệu", "Giáo sư", "Thư ký hội đồng", "Còn hiệu lực", "Đang hoạt động"],
+  ["CB2026-2177", "Cao Đức An", "Phòng Tổ chức - Cán bộ", "Cử nhân", "Chuyên viên nhân sự", "Còn hiệu lực", "Đang hoạt động"],
+  ["CB2026-2178", "Đinh Đức An", "Phòng Tài chính - Kế toán", "Kỹ sư", "Chuyên viên tiền lương", "Còn hiệu lực", "Đang hoạt động"],
+  ["CB2026-2179", "Trịnh Đức An", "Khoa Công nghệ thông tin", "Thạc sĩ", "Phó trưởng khoa", "Còn hiệu lực", "Đang hoạt động"],
+  ["CB2026-2180", "Đoàn Đức An", "Khoa Kinh tế và Quản lý", "Tiến sĩ", "Cố vấn học tập", "Hết hiệu lực", "Đã thôi việc"],
+  ["CB2026-2181", "Lương Đức An", "Ban Giám hiệu", "Phó Giáo sư", "Chuyên viên", "Còn hiệu lực", "Đang hoạt động"],
+  ["CB2026-2182", "Tô Đức An", "Phòng Tổ chức - Cán bộ", "Giáo sư", "Phó trưởng phòng", "Còn hiệu lực", "Đang hoạt động"],
+  ["CB2026-2183", "Nguyễn Anh An", "Phòng Tài chính - Kế toán", "Cử nhân", "Phó trưởng phòng", "Còn hiệu lực", "Đang hoạt động"],
+  ["CB2026-2184", "Trần Anh An", "Khoa Công nghệ thông tin", "Kỹ sư", "Trưởng bộ môn", "Còn hiệu lực", "Đang hoạt động"],
+  ["CB2026-2185", "Lê Anh An", "Khoa Kinh tế và Quản lý", "Thạc sĩ", "Giảng viên", "Còn hiệu lực", "Đang hoạt động"],
+  ["CB2026-2186", "Phạm Anh An", "Ban Giám hiệu", "Tiến sĩ", "Trợ lý", "Còn hiệu lực", "Đang hoạt động"],
+  ["CB2026-2187", "Hoàng Anh An", "Phòng Tổ chức - Cán bộ", "Phó Giáo sư", "Trưởng nhóm hồ sơ", "Còn hiệu lực", "Đang hoạt động"],
+  ["CB2026-2188", "Huỳnh Anh An", "Phòng Tài chính - Kế toán", "Giáo sư", "Kiểm soát viên", "Còn hiệu lực", "Đang hoạt động"],
+  ["CB2026-2189", "Phan Anh An", "Khoa Công nghệ thông tin", "Cử nhân", "Giảng viên", "Hết hiệu lực", "Đã thôi việc"],
+  ["CB2026-2190", "Vũ Anh An", "Khoa Kinh tế và Quản lý", "Kỹ sư", "Giảng viên chính", "Còn hiệu lực", "Đang hoạt động"],
+  ["CB2026-2191", "Võ Anh An", "Ban Giám hiệu", "Thạc sĩ", "Phó hiệu trưởng", "Còn hiệu lực", "Đang hoạt động"],
+  ["CB2026-2192", "Đặng Anh An", "Phòng Tổ chức - Cán bộ", "Tiến sĩ", "Chuyên viên chính", "Còn hiệu lực", "Đang hoạt động"],
+  ["CB2026-2193", "Bùi Anh An", "Phòng Tài chính - Kế toán", "Phó Giáo sư", "Kế toán viên", "Còn hiệu lực", "Đang hoạt động"],
+  ["CB2026-2194", "Đỗ Anh An", "Khoa Công nghệ thông tin", "Giáo sư", "Giảng viên chính", "Còn hiệu lực", "Đang hoạt động"],
+  ["CB2026-2195", "Hồ Anh An", "Khoa Kinh tế và Quản lý", "Cử nhân", "Trưởng bộ môn", "Còn hiệu lực", "Đang hoạt động"],
+  ["CB2026-2196", "Ngô Anh An", "Ban Giám hiệu", "Kỹ sư", "Thư ký hội đồng", "Còn hiệu lực", "Đang hoạt động"],
+  ["CB2026-2197", "Dương Anh An", "Phòng Tổ chức - Cán bộ", "Thạc sĩ", "Chuyên viên nhân sự", "Còn hiệu lực", "Đang hoạt động"],
+  ["CB2026-2198", "Lý Anh An", "Phòng Tài chính - Kế toán", "Tiến sĩ", "Chuyên viên tiền lương", "Hết hiệu lực", "Đã thôi việc"],
+  ["CB2026-2199", "Mai Anh An", "Khoa Công nghệ thông tin", "Phó Giáo sư", "Phó trưởng khoa", "Còn hiệu lực", "Đang hoạt động"],
+  ["CB2026-2200", "Tạ Anh An", "Khoa Kinh tế và Quản lý", "Giáo sư", "Cố vấn học tập", "Còn hiệu lực", "Đang hoạt động"],
+  ["CB2026-2201", "Cao Anh An", "Ban Giám hiệu", "Cử nhân", "Chuyên viên", "Còn hiệu lực", "Đang hoạt động"],
+  ["CB2026-2202", "Đinh Anh An", "Phòng Tổ chức - Cán bộ", "Kỹ sư", "Phó trưởng phòng", "Còn hiệu lực", "Đang hoạt động"],
+  ["CB2026-2203", "Trịnh Anh An", "Phòng Tài chính - Kế toán", "Thạc sĩ", "Phó trưởng phòng", "Còn hiệu lực", "Đang hoạt động"],
+  ["CB2026-2204", "Đoàn Anh An", "Khoa Công nghệ thông tin", "Tiến sĩ", "Trưởng bộ môn", "Sắp hết hạn", "Đang hoạt động"],
+  ["CB2026-2205", "Lương Anh An", "Khoa Kinh tế và Quản lý", "Phó Giáo sư", "Giảng viên", "Còn hiệu lực", "Đang hoạt động"],
+  ["CB2026-2206", "Tô Anh An", "Ban Giám hiệu", "Giáo sư", "Trợ lý", "Còn hiệu lực", "Đang hoạt động"],
+  ["CB2026-2207", "Nguyễn Thu An", "Phòng Tổ chức - Cán bộ", "Cử nhân", "Trưởng nhóm hồ sơ", "Hết hiệu lực", "Đã thôi việc"],
+  ["CB2026-2208", "Trần Thu An", "Phòng Tài chính - Kế toán", "Kỹ sư", "Kiểm soát viên", "Còn hiệu lực", "Đang hoạt động"],
+  ["CB2026-2209", "Lê Thu An", "Khoa Công nghệ thông tin", "Thạc sĩ", "Giảng viên", "Còn hiệu lực", "Đang hoạt động"],
+  ["CB2026-2210", "Phạm Thu An", "Khoa Kinh tế và Quản lý", "Tiến sĩ", "Giảng viên chính", "Còn hiệu lực", "Đang hoạt động"],
+  ["CB2026-2211", "Hoàng Thu An", "Ban Giám hiệu", "Phó Giáo sư", "Phó hiệu trưởng", "Còn hiệu lực", "Đang hoạt động"],
+  ["CB2026-2212", "Huỳnh Thu An", "Phòng Tổ chức - Cán bộ", "Giáo sư", "Chuyên viên chính", "Còn hiệu lực", "Đang hoạt động"],
+  ["CB2026-2213", "Phan Thu An", "Phòng Tài chính - Kế toán", "Cử nhân", "Kế toán viên", "Còn hiệu lực", "Đang hoạt động"],
+  ["CB2026-2214", "Vũ Thu An", "Khoa Công nghệ thông tin", "Kỹ sư", "Giảng viên chính", "Còn hiệu lực", "Đang hoạt động"],
+  ["CB2026-2215", "Võ Thu An", "Khoa Kinh tế và Quản lý", "Thạc sĩ", "Trưởng bộ môn", "Còn hiệu lực", "Đang hoạt động"],
+  ["CB2026-2216", "Đặng Thu An", "Ban Giám hiệu", "Tiến sĩ", "Thư ký hội đồng", "Hết hiệu lực", "Đã thôi việc"],
+  ["CB2026-2217", "Bùi Thu An", "Phòng Tổ chức - Cán bộ", "Phó Giáo sư", "Chuyên viên nhân sự", "Còn hiệu lực", "Đang hoạt động"],
+  ["CB2026-2218", "Đỗ Thu An", "Phòng Tài chính - Kế toán", "Giáo sư", "Chuyên viên tiền lương", "Còn hiệu lực", "Đang hoạt động"],
+  ["CB2026-2219", "Hồ Thu An", "Khoa Công nghệ thông tin", "Cử nhân", "Phó trưởng khoa", "Còn hiệu lực", "Đang hoạt động"],
+  ["CB2026-2220", "Ngô Thu An", "Khoa Kinh tế và Quản lý", "Kỹ sư", "Cố vấn học tập", "Chờ gia hạn", "Đang hoạt động"],
+  ["CB2026-2221", "Dương Thu An", "Ban Giám hiệu", "Thạc sĩ", "Chuyên viên", "Còn hiệu lực", "Đang hoạt động"],
+  ["CB2026-2222", "Lý Thu An", "Phòng Tổ chức - Cán bộ", "Tiến sĩ", "Phó trưởng phòng", "Còn hiệu lực", "Đang hoạt động"],
+  ["CB2026-2223", "Mai Thu An", "Phòng Tài chính - Kế toán", "Phó Giáo sư", "Phó trưởng phòng", "Còn hiệu lực", "Đang hoạt động"],
+  ["CB2026-2224", "Tạ Thu An", "Khoa Công nghệ thông tin", "Giáo sư", "Trưởng bộ môn", "Còn hiệu lực", "Đang hoạt động"],
+  ["CB2026-2225", "Cao Thu An", "Khoa Kinh tế và Quản lý", "Cử nhân", "Giảng viên", "Hết hiệu lực", "Đã thôi việc"],
+  ["CB2026-2226", "Đinh Thu An", "Ban Giám hiệu", "Kỹ sư", "Trợ lý", "Còn hiệu lực", "Đang hoạt động"],
+  ["CB2026-2227", "Trịnh Thu An", "Phòng Tổ chức - Cán bộ", "Thạc sĩ", "Trưởng nhóm hồ sơ", "Còn hiệu lực", "Đang hoạt động"],
+  ["CB2026-2228", "Đoàn Thu An", "Phòng Tài chính - Kế toán", "Tiến sĩ", "Kiểm soát viên", "Còn hiệu lực", "Đang hoạt động"],
+  ["CB2026-2229", "Lương Thu An", "Khoa Công nghệ thông tin", "Phó Giáo sư", "Giảng viên", "Còn hiệu lực", "Đang hoạt động"],
+  ["CB2026-2230", "Tô Thu An", "Khoa Kinh tế và Quản lý", "Giáo sư", "Giảng viên chính", "Còn hiệu lực", "Đang hoạt động"],
+  ["CB2026-2231", "Nguyễn Gia An", "Ban Giám hiệu", "Cử nhân", "Phó hiệu trưởng", "Còn hiệu lực", "Đang hoạt động"],
+  ["CB2026-2232", "Trần Gia An", "Phòng Tổ chức - Cán bộ", "Kỹ sư", "Chuyên viên chính", "Còn hiệu lực", "Đang hoạt động"],
+  ["CB2026-2233", "Lê Gia An", "Phòng Tài chính - Kế toán", "Thạc sĩ", "Kế toán viên", "Còn hiệu lực", "Đang hoạt động"],
+  ["CB2026-2234", "Phạm Gia An", "Khoa Công nghệ thông tin", "Tiến sĩ", "Giảng viên chính", "Hết hiệu lực", "Đã thôi việc"],
+  ["CB2026-2235", "Hoàng Gia An", "Khoa Kinh tế và Quản lý", "Phó Giáo sư", "Trưởng bộ môn", "Còn hiệu lực", "Đang hoạt động"],
+  ["CB2026-2236", "Huỳnh Gia An", "Ban Giám hiệu", "Giáo sư", "Thư ký hội đồng", "Còn hiệu lực", "Đang hoạt động"],
+  ["CB2026-2237", "Phan Gia An", "Phòng Tổ chức - Cán bộ", "Cử nhân", "Chuyên viên nhân sự", "Còn hiệu lực", "Đang hoạt động"],
+  ["CB2026-2238", "Vũ Gia An", "Phòng Tài chính - Kế toán", "Kỹ sư", "Chuyên viên tiền lương", "Còn hiệu lực", "Đang hoạt động"],
+  ["CB2026-2239", "Võ Gia An", "Khoa Công nghệ thông tin", "Thạc sĩ", "Phó trưởng khoa", "Còn hiệu lực", "Đang hoạt động"],
+  ["CB2026-2240", "Đặng Gia An", "Khoa Kinh tế và Quản lý", "Tiến sĩ", "Cố vấn học tập", "Còn hiệu lực", "Đang hoạt động"],
+  ["CB2026-2241", "Bùi Gia An", "Ban Giám hiệu", "Phó Giáo sư", "Chuyên viên", "Còn hiệu lực", "Đang hoạt động"],
+  ["CB2026-2242", "Đỗ Gia An", "Phòng Tổ chức - Cán bộ", "Giáo sư", "Phó trưởng phòng", "Sắp hết hạn", "Đang hoạt động"],
+  ["CB2026-2243", "Hồ Gia An", "Phòng Tài chính - Kế toán", "Cử nhân", "Phó trưởng phòng", "Hết hiệu lực", "Đã thôi việc"],
+  ["CB2026-2244", "Ngô Gia An", "Khoa Công nghệ thông tin", "Kỹ sư", "Trưởng bộ môn", "Còn hiệu lực", "Đang hoạt động"],
+  ["CB2026-2245", "Dương Gia An", "Khoa Kinh tế và Quản lý", "Thạc sĩ", "Giảng viên", "Còn hiệu lực", "Đang hoạt động"],
+  ["CB2026-2246", "Lý Gia An", "Ban Giám hiệu", "Tiến sĩ", "Trợ lý", "Còn hiệu lực", "Đang hoạt động"],
+  ["CB2026-2247", "Mai Gia An", "Phòng Tổ chức - Cán bộ", "Phó Giáo sư", "Trưởng nhóm hồ sơ", "Còn hiệu lực", "Đang hoạt động"],
+  ["CB2026-2248", "Tạ Gia An", "Phòng Tài chính - Kế toán", "Giáo sư", "Kiểm soát viên", "Còn hiệu lực", "Đang hoạt động"],
+  ["CB2026-2249", "Cao Gia An", "Khoa Công nghệ thông tin", "Cử nhân", "Giảng viên", "Còn hiệu lực", "Đang hoạt động"],
+  ["CB2026-2250", "Đinh Gia An", "Khoa Kinh tế và Quản lý", "Kỹ sư", "Giảng viên chính", "Còn hiệu lực", "Đang hoạt động"],
+  ["CB2026-2251", "Trịnh Gia An", "Ban Giám hiệu", "Thạc sĩ", "Phó hiệu trưởng", "Còn hiệu lực", "Đang hoạt động"],
+  ["CB2026-2252", "Đoàn Gia An", "Phòng Tổ chức - Cán bộ", "Tiến sĩ", "Chuyên viên chính", "Hết hiệu lực", "Đã thôi việc"],
+  ["CB2026-2253", "Lương Gia An", "Phòng Tài chính - Kế toán", "Phó Giáo sư", "Kế toán viên", "Còn hiệu lực", "Đang hoạt động"],
+  ["CB2026-2254", "Tô Gia An", "Khoa Công nghệ thông tin", "Giáo sư", "Giảng viên chính", "Còn hiệu lực", "Đang hoạt động"],
+  ["CB2026-2255", "Nguyễn Hoài An", "Khoa Kinh tế và Quản lý", "Cử nhân", "Trưởng bộ môn", "Còn hiệu lực", "Đang hoạt động"],
+  ["CB2026-2256", "Trần Hoài An", "Ban Giám hiệu", "Kỹ sư", "Thư ký hội đồng", "Còn hiệu lực", "Đang hoạt động"],
+  ["CB2026-2257", "Lê Hoài An", "Phòng Tổ chức - Cán bộ", "Thạc sĩ", "Chuyên viên nhân sự", "Còn hiệu lực", "Đang hoạt động"],
+  ["CB2026-2258", "Phạm Hoài An", "Phòng Tài chính - Kế toán", "Tiến sĩ", "Chuyên viên tiền lương", "Còn hiệu lực", "Đang hoạt động"],
+  ["CB2026-2259", "Hoàng Hoài An", "Khoa Công nghệ thông tin", "Phó Giáo sư", "Phó trưởng khoa", "Còn hiệu lực", "Đang hoạt động"],
+  ["CB2026-2260", "Huỳnh Hoài An", "Khoa Kinh tế và Quản lý", "Giáo sư", "Cố vấn học tập", "Còn hiệu lực", "Đang hoạt động"],
+  ["CB2026-2261", "Phan Hoài An", "Ban Giám hiệu", "Cử nhân", "Chuyên viên", "Hết hiệu lực", "Đã thôi việc"],
+  ["CB2026-2262", "Vũ Hoài An", "Phòng Tổ chức - Cán bộ", "Kỹ sư", "Phó trưởng phòng", "Còn hiệu lực", "Đang hoạt động"],
+  ["CB2026-2263", "Võ Hoài An", "Phòng Tài chính - Kế toán", "Thạc sĩ", "Phó trưởng phòng", "Còn hiệu lực", "Đang hoạt động"],
+  ["CB2026-2264", "Đặng Hoài An", "Khoa Công nghệ thông tin", "Tiến sĩ", "Trưởng bộ môn", "Còn hiệu lực", "Đang hoạt động"],
+  ["CB2026-2265", "Bùi Hoài An", "Khoa Kinh tế và Quản lý", "Phó Giáo sư", "Giảng viên", "Còn hiệu lực", "Đang hoạt động"],
+  ["CB2026-2266", "Đỗ Hoài An", "Ban Giám hiệu", "Giáo sư", "Trợ lý", "Còn hiệu lực", "Đang hoạt động"],
+  ["CB2026-2267", "Hồ Hoài An", "Phòng Tổ chức - Cán bộ", "Cử nhân", "Trưởng nhóm hồ sơ", "Còn hiệu lực", "Đang hoạt động"],
+  ["CB2026-2268", "Ngô Hoài An", "Phòng Tài chính - Kế toán", "Kỹ sư", "Kiểm soát viên", "Còn hiệu lực", "Đang hoạt động"],
+  ["CB2026-2269", "Dương Hoài An", "Khoa Công nghệ thông tin", "Thạc sĩ", "Giảng viên", "Còn hiệu lực", "Đang hoạt động"],
+  ["CB2026-2270", "Lý Hoài An", "Khoa Kinh tế và Quản lý", "Tiến sĩ", "Giảng viên chính", "Hết hiệu lực", "Đã thôi việc"],
+  ["CB2026-2271", "Mai Hoài An", "Ban Giám hiệu", "Phó Giáo sư", "Phó hiệu trưởng", "Còn hiệu lực", "Đang hoạt động"],
+  ["CB2026-2272", "Tạ Hoài An", "Phòng Tổ chức - Cán bộ", "Giáo sư", "Chuyên viên chính", "Còn hiệu lực", "Đang hoạt động"],
+  ["CB2026-2273", "Cao Hoài An", "Phòng Tài chính - Kế toán", "Cử nhân", "Kế toán viên", "Còn hiệu lực", "Đang hoạt động"],
+  ["CB2026-2274", "Đinh Hoài An", "Khoa Công nghệ thông tin", "Kỹ sư", "Giảng viên chính", "Còn hiệu lực", "Đang hoạt động"],
+  ["CB2026-2275", "Trịnh Hoài An", "Khoa Kinh tế và Quản lý", "Thạc sĩ", "Trưởng bộ môn", "Còn hiệu lực", "Đang hoạt động"],
+  ["CB2026-2276", "Đoàn Hoài An", "Ban Giám hiệu", "Tiến sĩ", "Thư ký hội đồng", "Còn hiệu lực", "Đang hoạt động"],
+  ["CB2026-2277", "Lương Hoài An", "Phòng Tổ chức - Cán bộ", "Phó Giáo sư", "Chuyên viên nhân sự", "Còn hiệu lực", "Đang hoạt động"],
+  ["CB2026-2278", "Tô Hoài An", "Phòng Tài chính - Kế toán", "Giáo sư", "Chuyên viên tiền lương", "Còn hiệu lực", "Đang hoạt động"],
+  ["CB2026-2279", "Nguyễn Khánh An", "Khoa Công nghệ thông tin", "Cử nhân", "Phó trưởng khoa", "Hết hiệu lực", "Đã thôi việc"],
+  ["CB2026-2280", "Trần Khánh An", "Khoa Kinh tế và Quản lý", "Kỹ sư", "Cố vấn học tập", "Sắp hết hạn", "Đang hoạt động"],
+  ["CB2026-2281", "Lê Khánh An", "Ban Giám hiệu", "Thạc sĩ", "Chuyên viên", "Còn hiệu lực", "Đang hoạt động"],
+  ["CB2026-2282", "Phạm Khánh An", "Phòng Tổ chức - Cán bộ", "Tiến sĩ", "Phó trưởng phòng", "Còn hiệu lực", "Đang hoạt động"],
+  ["CB2026-2283", "Hoàng Khánh An", "Phòng Tài chính - Kế toán", "Phó Giáo sư", "Phó trưởng phòng", "Còn hiệu lực", "Đang hoạt động"],
+  ["CB2026-2284", "Huỳnh Khánh An", "Khoa Công nghệ thông tin", "Giáo sư", "Trưởng bộ môn", "Còn hiệu lực", "Đang hoạt động"],
+  ["CB2026-2285", "Phan Khánh An", "Khoa Kinh tế và Quản lý", "Cử nhân", "Giảng viên", "Còn hiệu lực", "Đang hoạt động"],
+  ["CB2026-2286", "Vũ Khánh An", "Ban Giám hiệu", "Kỹ sư", "Trợ lý", "Còn hiệu lực", "Đang hoạt động"],
+  ["CB2026-2287", "Võ Khánh An", "Phòng Tổ chức - Cán bộ", "Thạc sĩ", "Trưởng nhóm hồ sơ", "Còn hiệu lực", "Đang hoạt động"],
+  ["CB2026-2288", "Đặng Khánh An", "Phòng Tài chính - Kế toán", "Tiến sĩ", "Kiểm soát viên", "Hết hiệu lực", "Đã thôi việc"],
+  ["CB2026-2289", "Bùi Khánh An", "Khoa Công nghệ thông tin", "Phó Giáo sư", "Giảng viên", "Còn hiệu lực", "Đang hoạt động"],
+  ["CB2026-2290", "Đỗ Khánh An", "Khoa Kinh tế và Quản lý", "Giáo sư", "Giảng viên chính", "Còn hiệu lực", "Đang hoạt động"],
+  ["CB2026-2291", "Hồ Khánh An", "Ban Giám hiệu", "Cử nhân", "Phó hiệu trưởng", "Còn hiệu lực", "Đang hoạt động"],
+  ["CB2026-2292", "Ngô Khánh An", "Phòng Tổ chức - Cán bộ", "Kỹ sư", "Chuyên viên chính", "Còn hiệu lực", "Đang hoạt động"],
+  ["CB2026-2293", "Dương Khánh An", "Phòng Tài chính - Kế toán", "Thạc sĩ", "Kế toán viên", "Còn hiệu lực", "Đang hoạt động"],
+  ["CB2026-2294", "Lý Khánh An", "Khoa Công nghệ thông tin", "Tiến sĩ", "Giảng viên chính", "Còn hiệu lực", "Đang hoạt động"],
+  ["CB2026-2295", "Mai Khánh An", "Khoa Kinh tế và Quản lý", "Phó Giáo sư", "Trưởng bộ môn", "Còn hiệu lực", "Đang hoạt động"],
+  ["CB2026-2296", "Tạ Khánh An", "Ban Giám hiệu", "Giáo sư", "Thư ký hội đồng", "Còn hiệu lực", "Đang hoạt động"],
+  ["CB2026-2297", "Cao Khánh An", "Phòng Tổ chức - Cán bộ", "Cử nhân", "Chuyên viên nhân sự", "Hết hiệu lực", "Đã thôi việc"],
+  ["CB2026-2298", "Đinh Khánh An", "Phòng Tài chính - Kế toán", "Kỹ sư", "Chuyên viên tiền lương", "Còn hiệu lực", "Đang hoạt động"],
+  ["CB2026-2299", "Trịnh Khánh An", "Khoa Công nghệ thông tin", "Thạc sĩ", "Phó trưởng khoa", "Còn hiệu lực", "Đang hoạt động"],
+  ["CB2026-2300", "Đoàn Khánh An", "Khoa Kinh tế và Quản lý", "Tiến sĩ", "Cố vấn học tập", "Còn hiệu lực", "Đang hoạt động"],
+  ["CB2026-2301", "Lương Khánh An", "Ban Giám hiệu", "Phó Giáo sư", "Chuyên viên", "Còn hiệu lực", "Đang hoạt động"],
+  ["CB2026-2302", "Tô Khánh An", "Phòng Tổ chức - Cán bộ", "Giáo sư", "Phó trưởng phòng", "Còn hiệu lực", "Đang hoạt động"],
+  ["CB2026-2303", "Nguyễn Nhật An", "Phòng Tài chính - Kế toán", "Cử nhân", "Phó trưởng phòng", "Chờ gia hạn", "Đang hoạt động"],
+  ["CB2026-2304", "Trần Nhật An", "Khoa Công nghệ thông tin", "Kỹ sư", "Trưởng bộ môn", "Còn hiệu lực", "Đang hoạt động"],
+  ["CB2026-2305", "Lê Nhật An", "Khoa Kinh tế và Quản lý", "Thạc sĩ", "Giảng viên", "Còn hiệu lực", "Đang hoạt động"],
+  ["CB2026-2306", "Phạm Nhật An", "Ban Giám hiệu", "Tiến sĩ", "Trợ lý", "Hết hiệu lực", "Đã thôi việc"],
+  ["CB2026-2307", "Hoàng Nhật An", "Phòng Tổ chức - Cán bộ", "Phó Giáo sư", "Trưởng nhóm hồ sơ", "Còn hiệu lực", "Đang hoạt động"],
+  ["CB2026-2308", "Huỳnh Nhật An", "Phòng Tài chính - Kế toán", "Giáo sư", "Kiểm soát viên", "Còn hiệu lực", "Đang hoạt động"],
+  ["CB2026-2309", "Phan Nhật An", "Khoa Công nghệ thông tin", "Cử nhân", "Giảng viên", "Còn hiệu lực", "Đang hoạt động"],
+  ["CB2026-2310", "Vũ Nhật An", "Khoa Kinh tế và Quản lý", "Kỹ sư", "Giảng viên chính", "Còn hiệu lực", "Đang hoạt động"],
+  ["CB2026-2311", "Võ Nhật An", "Ban Giám hiệu", "Thạc sĩ", "Phó hiệu trưởng", "Còn hiệu lực", "Đang hoạt động"],
+  ["CB2026-2312", "Đặng Nhật An", "Phòng Tổ chức - Cán bộ", "Tiến sĩ", "Chuyên viên chính", "Còn hiệu lực", "Đang hoạt động"],
+  ["CB2026-2313", "Bùi Nhật An", "Phòng Tài chính - Kế toán", "Phó Giáo sư", "Kế toán viên", "Còn hiệu lực", "Đang hoạt động"],
+  ["CB2026-2314", "Đỗ Nhật An", "Khoa Công nghệ thông tin", "Giáo sư", "Giảng viên chính", "Còn hiệu lực", "Đang hoạt động"],
+  ["CB2026-2315", "Hồ Nhật An", "Khoa Kinh tế và Quản lý", "Cử nhân", "Trưởng bộ môn", "Hết hiệu lực", "Đã thôi việc"],
+  ["CB2026-2316", "Ngô Nhật An", "Ban Giám hiệu", "Kỹ sư", "Thư ký hội đồng", "Còn hiệu lực", "Đang hoạt động"],
+  ["CB2026-2317", "Dương Nhật An", "Phòng Tổ chức - Cán bộ", "Thạc sĩ", "Chuyên viên nhân sự", "Còn hiệu lực", "Đang hoạt động"],
+  ["CB2026-2318", "Lý Nhật An", "Phòng Tài chính - Kế toán", "Tiến sĩ", "Chuyên viên tiền lương", "Còn hiệu lực", "Đang hoạt động"],
+  ["CB2026-2319", "Mai Nhật An", "Khoa Công nghệ thông tin", "Phó Giáo sư", "Phó trưởng khoa", "Còn hiệu lực", "Đang hoạt động"],
+  ["CB2026-2320", "Tạ Nhật An", "Khoa Kinh tế và Quản lý", "Giáo sư", "Cố vấn học tập", "Còn hiệu lực", "Đang hoạt động"],
+  ["CB2026-2321", "Cao Nhật An", "Ban Giám hiệu", "Cử nhân", "Chuyên viên", "Còn hiệu lực", "Đang hoạt động"],
+  ["CB2026-2322", "Đinh Nhật An", "Phòng Tổ chức - Cán bộ", "Kỹ sư", "Phó trưởng phòng", "Sắp hết hạn", "Đang hoạt động"],
+  ["CB2026-2323", "Trịnh Nhật An", "Phòng Tài chính - Kế toán", "Thạc sĩ", "Phó trưởng phòng", "Còn hiệu lực", "Đang hoạt động"],
+  ["CB2026-2324", "Đoàn Nhật An", "Khoa Công nghệ thông tin", "Tiến sĩ", "Trưởng bộ môn", "Hết hiệu lực", "Đã thôi việc"],
+  ["CB2026-2325", "Lương Nhật An", "Khoa Kinh tế và Quản lý", "Phó Giáo sư", "Giảng viên", "Còn hiệu lực", "Đang hoạt động"],
+  ["CB2026-2326", "Tô Nhật An", "Ban Giám hiệu", "Giáo sư", "Trợ lý", "Còn hiệu lực", "Đang hoạt động"],
+  ["CB2026-2327", "Nguyễn Bảo An", "Phòng Tổ chức - Cán bộ", "Cử nhân", "Trưởng nhóm hồ sơ", "Còn hiệu lực", "Đang hoạt động"],
+  ["CB2026-2328", "Trần Bảo An", "Phòng Tài chính - Kế toán", "Kỹ sư", "Kiểm soát viên", "Còn hiệu lực", "Đang hoạt động"],
+  ["CB2026-2329", "Lê Bảo An", "Khoa Công nghệ thông tin", "Thạc sĩ", "Giảng viên", "Còn hiệu lực", "Đang hoạt động"],
+  ["CB2026-2330", "Phạm Bảo An", "Khoa Kinh tế và Quản lý", "Tiến sĩ", "Giảng viên chính", "Còn hiệu lực", "Đang hoạt động"],
+  ["CB2026-2331", "Hoàng Bảo An", "Ban Giám hiệu", "Phó Giáo sư", "Phó hiệu trưởng", "Còn hiệu lực", "Đang hoạt động"],
+  ["CB2026-2332", "Huỳnh Bảo An", "Phòng Tổ chức - Cán bộ", "Giáo sư", "Chuyên viên chính", "Còn hiệu lực", "Đang hoạt động"],
+  ["CB2026-2333", "Phan Bảo An", "Phòng Tài chính - Kế toán", "Cử nhân", "Kế toán viên", "Hết hiệu lực", "Đã thôi việc"],
+  ["CB2026-2334", "Vũ Bảo An", "Khoa Công nghệ thông tin", "Kỹ sư", "Giảng viên chính", "Còn hiệu lực", "Đang hoạt động"],
+  ["CB2026-2335", "Võ Bảo An", "Khoa Kinh tế và Quản lý", "Thạc sĩ", "Trưởng bộ môn", "Còn hiệu lực", "Đang hoạt động"],
+  ["CB2026-2336", "Đặng Bảo An", "Ban Giám hiệu", "Tiến sĩ", "Thư ký hội đồng", "Còn hiệu lực", "Đang hoạt động"],
+  ["CB2026-2337", "Bùi Bảo An", "Phòng Tổ chức - Cán bộ", "Phó Giáo sư", "Chuyên viên nhân sự", "Còn hiệu lực", "Đang hoạt động"],
+  ["CB2026-2338", "Đỗ Bảo An", "Phòng Tài chính - Kế toán", "Giáo sư", "Chuyên viên tiền lương", "Còn hiệu lực", "Đang hoạt động"],
+  ["CB2026-2339", "Hồ Bảo An", "Khoa Công nghệ thông tin", "Cử nhân", "Phó trưởng khoa", "Còn hiệu lực", "Đang hoạt động"],
+  ["CB2026-2340", "Ngô Bảo An", "Khoa Kinh tế và Quản lý", "Kỹ sư", "Cố vấn học tập", "Còn hiệu lực", "Đang hoạt động"],
+  ["CB2026-2341", "Dương Bảo An", "Ban Giám hiệu", "Thạc sĩ", "Chuyên viên", "Còn hiệu lực", "Đang hoạt động"],
+  ["CB2026-2342", "Lý Bảo An", "Phòng Tổ chức - Cán bộ", "Tiến sĩ", "Phó trưởng phòng", "Hết hiệu lực", "Đã thôi việc"],
+  ["CB2026-2343", "Mai Bảo An", "Phòng Tài chính - Kế toán", "Phó Giáo sư", "Phó trưởng phòng", "Còn hiệu lực", "Đang hoạt động"],
+  ["CB2026-2344", "Tạ Bảo An", "Khoa Công nghệ thông tin", "Giáo sư", "Trưởng bộ môn", "Còn hiệu lực", "Đang hoạt động"],
+  ["CB2026-2345", "Cao Bảo An", "Khoa Kinh tế và Quản lý", "Cử nhân", "Giảng viên", "Còn hiệu lực", "Đang hoạt động"],
+  ["CB2026-2346", "Đinh Bảo An", "Ban Giám hiệu", "Kỹ sư", "Trợ lý", "Còn hiệu lực", "Đang hoạt động"],
+  ["CB2026-2347", "Trịnh Bảo An", "Phòng Tổ chức - Cán bộ", "Thạc sĩ", "Trưởng nhóm hồ sơ", "Còn hiệu lực", "Đang hoạt động"],
+  ["CB2026-2348", "Đoàn Bảo An", "Phòng Tài chính - Kế toán", "Tiến sĩ", "Kiểm soát viên", "Còn hiệu lực", "Đang hoạt động"],
+  ["CB2026-2349", "Lương Bảo An", "Khoa Công nghệ thông tin", "Phó Giáo sư", "Giảng viên", "Còn hiệu lực", "Đang hoạt động"],
+  ["CB2026-2350", "Tô Bảo An", "Khoa Kinh tế và Quản lý", "Giáo sư", "Giảng viên chính", "Còn hiệu lực", "Đang hoạt động"],
+  ["CB2026-2351", "Nguyễn Kim An", "Ban Giám hiệu", "Cử nhân", "Phó hiệu trưởng", "Hết hiệu lực", "Đã thôi việc"],
+  ["CB2026-2352", "Trần Kim An", "Phòng Tổ chức - Cán bộ", "Kỹ sư", "Chuyên viên chính", "Còn hiệu lực", "Đang hoạt động"],
+  ["CB2026-2353", "Lê Kim An", "Phòng Tài chính - Kế toán", "Thạc sĩ", "Kế toán viên", "Còn hiệu lực", "Đang hoạt động"],
+  ["CB2026-2354", "Phạm Kim An", "Khoa Công nghệ thông tin", "Tiến sĩ", "Giảng viên chính", "Còn hiệu lực", "Đang hoạt động"],
+  ["CB2026-2355", "Hoàng Kim An", "Khoa Kinh tế và Quản lý", "Phó Giáo sư", "Trưởng bộ môn", "Còn hiệu lực", "Đang hoạt động"],
+  ["CB2026-2356", "Huỳnh Kim An", "Ban Giám hiệu", "Giáo sư", "Thư ký hội đồng", "Còn hiệu lực", "Đang hoạt động"],
+  ["CB2026-2357", "Phan Kim An", "Phòng Tổ chức - Cán bộ", "Cử nhân", "Chuyên viên nhân sự", "Còn hiệu lực", "Đang hoạt động"],
+  ["CB2026-2358", "Vũ Kim An", "Phòng Tài chính - Kế toán", "Kỹ sư", "Chuyên viên tiền lương", "Còn hiệu lực", "Đang hoạt động"],
+  ["CB2026-2359", "Võ Kim An", "Khoa Công nghệ thông tin", "Thạc sĩ", "Phó trưởng khoa", "Còn hiệu lực", "Đang hoạt động"],
+  ["CB2026-2360", "Đặng Kim An", "Khoa Kinh tế và Quản lý", "Tiến sĩ", "Cố vấn học tập", "Hết hiệu lực", "Đã thôi việc"],
+  ["CB2026-2361", "Bùi Kim An", "Ban Giám hiệu", "Phó Giáo sư", "Chuyên viên", "Sắp hết hạn", "Đang hoạt động"],
+  ["CB2026-2362", "Đỗ Kim An", "Phòng Tổ chức - Cán bộ", "Giáo sư", "Phó trưởng phòng", "Còn hiệu lực", "Đang hoạt động"],
+  ["CB2026-2363", "Hồ Kim An", "Phòng Tài chính - Kế toán", "Cử nhân", "Phó trưởng phòng", "Còn hiệu lực", "Đang hoạt động"],
+  ["CB2026-2364", "Ngô Kim An", "Khoa Công nghệ thông tin", "Kỹ sư", "Trưởng bộ môn", "Còn hiệu lực", "Đang hoạt động"],
+  ["CB2026-2365", "Dương Kim An", "Khoa Kinh tế và Quản lý", "Thạc sĩ", "Giảng viên", "Còn hiệu lực", "Đang hoạt động"],
+  ["CB2026-2366", "Lý Kim An", "Ban Giám hiệu", "Tiến sĩ", "Trợ lý", "Còn hiệu lực", "Đang hoạt động"],
+  ["CB2026-2367", "Mai Kim An", "Phòng Tổ chức - Cán bộ", "Phó Giáo sư", "Trưởng nhóm hồ sơ", "Còn hiệu lực", "Đang hoạt động"],
+  ["CB2026-2368", "Tạ Kim An", "Phòng Tài chính - Kế toán", "Giáo sư", "Kiểm soát viên", "Còn hiệu lực", "Đang hoạt động"],
+  ["CB2026-2369", "Cao Kim An", "Khoa Công nghệ thông tin", "Cử nhân", "Giảng viên", "Hết hiệu lực", "Đã thôi việc"],
+  ["CB2026-2370", "Đinh Kim An", "Khoa Kinh tế và Quản lý", "Kỹ sư", "Giảng viên chính", "Còn hiệu lực", "Đang hoạt động"],
+  ["CB2026-2371", "Trịnh Kim An", "Ban Giám hiệu", "Thạc sĩ", "Phó hiệu trưởng", "Còn hiệu lực", "Đang hoạt động"],
+  ["CB2026-2372", "Đoàn Kim An", "Phòng Tổ chức - Cán bộ", "Tiến sĩ", "Chuyên viên chính", "Còn hiệu lực", "Đang hoạt động"],
+  ["CB2026-2373", "Lương Kim An", "Phòng Tài chính - Kế toán", "Phó Giáo sư", "Kế toán viên", "Còn hiệu lực", "Đang hoạt động"],
+  ["CB2026-2374", "Tô Kim An", "Khoa Công nghệ thông tin", "Giáo sư", "Giảng viên chính", "Còn hiệu lực", "Đang hoạt động"],
+  ["CB2026-2375", "Nguyễn Văn Bình", "Khoa Kinh tế và Quản lý", "Cử nhân", "Trưởng bộ môn", "Còn hiệu lực", "Đang hoạt động"],
+  ["CB2026-2376", "Trần Văn Bình", "Ban Giám hiệu", "Kỹ sư", "Thư ký hội đồng", "Còn hiệu lực", "Đang hoạt động"],
+  ["CB2026-2377", "Lê Văn Bình", "Phòng Tổ chức - Cán bộ", "Thạc sĩ", "Chuyên viên nhân sự", "Chờ gia hạn", "Đang hoạt động"],
+  ["CB2026-2378", "Phạm Văn Bình", "Phòng Tài chính - Kế toán", "Tiến sĩ", "Chuyên viên tiền lương", "Hết hiệu lực", "Đã thôi việc"],
+  ["CB2026-2379", "Hoàng Văn Bình", "Khoa Công nghệ thông tin", "Phó Giáo sư", "Phó trưởng khoa", "Còn hiệu lực", "Đang hoạt động"],
+  ["CB2026-2380", "Huỳnh Văn Bình", "Khoa Kinh tế và Quản lý", "Giáo sư", "Cố vấn học tập", "Còn hiệu lực", "Đang hoạt động"],
+  ["CB2026-2381", "Phan Văn Bình", "Ban Giám hiệu", "Cử nhân", "Chuyên viên", "Còn hiệu lực", "Đang hoạt động"],
+  ["CB2026-2382", "Vũ Văn Bình", "Phòng Tổ chức - Cán bộ", "Kỹ sư", "Phó trưởng phòng", "Hết hiệu lực", "Đã thôi việc"],
 ];
 
-function SelectFilter({ label }: { label: string }) {
+type PersonnelRecord = {
+  code: string;
+  name: string;
+  unit: string;
+  degree: string;
+  role: string;
+  contract: string;
+  status: string;
+};
+
+type ContractFiltersState = {
+  keyword: string;
+  contractType: string;
+  status: string;
+  expiryDate: string;
+  unit: string;
+};
+
+const initialContractFilters: ContractFiltersState = {
+  keyword: "",
+  contractType: "",
+  status: "",
+  expiryDate: "",
+  unit: "",
+};
+
+const PERSONNEL_PAGE_SIZE = 10;
+const CONTRACT_PAGE_SIZE = 5;
+
+function normalizeSearch(value: string) {
+  return value
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .toLowerCase()
+    .trim();
+}
+
+function padDatePart(value: number) {
+  return String(value).padStart(2, "0");
+}
+
+function formatContractDate(date: Date) {
+  return `${padDatePart(date.getDate())}/${padDatePart(date.getMonth() + 1)}/${date.getFullYear()}`;
+}
+
+function parseContractDate(value: string) {
+  const [day, month, year] = value.split("/").map((part) => Number(part));
+  if (!day || !month || !year) return null;
+
+  const date = new Date(year, month - 1, day);
+  if (date.getFullYear() !== year || date.getMonth() !== month - 1 || date.getDate() !== day) return null;
+
+  return date;
+}
+
+function isSameCalendarDate(left: Date | null, right: Date) {
+  return Boolean(
+    left &&
+      left.getFullYear() === right.getFullYear() &&
+      left.getMonth() === right.getMonth() &&
+      left.getDate() === right.getDate(),
+  );
+}
+
+function toPersonnelRecord([code, name, unit, degree, role, contract, status]: string[]): PersonnelRecord {
+  return { code, name, unit, degree, role, contract, status };
+}
+
+const personnelUnitOptions = Array.from(new Set(personnelRows.map((row) => row[2])));
+const personnelDegreeOptions = Array.from(new Set(personnelRows.map((row) => row[3])));
+const personnelContractOptions = Array.from(new Set(personnelRows.map((row) => row[5])));
+const personnelStatusOptions = Array.from(new Set(personnelRows.map((row) => row[6])));
+
+function SelectFilter({
+  label,
+  value,
+  options,
+  onChange,
+}: {
+  label: string;
+  value: string;
+  options: string[];
+  onChange: (value: string) => void;
+}) {
+  const [open, setOpen] = useState(false);
+  const rootRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    if (!open) return;
+
+    const handlePointerDown = (event: MouseEvent) => {
+      if (event.target instanceof Node && !rootRef.current?.contains(event.target)) {
+        setOpen(false);
+      }
+    };
+
+    document.addEventListener("mousedown", handlePointerDown);
+    return () => document.removeEventListener("mousedown", handlePointerDown);
+  }, [open]);
+
   return (
-    <button className="flex h-9 min-w-[142px] items-center justify-between rounded-lg border border-slate-300 bg-white px-3 text-[12px] text-slate-500 shadow-sm">
-      <span>{label}</span>
-      <ChevronDown size={14} className="text-slate-400" />
-    </button>
+    <div ref={rootRef} className="relative shrink-0">
+      <button
+        type="button"
+        onClick={() => setOpen((current) => !current)}
+        className={`flex h-9 min-w-[142px] items-center justify-between rounded-lg border bg-white px-3 text-[12px] shadow-sm ${
+          value ? "border-[#8EC5FF] font-semibold text-[#1447E6]" : "border-slate-300 text-slate-500"
+        }`}
+      >
+        <span>{value || label}</span>
+        <ChevronDown size={14} className={`text-slate-400 transition ${open ? "rotate-180" : ""}`} />
+      </button>
+      {open ? (
+        <div className="absolute left-0 top-10 z-40 w-52 overflow-hidden rounded-xl border border-slate-200 bg-white p-1.5 text-left shadow-xl ring-1 ring-slate-100">
+          <button
+            type="button"
+            onClick={() => {
+              onChange("");
+              setOpen(false);
+            }}
+            className="w-full rounded-lg px-2.5 py-2 text-left text-[12px] font-medium text-slate-500 hover:bg-slate-50"
+          >
+            Tất cả {label.toLowerCase()}
+          </button>
+          {options.map((option) => (
+            <button
+              key={option}
+              type="button"
+              onClick={() => {
+                onChange(option);
+                setOpen(false);
+              }}
+              className="w-full rounded-lg px-2.5 py-2 text-left text-[12px] font-medium text-slate-700 hover:bg-blue-50 hover:text-blue-700"
+            >
+              {option}
+            </button>
+          ))}
+        </div>
+      ) : null}
+    </div>
   );
 }
 
@@ -235,6 +753,7 @@ type ContractRow = {
   number: string;
   code: string;
   name: string;
+  unit: string;
   type: string;
   start: string;
   end: string;
@@ -247,6 +766,7 @@ const contractRows: ContractRow[] = [
     number: "HĐLĐ-2026-0142",
     code: "CB2021-0034",
     name: "Nguyễn Văn An",
+    unit: "Ban Giám hiệu",
     type: "Không xác định thời hạn",
     start: "01/01/2024",
     end: "31/12/2026",
@@ -257,6 +777,7 @@ const contractRows: ContractRow[] = [
     number: "HĐLĐ-2025-0098",
     code: "CB2022-0118",
     name: "Trần Thị Bình",
+    unit: "Khoa Công nghệ thông tin",
     type: "Xác định thời hạn 36 tháng",
     start: "01/07/2023",
     end: "30/06/2026",
@@ -267,6 +788,7 @@ const contractRows: ContractRow[] = [
     number: "HĐLĐ-2024-0211",
     code: "CB2020-0072",
     name: "Lê Văn Cường",
+    unit: "Phòng Tổ chức - Cán bộ",
     type: "Xác định thời hạn 24 tháng",
     start: "15/06/2024",
     end: "14/06/2026",
@@ -277,6 +799,7 @@ const contractRows: ContractRow[] = [
     number: "HĐLĐ-2023-0047",
     code: "CB2019-0015",
     name: "Phạm Thị Dung",
+    unit: "Ban Giám hiệu",
     type: "Hợp đồng thử việc",
     start: "01/03/2023",
     end: "31/05/2023",
@@ -287,11 +810,4270 @@ const contractRows: ContractRow[] = [
     number: "HĐLĐ-2026-0031",
     code: "CB2024-0190",
     name: "Hoàng Văn Em",
+    unit: "Khoa Kinh tế và Quản lý",
     type: "Xác định thời hạn 12 tháng",
     start: "01/02/2026",
     end: "31/01/2027",
     status: "Còn hiệu lực",
     remaining: "245 ngày",
+  },
+  // Expanded generated records to back the 392-contract summary while preserving the original seed rows.
+  {
+    number: "HĐLĐ-2026-1006",
+    code: "NS006",
+    name: "Ngô Thị Phương",
+    unit: "Khoa Công nghệ thông tin",
+    type: "Xác định thời hạn 12 tháng",
+    start: "01/07/2024",
+    end: "28/07/2026",
+    status: "Còn hiệu lực",
+    remaining: "126 ngày",
+  },
+  {
+    number: "HĐLĐ-2025-4007",
+    code: "NS007",
+    name: "Đỗ Văn Giang",
+    unit: "Khoa Kinh tế và Quản lý",
+    type: "Xác định thời hạn 24 tháng",
+    start: "15/06/2025",
+    end: "21/06/2026",
+    status: "Chờ gia hạn",
+    remaining: "8 ngày",
+  },
+  {
+    number: "HĐLĐ-2026-1008",
+    code: "NS008",
+    name: "Vũ Thị Hạnh",
+    unit: "Khoa Kinh tế và Quản lý",
+    type: "Không xác định thời hạn",
+    start: "01/09/2024",
+    end: "28/09/2026",
+    status: "Còn hiệu lực",
+    remaining: "128 ngày",
+  },
+  {
+    number: "HĐLĐ-2023-5009",
+    code: "NS009",
+    name: "Bùi Văn Khôi",
+    unit: "Khoa Công nghệ thông tin",
+    type: "Xác định thời hạn 12 tháng",
+    start: "01/10/2022",
+    end: "28/10/2023",
+    status: "Hết hiệu lực",
+    remaining: "Quá hạn",
+  },
+  {
+    number: "HĐLĐ-2026-1010",
+    code: "NS010",
+    name: "Lý Thị Mai",
+    unit: "Khoa Kinh tế và Quản lý",
+    type: "Xác định thời hạn 24 tháng",
+    start: "01/11/2024",
+    end: "28/11/2026",
+    status: "Còn hiệu lực",
+    remaining: "130 ngày",
+  },
+  {
+    number: "HĐLĐ-2026-1011",
+    code: "CB2026-2001",
+    name: "Bùi Văn An",
+    unit: "Ban Giám hiệu",
+    type: "Không xác định thời hạn",
+    start: "01/01/2024",
+    end: "28/01/2026",
+    status: "Còn hiệu lực",
+    remaining: "120 ngày",
+  },
+  {
+    number: "HĐLĐ-2026-1012",
+    code: "CB2026-2002",
+    name: "Đỗ Văn An",
+    unit: "Phòng Tổ chức - Cán bộ",
+    type: "Xác định thời hạn 24 tháng",
+    start: "01/02/2025",
+    end: "28/02/2027",
+    status: "Còn hiệu lực",
+    remaining: "121 ngày",
+  },
+  {
+    number: "HĐLĐ-2026-1013",
+    code: "CB2026-2003",
+    name: "Hồ Văn An",
+    unit: "Phòng Tài chính - Kế toán",
+    type: "Xác định thời hạn 36 tháng",
+    start: "01/03/2024",
+    end: "28/03/2026",
+    status: "Còn hiệu lực",
+    remaining: "122 ngày",
+  },
+  {
+    number: "HĐLĐ-2026-1014",
+    code: "CB2026-2004",
+    name: "Ngô Văn An",
+    unit: "Khoa Công nghệ thông tin",
+    type: "Xác định thời hạn 12 tháng",
+    start: "01/04/2025",
+    end: "28/04/2027",
+    status: "Còn hiệu lực",
+    remaining: "123 ngày",
+  },
+  {
+    number: "HĐLĐ-2026-1015",
+    code: "CB2026-2005",
+    name: "Dương Văn An",
+    unit: "Khoa Kinh tế và Quản lý",
+    type: "Không xác định thời hạn",
+    start: "01/05/2024",
+    end: "28/05/2026",
+    status: "Còn hiệu lực",
+    remaining: "124 ngày",
+  },
+  {
+    number: "HĐLĐ-2026-1016",
+    code: "CB2026-2006",
+    name: "Lý Văn An",
+    unit: "Ban Giám hiệu",
+    type: "Hợp đồng thử việc",
+    start: "01/06/2022",
+    end: "28/06/2023",
+    status: "Hết hiệu lực",
+    remaining: "Quá hạn",
+  },
+  {
+    number: "HĐLĐ-2026-1017",
+    code: "CB2026-2007",
+    name: "Mai Văn An",
+    unit: "Phòng Tổ chức - Cán bộ",
+    type: "Xác định thời hạn 12 tháng",
+    start: "01/07/2024",
+    end: "28/07/2026",
+    status: "Còn hiệu lực",
+    remaining: "126 ngày",
+  },
+  {
+    number: "HĐLĐ-2026-1018",
+    code: "CB2026-2008",
+    name: "Tạ Văn An",
+    unit: "Phòng Tài chính - Kế toán",
+    type: "Xác định thời hạn 24 tháng",
+    start: "01/08/2025",
+    end: "28/08/2027",
+    status: "Còn hiệu lực",
+    remaining: "127 ngày",
+  },
+  {
+    number: "HĐLĐ-2026-1019",
+    code: "CB2026-2009",
+    name: "Cao Văn An",
+    unit: "Khoa Công nghệ thông tin",
+    type: "Không xác định thời hạn",
+    start: "01/09/2024",
+    end: "26/06/2026",
+    status: "Sắp hết hạn",
+    remaining: "13 ngày",
+  },
+  {
+    number: "HĐLĐ-2026-1020",
+    code: "CB2026-2010",
+    name: "Đinh Văn An",
+    unit: "Khoa Kinh tế và Quản lý",
+    type: "Xác định thời hạn 12 tháng",
+    start: "01/10/2025",
+    end: "28/10/2027",
+    status: "Còn hiệu lực",
+    remaining: "129 ngày",
+  },
+  {
+    number: "HĐLĐ-2026-1021",
+    code: "CB2026-2011",
+    name: "Trịnh Văn An",
+    unit: "Ban Giám hiệu",
+    type: "Xác định thời hạn 24 tháng",
+    start: "01/11/2024",
+    end: "28/11/2026",
+    status: "Còn hiệu lực",
+    remaining: "130 ngày",
+  },
+  {
+    number: "HĐLĐ-2026-1022",
+    code: "CB2026-2012",
+    name: "Đoàn Văn An",
+    unit: "Phòng Tổ chức - Cán bộ",
+    type: "Xác định thời hạn 36 tháng",
+    start: "01/12/2025",
+    end: "28/12/2027",
+    status: "Còn hiệu lực",
+    remaining: "131 ngày",
+  },
+  {
+    number: "HĐLĐ-2026-1023",
+    code: "CB2026-2013",
+    name: "Lương Văn An",
+    unit: "Phòng Tài chính - Kế toán",
+    type: "Không xác định thời hạn",
+    start: "01/01/2024",
+    end: "28/01/2026",
+    status: "Còn hiệu lực",
+    remaining: "132 ngày",
+  },
+  {
+    number: "HĐLĐ-2026-1024",
+    code: "CB2026-2014",
+    name: "Tô Văn An",
+    unit: "Khoa Công nghệ thông tin",
+    type: "Xác định thời hạn 24 tháng",
+    start: "01/02/2025",
+    end: "28/02/2027",
+    status: "Còn hiệu lực",
+    remaining: "133 ngày",
+  },
+  {
+    number: "HĐLĐ-2026-1025",
+    code: "CB2026-2015",
+    name: "Nguyễn Thị An",
+    unit: "Khoa Kinh tế và Quản lý",
+    type: "Xác định thời hạn 36 tháng",
+    start: "15/03/2024",
+    end: "18/06/2026",
+    status: "Chờ gia hạn",
+    remaining: "15 ngày",
+  },
+  {
+    number: "HĐLĐ-2026-1026",
+    code: "CB2026-2016",
+    name: "Trần Thị An",
+    unit: "Ban Giám hiệu",
+    type: "Xác định thời hạn 12 tháng",
+    start: "01/04/2025",
+    end: "28/04/2027",
+    status: "Còn hiệu lực",
+    remaining: "135 ngày",
+  },
+  {
+    number: "HĐLĐ-2026-1027",
+    code: "CB2026-2017",
+    name: "Lê Thị An",
+    unit: "Phòng Tổ chức - Cán bộ",
+    type: "Không xác định thời hạn",
+    start: "01/05/2024",
+    end: "28/05/2026",
+    status: "Còn hiệu lực",
+    remaining: "136 ngày",
+  },
+  {
+    number: "HĐLĐ-2026-1028",
+    code: "CB2026-2018",
+    name: "Phạm Thị An",
+    unit: "Phòng Tài chính - Kế toán",
+    type: "Xác định thời hạn 36 tháng",
+    start: "01/06/2022",
+    end: "28/06/2023",
+    status: "Hết hiệu lực",
+    remaining: "Quá hạn",
+  },
+  {
+    number: "HĐLĐ-2026-1029",
+    code: "CB2026-2019",
+    name: "Hoàng Thị An",
+    unit: "Khoa Công nghệ thông tin",
+    type: "Xác định thời hạn 12 tháng",
+    start: "01/07/2024",
+    end: "28/07/2026",
+    status: "Còn hiệu lực",
+    remaining: "138 ngày",
+  },
+  {
+    number: "HĐLĐ-2026-1030",
+    code: "CB2026-2020",
+    name: "Huỳnh Thị An",
+    unit: "Khoa Kinh tế và Quản lý",
+    type: "Xác định thời hạn 24 tháng",
+    start: "01/08/2025",
+    end: "28/08/2027",
+    status: "Còn hiệu lực",
+    remaining: "139 ngày",
+  },
+  {
+    number: "HĐLĐ-2026-1031",
+    code: "CB2026-2021",
+    name: "Phan Thị An",
+    unit: "Ban Giám hiệu",
+    type: "Không xác định thời hạn",
+    start: "01/09/2024",
+    end: "28/09/2026",
+    status: "Còn hiệu lực",
+    remaining: "140 ngày",
+  },
+  {
+    number: "HĐLĐ-2026-1032",
+    code: "CB2026-2022",
+    name: "Vũ Thị An",
+    unit: "Phòng Tổ chức - Cán bộ",
+    type: "Xác định thời hạn 12 tháng",
+    start: "01/10/2025",
+    end: "28/10/2027",
+    status: "Còn hiệu lực",
+    remaining: "141 ngày",
+  },
+  {
+    number: "HĐLĐ-2026-1033",
+    code: "CB2026-2023",
+    name: "Võ Thị An",
+    unit: "Phòng Tài chính - Kế toán",
+    type: "Xác định thời hạn 24 tháng",
+    start: "01/11/2024",
+    end: "28/11/2026",
+    status: "Còn hiệu lực",
+    remaining: "142 ngày",
+  },
+  {
+    number: "HĐLĐ-2026-1034",
+    code: "CB2026-2024",
+    name: "Đặng Thị An",
+    unit: "Khoa Công nghệ thông tin",
+    type: "Xác định thời hạn 36 tháng",
+    start: "01/12/2025",
+    end: "28/12/2027",
+    status: "Còn hiệu lực",
+    remaining: "143 ngày",
+  },
+  {
+    number: "HĐLĐ-2026-1035",
+    code: "CB2026-2025",
+    name: "Bùi Thị An",
+    unit: "Khoa Kinh tế và Quản lý",
+    type: "Không xác định thời hạn",
+    start: "01/01/2024",
+    end: "28/01/2026",
+    status: "Còn hiệu lực",
+    remaining: "144 ngày",
+  },
+  {
+    number: "HĐLĐ-2026-1036",
+    code: "CB2026-2026",
+    name: "Đỗ Thị An",
+    unit: "Ban Giám hiệu",
+    type: "Xác định thời hạn 24 tháng",
+    start: "01/02/2025",
+    end: "28/02/2027",
+    status: "Còn hiệu lực",
+    remaining: "145 ngày",
+  },
+  {
+    number: "HĐLĐ-2026-1037",
+    code: "CB2026-2027",
+    name: "Hồ Thị An",
+    unit: "Phòng Tổ chức - Cán bộ",
+    type: "Xác định thời hạn 36 tháng",
+    start: "01/03/2023",
+    end: "28/03/2024",
+    status: "Hết hiệu lực",
+    remaining: "Quá hạn",
+  },
+  {
+    number: "HĐLĐ-2026-1038",
+    code: "CB2026-2028",
+    name: "Ngô Thị An",
+    unit: "Phòng Tài chính - Kế toán",
+    type: "Xác định thời hạn 12 tháng",
+    start: "01/04/2025",
+    end: "28/04/2027",
+    status: "Còn hiệu lực",
+    remaining: "147 ngày",
+  },
+  {
+    number: "HĐLĐ-2026-1039",
+    code: "CB2026-2029",
+    name: "Dương Thị An",
+    unit: "Khoa Công nghệ thông tin",
+    type: "Không xác định thời hạn",
+    start: "01/05/2024",
+    end: "28/05/2026",
+    status: "Còn hiệu lực",
+    remaining: "148 ngày",
+  },
+  {
+    number: "HĐLĐ-2026-1040",
+    code: "CB2026-2030",
+    name: "Lý Thị An",
+    unit: "Khoa Kinh tế và Quản lý",
+    type: "Xác định thời hạn 36 tháng",
+    start: "01/06/2025",
+    end: "28/06/2027",
+    status: "Còn hiệu lực",
+    remaining: "149 ngày",
+  },
+  {
+    number: "HĐLĐ-2026-1041",
+    code: "CB2026-2031",
+    name: "Mai Thị An",
+    unit: "Ban Giám hiệu",
+    type: "Xác định thời hạn 12 tháng",
+    start: "01/07/2024",
+    end: "28/07/2026",
+    status: "Còn hiệu lực",
+    remaining: "150 ngày",
+  },
+  {
+    number: "HĐLĐ-2026-1042",
+    code: "CB2026-2032",
+    name: "Tạ Thị An",
+    unit: "Phòng Tổ chức - Cán bộ",
+    type: "Xác định thời hạn 24 tháng",
+    start: "01/08/2025",
+    end: "28/08/2027",
+    status: "Còn hiệu lực",
+    remaining: "151 ngày",
+  },
+  {
+    number: "HĐLĐ-2026-1043",
+    code: "CB2026-2033",
+    name: "Cao Thị An",
+    unit: "Phòng Tài chính - Kế toán",
+    type: "Không xác định thời hạn",
+    start: "01/09/2024",
+    end: "28/09/2026",
+    status: "Còn hiệu lực",
+    remaining: "152 ngày",
+  },
+  {
+    number: "HĐLĐ-2026-1044",
+    code: "CB2026-2034",
+    name: "Đinh Thị An",
+    unit: "Khoa Công nghệ thông tin",
+    type: "Xác định thời hạn 12 tháng",
+    start: "01/10/2025",
+    end: "28/10/2027",
+    status: "Còn hiệu lực",
+    remaining: "153 ngày",
+  },
+  {
+    number: "HĐLĐ-2026-1045",
+    code: "CB2026-2035",
+    name: "Trịnh Thị An",
+    unit: "Khoa Kinh tế và Quản lý",
+    type: "Xác định thời hạn 24 tháng",
+    start: "01/11/2024",
+    end: "28/11/2026",
+    status: "Còn hiệu lực",
+    remaining: "154 ngày",
+  },
+  {
+    number: "HĐLĐ-2026-1046",
+    code: "CB2026-2036",
+    name: "Đoàn Thị An",
+    unit: "Ban Giám hiệu",
+    type: "Hợp đồng thử việc",
+    start: "01/12/2024",
+    end: "28/12/2025",
+    status: "Hết hiệu lực",
+    remaining: "Quá hạn",
+  },
+  {
+    number: "HĐLĐ-2026-1047",
+    code: "CB2026-2037",
+    name: "Lương Thị An",
+    unit: "Phòng Tổ chức - Cán bộ",
+    type: "Không xác định thời hạn",
+    start: "01/01/2024",
+    end: "28/01/2026",
+    status: "Còn hiệu lực",
+    remaining: "156 ngày",
+  },
+  {
+    number: "HĐLĐ-2026-1048",
+    code: "CB2026-2038",
+    name: "Tô Thị An",
+    unit: "Phòng Tài chính - Kế toán",
+    type: "Xác định thời hạn 24 tháng",
+    start: "01/02/2024",
+    end: "19/06/2026",
+    status: "Sắp hết hạn",
+    remaining: "18 ngày",
+  },
+  {
+    number: "HĐLĐ-2026-1049",
+    code: "CB2026-2039",
+    name: "Nguyễn Minh An",
+    unit: "Khoa Công nghệ thông tin",
+    type: "Xác định thời hạn 36 tháng",
+    start: "01/03/2024",
+    end: "28/03/2026",
+    status: "Còn hiệu lực",
+    remaining: "158 ngày",
+  },
+  {
+    number: "HĐLĐ-2026-1050",
+    code: "CB2026-2040",
+    name: "Trần Minh An",
+    unit: "Khoa Kinh tế và Quản lý",
+    type: "Xác định thời hạn 12 tháng",
+    start: "01/04/2025",
+    end: "28/04/2027",
+    status: "Còn hiệu lực",
+    remaining: "159 ngày",
+  },
+  {
+    number: "HĐLĐ-2026-1051",
+    code: "CB2026-2041",
+    name: "Lê Minh An",
+    unit: "Ban Giám hiệu",
+    type: "Không xác định thời hạn",
+    start: "01/05/2024",
+    end: "28/05/2026",
+    status: "Còn hiệu lực",
+    remaining: "160 ngày",
+  },
+  {
+    number: "HĐLĐ-2026-1052",
+    code: "CB2026-2042",
+    name: "Phạm Minh An",
+    unit: "Phòng Tổ chức - Cán bộ",
+    type: "Xác định thời hạn 36 tháng",
+    start: "01/06/2025",
+    end: "28/06/2027",
+    status: "Còn hiệu lực",
+    remaining: "161 ngày",
+  },
+  {
+    number: "HĐLĐ-2026-1053",
+    code: "CB2026-2043",
+    name: "Hoàng Minh An",
+    unit: "Phòng Tài chính - Kế toán",
+    type: "Xác định thời hạn 12 tháng",
+    start: "01/07/2024",
+    end: "28/07/2026",
+    status: "Còn hiệu lực",
+    remaining: "162 ngày",
+  },
+  {
+    number: "HĐLĐ-2026-1054",
+    code: "CB2026-2044",
+    name: "Huỳnh Minh An",
+    unit: "Khoa Công nghệ thông tin",
+    type: "Xác định thời hạn 24 tháng",
+    start: "01/08/2025",
+    end: "28/08/2027",
+    status: "Còn hiệu lực",
+    remaining: "163 ngày",
+  },
+  {
+    number: "HĐLĐ-2026-1055",
+    code: "CB2026-2045",
+    name: "Phan Minh An",
+    unit: "Khoa Kinh tế và Quản lý",
+    type: "Không xác định thời hạn",
+    start: "01/09/2021",
+    end: "28/09/2022",
+    status: "Hết hiệu lực",
+    remaining: "Quá hạn",
+  },
+  {
+    number: "HĐLĐ-2026-1056",
+    code: "CB2026-2046",
+    name: "Vũ Minh An",
+    unit: "Ban Giám hiệu",
+    type: "Xác định thời hạn 12 tháng",
+    start: "01/10/2025",
+    end: "28/10/2027",
+    status: "Còn hiệu lực",
+    remaining: "165 ngày",
+  },
+  {
+    number: "HĐLĐ-2026-1057",
+    code: "CB2026-2047",
+    name: "Võ Minh An",
+    unit: "Phòng Tổ chức - Cán bộ",
+    type: "Xác định thời hạn 24 tháng",
+    start: "01/11/2024",
+    end: "28/11/2026",
+    status: "Còn hiệu lực",
+    remaining: "166 ngày",
+  },
+  {
+    number: "HĐLĐ-2026-1058",
+    code: "CB2026-2048",
+    name: "Đặng Minh An",
+    unit: "Phòng Tài chính - Kế toán",
+    type: "Xác định thời hạn 36 tháng",
+    start: "01/12/2025",
+    end: "28/12/2027",
+    status: "Còn hiệu lực",
+    remaining: "167 ngày",
+  },
+  {
+    number: "HĐLĐ-2026-1059",
+    code: "CB2026-2049",
+    name: "Bùi Minh An",
+    unit: "Khoa Công nghệ thông tin",
+    type: "Không xác định thời hạn",
+    start: "01/01/2024",
+    end: "28/01/2026",
+    status: "Còn hiệu lực",
+    remaining: "168 ngày",
+  },
+  {
+    number: "HĐLĐ-2026-1060",
+    code: "CB2026-2050",
+    name: "Đỗ Minh An",
+    unit: "Khoa Kinh tế và Quản lý",
+    type: "Xác định thời hạn 24 tháng",
+    start: "01/02/2025",
+    end: "28/02/2027",
+    status: "Còn hiệu lực",
+    remaining: "169 ngày",
+  },
+  {
+    number: "HĐLĐ-2026-1061",
+    code: "CB2026-2051",
+    name: "Hồ Minh An",
+    unit: "Ban Giám hiệu",
+    type: "Xác định thời hạn 36 tháng",
+    start: "01/03/2024",
+    end: "28/03/2026",
+    status: "Còn hiệu lực",
+    remaining: "170 ngày",
+  },
+  {
+    number: "HĐLĐ-2026-1062",
+    code: "CB2026-2052",
+    name: "Ngô Minh An",
+    unit: "Phòng Tổ chức - Cán bộ",
+    type: "Xác định thời hạn 12 tháng",
+    start: "01/04/2025",
+    end: "28/04/2027",
+    status: "Còn hiệu lực",
+    remaining: "171 ngày",
+  },
+  {
+    number: "HĐLĐ-2026-1063",
+    code: "CB2026-2053",
+    name: "Dương Minh An",
+    unit: "Phòng Tài chính - Kế toán",
+    type: "Không xác định thời hạn",
+    start: "01/05/2024",
+    end: "28/05/2026",
+    status: "Còn hiệu lực",
+    remaining: "172 ngày",
+  },
+  {
+    number: "HĐLĐ-2026-1064",
+    code: "CB2026-2054",
+    name: "Lý Minh An",
+    unit: "Khoa Công nghệ thông tin",
+    type: "Xác định thời hạn 36 tháng",
+    start: "01/06/2022",
+    end: "28/06/2023",
+    status: "Hết hiệu lực",
+    remaining: "Quá hạn",
+  },
+  {
+    number: "HĐLĐ-2026-1065",
+    code: "CB2026-2055",
+    name: "Mai Minh An",
+    unit: "Khoa Kinh tế và Quản lý",
+    type: "Xác định thời hạn 12 tháng",
+    start: "01/07/2024",
+    end: "28/07/2026",
+    status: "Còn hiệu lực",
+    remaining: "174 ngày",
+  },
+  {
+    number: "HĐLĐ-2026-1066",
+    code: "CB2026-2056",
+    name: "Tạ Minh An",
+    unit: "Ban Giám hiệu",
+    type: "Xác định thời hạn 24 tháng",
+    start: "01/08/2025",
+    end: "28/08/2027",
+    status: "Còn hiệu lực",
+    remaining: "175 ngày",
+  },
+  {
+    number: "HĐLĐ-2026-1067",
+    code: "CB2026-2057",
+    name: "Cao Minh An",
+    unit: "Phòng Tổ chức - Cán bộ",
+    type: "Không xác định thời hạn",
+    start: "01/09/2024",
+    end: "28/09/2026",
+    status: "Còn hiệu lực",
+    remaining: "176 ngày",
+  },
+  {
+    number: "HĐLĐ-2026-1068",
+    code: "CB2026-2058",
+    name: "Đinh Minh An",
+    unit: "Phòng Tài chính - Kế toán",
+    type: "Xác định thời hạn 12 tháng",
+    start: "01/10/2025",
+    end: "28/10/2027",
+    status: "Còn hiệu lực",
+    remaining: "177 ngày",
+  },
+  {
+    number: "HĐLĐ-2026-1069",
+    code: "CB2026-2059",
+    name: "Trịnh Minh An",
+    unit: "Khoa Công nghệ thông tin",
+    type: "Xác định thời hạn 24 tháng",
+    start: "01/11/2024",
+    end: "28/11/2026",
+    status: "Còn hiệu lực",
+    remaining: "178 ngày",
+  },
+  {
+    number: "HĐLĐ-2026-1070",
+    code: "CB2026-2060",
+    name: "Đoàn Minh An",
+    unit: "Khoa Kinh tế và Quản lý",
+    type: "Xác định thời hạn 36 tháng",
+    start: "01/12/2025",
+    end: "28/12/2027",
+    status: "Còn hiệu lực",
+    remaining: "179 ngày",
+  },
+  {
+    number: "HĐLĐ-2026-1071",
+    code: "CB2026-2061",
+    name: "Lương Minh An",
+    unit: "Ban Giám hiệu",
+    type: "Không xác định thời hạn",
+    start: "01/01/2024",
+    end: "28/01/2026",
+    status: "Còn hiệu lực",
+    remaining: "180 ngày",
+  },
+  {
+    number: "HĐLĐ-2026-1072",
+    code: "CB2026-2062",
+    name: "Tô Minh An",
+    unit: "Phòng Tổ chức - Cán bộ",
+    type: "Xác định thời hạn 24 tháng",
+    start: "01/02/2025",
+    end: "28/02/2027",
+    status: "Còn hiệu lực",
+    remaining: "181 ngày",
+  },
+  {
+    number: "HĐLĐ-2026-1073",
+    code: "CB2026-2063",
+    name: "Nguyễn Hữu An",
+    unit: "Phòng Tài chính - Kế toán",
+    type: "Xác định thời hạn 36 tháng",
+    start: "01/03/2023",
+    end: "28/03/2024",
+    status: "Hết hiệu lực",
+    remaining: "Quá hạn",
+  },
+  {
+    number: "HĐLĐ-2026-1074",
+    code: "CB2026-2064",
+    name: "Trần Hữu An",
+    unit: "Khoa Công nghệ thông tin",
+    type: "Xác định thời hạn 12 tháng",
+    start: "01/04/2025",
+    end: "28/04/2027",
+    status: "Còn hiệu lực",
+    remaining: "183 ngày",
+  },
+  {
+    number: "HĐLĐ-2026-1075",
+    code: "CB2026-2065",
+    name: "Lê Hữu An",
+    unit: "Khoa Kinh tế và Quản lý",
+    type: "Không xác định thời hạn",
+    start: "01/05/2024",
+    end: "22/06/2026",
+    status: "Sắp hết hạn",
+    remaining: "21 ngày",
+  },
+  {
+    number: "HĐLĐ-2026-1076",
+    code: "CB2026-2066",
+    name: "Phạm Hữu An",
+    unit: "Ban Giám hiệu",
+    type: "Xác định thời hạn 36 tháng",
+    start: "01/06/2025",
+    end: "28/06/2027",
+    status: "Còn hiệu lực",
+    remaining: "185 ngày",
+  },
+  {
+    number: "HĐLĐ-2026-1077",
+    code: "CB2026-2067",
+    name: "Hoàng Hữu An",
+    unit: "Phòng Tổ chức - Cán bộ",
+    type: "Xác định thời hạn 12 tháng",
+    start: "01/07/2024",
+    end: "28/07/2026",
+    status: "Còn hiệu lực",
+    remaining: "186 ngày",
+  },
+  {
+    number: "HĐLĐ-2026-1078",
+    code: "CB2026-2068",
+    name: "Huỳnh Hữu An",
+    unit: "Phòng Tài chính - Kế toán",
+    type: "Xác định thời hạn 24 tháng",
+    start: "01/08/2025",
+    end: "28/08/2027",
+    status: "Còn hiệu lực",
+    remaining: "187 ngày",
+  },
+  {
+    number: "HĐLĐ-2026-1079",
+    code: "CB2026-2069",
+    name: "Phan Hữu An",
+    unit: "Khoa Công nghệ thông tin",
+    type: "Không xác định thời hạn",
+    start: "01/09/2024",
+    end: "28/09/2026",
+    status: "Còn hiệu lực",
+    remaining: "188 ngày",
+  },
+  {
+    number: "HĐLĐ-2026-1080",
+    code: "CB2026-2070",
+    name: "Vũ Hữu An",
+    unit: "Khoa Kinh tế và Quản lý",
+    type: "Xác định thời hạn 12 tháng",
+    start: "01/10/2025",
+    end: "28/10/2027",
+    status: "Còn hiệu lực",
+    remaining: "189 ngày",
+  },
+  {
+    number: "HĐLĐ-2026-1081",
+    code: "CB2026-2071",
+    name: "Võ Hữu An",
+    unit: "Ban Giám hiệu",
+    type: "Xác định thời hạn 24 tháng",
+    start: "01/11/2024",
+    end: "28/11/2026",
+    status: "Còn hiệu lực",
+    remaining: "190 ngày",
+  },
+  {
+    number: "HĐLĐ-2026-1082",
+    code: "CB2026-2072",
+    name: "Đặng Hữu An",
+    unit: "Phòng Tổ chức - Cán bộ",
+    type: "Xác định thời hạn 36 tháng",
+    start: "01/12/2024",
+    end: "28/12/2025",
+    status: "Hết hiệu lực",
+    remaining: "Quá hạn",
+  },
+  {
+    number: "HĐLĐ-2026-1083",
+    code: "CB2026-2073",
+    name: "Bùi Hữu An",
+    unit: "Phòng Tài chính - Kế toán",
+    type: "Không xác định thời hạn",
+    start: "01/01/2024",
+    end: "28/01/2026",
+    status: "Còn hiệu lực",
+    remaining: "192 ngày",
+  },
+  {
+    number: "HĐLĐ-2026-1084",
+    code: "CB2026-2074",
+    name: "Đỗ Hữu An",
+    unit: "Khoa Công nghệ thông tin",
+    type: "Xác định thời hạn 24 tháng",
+    start: "01/02/2025",
+    end: "28/02/2027",
+    status: "Còn hiệu lực",
+    remaining: "193 ngày",
+  },
+  {
+    number: "HĐLĐ-2026-1085",
+    code: "CB2026-2075",
+    name: "Hồ Hữu An",
+    unit: "Khoa Kinh tế và Quản lý",
+    type: "Xác định thời hạn 36 tháng",
+    start: "01/03/2024",
+    end: "28/03/2026",
+    status: "Còn hiệu lực",
+    remaining: "194 ngày",
+  },
+  {
+    number: "HĐLĐ-2026-1086",
+    code: "CB2026-2076",
+    name: "Ngô Hữu An",
+    unit: "Ban Giám hiệu",
+    type: "Xác định thời hạn 12 tháng",
+    start: "01/04/2025",
+    end: "28/04/2027",
+    status: "Còn hiệu lực",
+    remaining: "195 ngày",
+  },
+  {
+    number: "HĐLĐ-2026-1087",
+    code: "CB2026-2077",
+    name: "Dương Hữu An",
+    unit: "Phòng Tổ chức - Cán bộ",
+    type: "Không xác định thời hạn",
+    start: "01/05/2024",
+    end: "28/05/2026",
+    status: "Còn hiệu lực",
+    remaining: "196 ngày",
+  },
+  {
+    number: "HĐLĐ-2026-1088",
+    code: "CB2026-2078",
+    name: "Lý Hữu An",
+    unit: "Phòng Tài chính - Kế toán",
+    type: "Xác định thời hạn 36 tháng",
+    start: "01/06/2025",
+    end: "28/06/2027",
+    status: "Còn hiệu lực",
+    remaining: "197 ngày",
+  },
+  {
+    number: "HĐLĐ-2026-1089",
+    code: "CB2026-2079",
+    name: "Mai Hữu An",
+    unit: "Khoa Công nghệ thông tin",
+    type: "Xác định thời hạn 12 tháng",
+    start: "01/07/2024",
+    end: "28/07/2026",
+    status: "Còn hiệu lực",
+    remaining: "198 ngày",
+  },
+  {
+    number: "HĐLĐ-2026-1090",
+    code: "CB2026-2080",
+    name: "Tạ Hữu An",
+    unit: "Khoa Kinh tế và Quản lý",
+    type: "Xác định thời hạn 24 tháng",
+    start: "01/08/2025",
+    end: "28/08/2027",
+    status: "Còn hiệu lực",
+    remaining: "199 ngày",
+  },
+  {
+    number: "HĐLĐ-2026-1091",
+    code: "CB2026-2081",
+    name: "Cao Hữu An",
+    unit: "Ban Giám hiệu",
+    type: "Hợp đồng thử việc",
+    start: "01/09/2021",
+    end: "28/09/2022",
+    status: "Hết hiệu lực",
+    remaining: "Quá hạn",
+  },
+  {
+    number: "HĐLĐ-2026-1092",
+    code: "CB2026-2082",
+    name: "Đinh Hữu An",
+    unit: "Phòng Tổ chức - Cán bộ",
+    type: "Xác định thời hạn 12 tháng",
+    start: "01/10/2025",
+    end: "28/10/2027",
+    status: "Còn hiệu lực",
+    remaining: "201 ngày",
+  },
+  {
+    number: "HĐLĐ-2026-1093",
+    code: "CB2026-2083",
+    name: "Trịnh Hữu An",
+    unit: "Phòng Tài chính - Kế toán",
+    type: "Xác định thời hạn 24 tháng",
+    start: "01/11/2024",
+    end: "28/11/2026",
+    status: "Còn hiệu lực",
+    remaining: "202 ngày",
+  },
+  {
+    number: "HĐLĐ-2026-1094",
+    code: "CB2026-2084",
+    name: "Đoàn Hữu An",
+    unit: "Khoa Công nghệ thông tin",
+    type: "Xác định thời hạn 36 tháng",
+    start: "01/12/2025",
+    end: "28/12/2027",
+    status: "Còn hiệu lực",
+    remaining: "203 ngày",
+  },
+  {
+    number: "HĐLĐ-2026-1095",
+    code: "CB2026-2085",
+    name: "Lương Hữu An",
+    unit: "Khoa Kinh tế và Quản lý",
+    type: "Không xác định thời hạn",
+    start: "01/01/2024",
+    end: "28/01/2026",
+    status: "Còn hiệu lực",
+    remaining: "204 ngày",
+  },
+  {
+    number: "HĐLĐ-2026-1096",
+    code: "CB2026-2086",
+    name: "Tô Hữu An",
+    unit: "Ban Giám hiệu",
+    type: "Xác định thời hạn 24 tháng",
+    start: "01/02/2025",
+    end: "28/02/2027",
+    status: "Còn hiệu lực",
+    remaining: "205 ngày",
+  },
+  {
+    number: "HĐLĐ-2026-1097",
+    code: "CB2026-2087",
+    name: "Nguyễn Quang An",
+    unit: "Phòng Tổ chức - Cán bộ",
+    type: "Xác định thời hạn 36 tháng",
+    start: "01/03/2024",
+    end: "28/03/2026",
+    status: "Còn hiệu lực",
+    remaining: "206 ngày",
+  },
+  {
+    number: "HĐLĐ-2026-1098",
+    code: "CB2026-2088",
+    name: "Trần Quang An",
+    unit: "Phòng Tài chính - Kế toán",
+    type: "Xác định thời hạn 12 tháng",
+    start: "01/04/2025",
+    end: "28/04/2027",
+    status: "Còn hiệu lực",
+    remaining: "207 ngày",
+  },
+  {
+    number: "HĐLĐ-2026-1099",
+    code: "CB2026-2089",
+    name: "Lê Quang An",
+    unit: "Khoa Công nghệ thông tin",
+    type: "Không xác định thời hạn",
+    start: "01/05/2024",
+    end: "28/05/2026",
+    status: "Còn hiệu lực",
+    remaining: "208 ngày",
+  },
+  {
+    number: "HĐLĐ-2026-1100",
+    code: "CB2026-2090",
+    name: "Phạm Quang An",
+    unit: "Khoa Kinh tế và Quản lý",
+    type: "Xác định thời hạn 36 tháng",
+    start: "01/06/2022",
+    end: "28/06/2023",
+    status: "Hết hiệu lực",
+    remaining: "Quá hạn",
+  },
+  {
+    number: "HĐLĐ-2026-1101",
+    code: "CB2026-2091",
+    name: "Hoàng Quang An",
+    unit: "Ban Giám hiệu",
+    type: "Xác định thời hạn 12 tháng",
+    start: "01/07/2024",
+    end: "28/07/2026",
+    status: "Còn hiệu lực",
+    remaining: "210 ngày",
+  },
+  {
+    number: "HĐLĐ-2026-1102",
+    code: "CB2026-2092",
+    name: "Huỳnh Quang An",
+    unit: "Phòng Tổ chức - Cán bộ",
+    type: "Xác định thời hạn 24 tháng",
+    start: "01/08/2025",
+    end: "28/08/2027",
+    status: "Còn hiệu lực",
+    remaining: "211 ngày",
+  },
+  {
+    number: "HĐLĐ-2026-1103",
+    code: "CB2026-2093",
+    name: "Phan Quang An",
+    unit: "Phòng Tài chính - Kế toán",
+    type: "Không xác định thời hạn",
+    start: "01/09/2024",
+    end: "28/09/2026",
+    status: "Còn hiệu lực",
+    remaining: "212 ngày",
+  },
+  {
+    number: "HĐLĐ-2026-1104",
+    code: "CB2026-2094",
+    name: "Vũ Quang An",
+    unit: "Khoa Công nghệ thông tin",
+    type: "Xác định thời hạn 12 tháng",
+    start: "01/10/2024",
+    end: "27/06/2026",
+    status: "Sắp hết hạn",
+    remaining: "26 ngày",
+  },
+  {
+    number: "HĐLĐ-2026-1105",
+    code: "CB2026-2095",
+    name: "Võ Quang An",
+    unit: "Khoa Kinh tế và Quản lý",
+    type: "Xác định thời hạn 24 tháng",
+    start: "01/11/2024",
+    end: "28/11/2026",
+    status: "Còn hiệu lực",
+    remaining: "214 ngày",
+  },
+  {
+    number: "HĐLĐ-2026-1106",
+    code: "CB2026-2096",
+    name: "Đặng Quang An",
+    unit: "Ban Giám hiệu",
+    type: "Xác định thời hạn 36 tháng",
+    start: "01/12/2025",
+    end: "28/12/2027",
+    status: "Còn hiệu lực",
+    remaining: "215 ngày",
+  },
+  {
+    number: "HĐLĐ-2026-1107",
+    code: "CB2026-2097",
+    name: "Bùi Quang An",
+    unit: "Phòng Tổ chức - Cán bộ",
+    type: "Không xác định thời hạn",
+    start: "01/01/2024",
+    end: "28/01/2026",
+    status: "Còn hiệu lực",
+    remaining: "216 ngày",
+  },
+  {
+    number: "HĐLĐ-2026-1108",
+    code: "CB2026-2098",
+    name: "Đỗ Quang An",
+    unit: "Phòng Tài chính - Kế toán",
+    type: "Xác định thời hạn 24 tháng",
+    start: "01/02/2025",
+    end: "28/02/2027",
+    status: "Còn hiệu lực",
+    remaining: "217 ngày",
+  },
+  {
+    number: "HĐLĐ-2026-1109",
+    code: "CB2026-2099",
+    name: "Hồ Quang An",
+    unit: "Khoa Công nghệ thông tin",
+    type: "Xác định thời hạn 36 tháng",
+    start: "01/03/2023",
+    end: "28/03/2024",
+    status: "Hết hiệu lực",
+    remaining: "Quá hạn",
+  },
+  {
+    number: "HĐLĐ-2026-1110",
+    code: "CB2026-2100",
+    name: "Ngô Quang An",
+    unit: "Khoa Kinh tế và Quản lý",
+    type: "Xác định thời hạn 12 tháng",
+    start: "01/04/2025",
+    end: "28/04/2027",
+    status: "Còn hiệu lực",
+    remaining: "219 ngày",
+  },
+  {
+    number: "HĐLĐ-2026-1111",
+    code: "CB2026-2101",
+    name: "Dương Quang An",
+    unit: "Ban Giám hiệu",
+    type: "Không xác định thời hạn",
+    start: "01/05/2024",
+    end: "28/05/2026",
+    status: "Còn hiệu lực",
+    remaining: "220 ngày",
+  },
+  {
+    number: "HĐLĐ-2026-1112",
+    code: "CB2026-2102",
+    name: "Lý Quang An",
+    unit: "Phòng Tổ chức - Cán bộ",
+    type: "Xác định thời hạn 36 tháng",
+    start: "01/06/2025",
+    end: "28/06/2027",
+    status: "Còn hiệu lực",
+    remaining: "221 ngày",
+  },
+  {
+    number: "HĐLĐ-2026-1113",
+    code: "CB2026-2103",
+    name: "Mai Quang An",
+    unit: "Phòng Tài chính - Kế toán",
+    type: "Xác định thời hạn 12 tháng",
+    start: "01/07/2024",
+    end: "28/07/2026",
+    status: "Còn hiệu lực",
+    remaining: "222 ngày",
+  },
+  {
+    number: "HĐLĐ-2026-1114",
+    code: "CB2026-2104",
+    name: "Tạ Quang An",
+    unit: "Khoa Công nghệ thông tin",
+    type: "Xác định thời hạn 24 tháng",
+    start: "01/08/2025",
+    end: "28/08/2027",
+    status: "Còn hiệu lực",
+    remaining: "223 ngày",
+  },
+  {
+    number: "HĐLĐ-2026-1115",
+    code: "CB2026-2105",
+    name: "Cao Quang An",
+    unit: "Khoa Kinh tế và Quản lý",
+    type: "Không xác định thời hạn",
+    start: "01/09/2024",
+    end: "28/09/2026",
+    status: "Còn hiệu lực",
+    remaining: "224 ngày",
+  },
+  {
+    number: "HĐLĐ-2026-1116",
+    code: "CB2026-2106",
+    name: "Đinh Quang An",
+    unit: "Ban Giám hiệu",
+    type: "Xác định thời hạn 12 tháng",
+    start: "01/10/2025",
+    end: "28/10/2027",
+    status: "Còn hiệu lực",
+    remaining: "225 ngày",
+  },
+  {
+    number: "HĐLĐ-2026-1117",
+    code: "CB2026-2107",
+    name: "Trịnh Quang An",
+    unit: "Phòng Tổ chức - Cán bộ",
+    type: "Xác định thời hạn 24 tháng",
+    start: "01/11/2024",
+    end: "28/11/2026",
+    status: "Còn hiệu lực",
+    remaining: "226 ngày",
+  },
+  {
+    number: "HĐLĐ-2026-1118",
+    code: "CB2026-2108",
+    name: "Đoàn Quang An",
+    unit: "Phòng Tài chính - Kế toán",
+    type: "Xác định thời hạn 36 tháng",
+    start: "01/12/2024",
+    end: "28/12/2025",
+    status: "Hết hiệu lực",
+    remaining: "Quá hạn",
+  },
+  {
+    number: "HĐLĐ-2026-1119",
+    code: "CB2026-2109",
+    name: "Lương Quang An",
+    unit: "Khoa Công nghệ thông tin",
+    type: "Không xác định thời hạn",
+    start: "01/01/2024",
+    end: "28/01/2026",
+    status: "Còn hiệu lực",
+    remaining: "228 ngày",
+  },
+  {
+    number: "HĐLĐ-2026-1120",
+    code: "CB2026-2110",
+    name: "Tô Quang An",
+    unit: "Khoa Kinh tế và Quản lý",
+    type: "Xác định thời hạn 24 tháng",
+    start: "01/02/2025",
+    end: "28/02/2027",
+    status: "Còn hiệu lực",
+    remaining: "229 ngày",
+  },
+  {
+    number: "HĐLĐ-2026-1121",
+    code: "CB2026-2111",
+    name: "Nguyễn Thanh An",
+    unit: "Ban Giám hiệu",
+    type: "Xác định thời hạn 36 tháng",
+    start: "01/03/2024",
+    end: "28/03/2026",
+    status: "Còn hiệu lực",
+    remaining: "230 ngày",
+  },
+  {
+    number: "HĐLĐ-2026-1122",
+    code: "CB2026-2112",
+    name: "Trần Thanh An",
+    unit: "Phòng Tổ chức - Cán bộ",
+    type: "Xác định thời hạn 12 tháng",
+    start: "01/04/2025",
+    end: "28/04/2027",
+    status: "Còn hiệu lực",
+    remaining: "231 ngày",
+  },
+  {
+    number: "HĐLĐ-2026-1123",
+    code: "CB2026-2113",
+    name: "Lê Thanh An",
+    unit: "Phòng Tài chính - Kế toán",
+    type: "Không xác định thời hạn",
+    start: "15/05/2024",
+    end: "16/06/2026",
+    status: "Chờ gia hạn",
+    remaining: "5 ngày",
+  },
+  {
+    number: "HĐLĐ-2026-1124",
+    code: "CB2026-2114",
+    name: "Phạm Thanh An",
+    unit: "Khoa Công nghệ thông tin",
+    type: "Xác định thời hạn 36 tháng",
+    start: "01/06/2025",
+    end: "28/06/2027",
+    status: "Còn hiệu lực",
+    remaining: "233 ngày",
+  },
+  {
+    number: "HĐLĐ-2026-1125",
+    code: "CB2026-2115",
+    name: "Hoàng Thanh An",
+    unit: "Khoa Kinh tế và Quản lý",
+    type: "Xác định thời hạn 12 tháng",
+    start: "01/07/2024",
+    end: "28/07/2026",
+    status: "Còn hiệu lực",
+    remaining: "234 ngày",
+  },
+  {
+    number: "HĐLĐ-2026-1126",
+    code: "CB2026-2116",
+    name: "Huỳnh Thanh An",
+    unit: "Ban Giám hiệu",
+    type: "Xác định thời hạn 24 tháng",
+    start: "01/08/2025",
+    end: "28/08/2027",
+    status: "Còn hiệu lực",
+    remaining: "235 ngày",
+  },
+  {
+    number: "HĐLĐ-2026-1127",
+    code: "CB2026-2117",
+    name: "Phan Thanh An",
+    unit: "Phòng Tổ chức - Cán bộ",
+    type: "Không xác định thời hạn",
+    start: "01/09/2021",
+    end: "28/09/2022",
+    status: "Hết hiệu lực",
+    remaining: "Quá hạn",
+  },
+  {
+    number: "HĐLĐ-2026-1128",
+    code: "CB2026-2118",
+    name: "Vũ Thanh An",
+    unit: "Phòng Tài chính - Kế toán",
+    type: "Xác định thời hạn 12 tháng",
+    start: "01/10/2025",
+    end: "28/10/2027",
+    status: "Còn hiệu lực",
+    remaining: "237 ngày",
+  },
+  {
+    number: "HĐLĐ-2026-1129",
+    code: "CB2026-2119",
+    name: "Võ Thanh An",
+    unit: "Khoa Công nghệ thông tin",
+    type: "Xác định thời hạn 24 tháng",
+    start: "01/11/2024",
+    end: "28/11/2026",
+    status: "Còn hiệu lực",
+    remaining: "238 ngày",
+  },
+  {
+    number: "HĐLĐ-2026-1130",
+    code: "CB2026-2120",
+    name: "Đặng Thanh An",
+    unit: "Khoa Kinh tế và Quản lý",
+    type: "Xác định thời hạn 36 tháng",
+    start: "01/12/2025",
+    end: "28/12/2027",
+    status: "Còn hiệu lực",
+    remaining: "239 ngày",
+  },
+  {
+    number: "HĐLĐ-2026-1131",
+    code: "CB2026-2121",
+    name: "Bùi Thanh An",
+    unit: "Ban Giám hiệu",
+    type: "Không xác định thời hạn",
+    start: "01/01/2024",
+    end: "28/01/2026",
+    status: "Còn hiệu lực",
+    remaining: "240 ngày",
+  },
+  {
+    number: "HĐLĐ-2026-1132",
+    code: "CB2026-2122",
+    name: "Đỗ Thanh An",
+    unit: "Phòng Tổ chức - Cán bộ",
+    type: "Xác định thời hạn 24 tháng",
+    start: "01/02/2025",
+    end: "28/02/2027",
+    status: "Còn hiệu lực",
+    remaining: "241 ngày",
+  },
+  {
+    number: "HĐLĐ-2026-1133",
+    code: "CB2026-2123",
+    name: "Hồ Thanh An",
+    unit: "Phòng Tài chính - Kế toán",
+    type: "Xác định thời hạn 36 tháng",
+    start: "01/03/2024",
+    end: "28/03/2026",
+    status: "Còn hiệu lực",
+    remaining: "242 ngày",
+  },
+  {
+    number: "HĐLĐ-2026-1134",
+    code: "CB2026-2124",
+    name: "Ngô Thanh An",
+    unit: "Khoa Công nghệ thông tin",
+    type: "Xác định thời hạn 12 tháng",
+    start: "01/04/2025",
+    end: "28/04/2027",
+    status: "Còn hiệu lực",
+    remaining: "243 ngày",
+  },
+  {
+    number: "HĐLĐ-2026-1135",
+    code: "CB2026-2125",
+    name: "Dương Thanh An",
+    unit: "Khoa Kinh tế và Quản lý",
+    type: "Không xác định thời hạn",
+    start: "01/05/2024",
+    end: "28/05/2026",
+    status: "Còn hiệu lực",
+    remaining: "244 ngày",
+  },
+  {
+    number: "HĐLĐ-2026-1136",
+    code: "CB2026-2126",
+    name: "Lý Thanh An",
+    unit: "Ban Giám hiệu",
+    type: "Hợp đồng thử việc",
+    start: "01/06/2022",
+    end: "28/06/2023",
+    status: "Hết hiệu lực",
+    remaining: "Quá hạn",
+  },
+  {
+    number: "HĐLĐ-2026-1137",
+    code: "CB2026-2127",
+    name: "Mai Thanh An",
+    unit: "Phòng Tổ chức - Cán bộ",
+    type: "Xác định thời hạn 12 tháng",
+    start: "01/07/2024",
+    end: "28/07/2026",
+    status: "Còn hiệu lực",
+    remaining: "246 ngày",
+  },
+  {
+    number: "HĐLĐ-2026-1138",
+    code: "CB2026-2128",
+    name: "Tạ Thanh An",
+    unit: "Phòng Tài chính - Kế toán",
+    type: "Xác định thời hạn 24 tháng",
+    start: "01/08/2025",
+    end: "28/08/2027",
+    status: "Còn hiệu lực",
+    remaining: "247 ngày",
+  },
+  {
+    number: "HĐLĐ-2026-1139",
+    code: "CB2026-2129",
+    name: "Cao Thanh An",
+    unit: "Khoa Công nghệ thông tin",
+    type: "Không xác định thời hạn",
+    start: "01/09/2024",
+    end: "26/06/2026",
+    status: "Sắp hết hạn",
+    remaining: "13 ngày",
+  },
+  {
+    number: "HĐLĐ-2026-1140",
+    code: "CB2026-2130",
+    name: "Đinh Thanh An",
+    unit: "Khoa Kinh tế và Quản lý",
+    type: "Xác định thời hạn 12 tháng",
+    start: "01/10/2025",
+    end: "28/10/2027",
+    status: "Còn hiệu lực",
+    remaining: "249 ngày",
+  },
+  {
+    number: "HĐLĐ-2026-1141",
+    code: "CB2026-2131",
+    name: "Trịnh Thanh An",
+    unit: "Ban Giám hiệu",
+    type: "Xác định thời hạn 24 tháng",
+    start: "01/11/2024",
+    end: "28/11/2026",
+    status: "Còn hiệu lực",
+    remaining: "250 ngày",
+  },
+  {
+    number: "HĐLĐ-2026-1142",
+    code: "CB2026-2132",
+    name: "Đoàn Thanh An",
+    unit: "Phòng Tổ chức - Cán bộ",
+    type: "Xác định thời hạn 36 tháng",
+    start: "01/12/2025",
+    end: "28/12/2027",
+    status: "Còn hiệu lực",
+    remaining: "251 ngày",
+  },
+  {
+    number: "HĐLĐ-2026-1143",
+    code: "CB2026-2133",
+    name: "Lương Thanh An",
+    unit: "Phòng Tài chính - Kế toán",
+    type: "Không xác định thời hạn",
+    start: "01/01/2024",
+    end: "28/01/2026",
+    status: "Còn hiệu lực",
+    remaining: "252 ngày",
+  },
+  {
+    number: "HĐLĐ-2026-1144",
+    code: "CB2026-2134",
+    name: "Tô Thanh An",
+    unit: "Khoa Công nghệ thông tin",
+    type: "Xác định thời hạn 24 tháng",
+    start: "01/02/2025",
+    end: "28/02/2027",
+    status: "Còn hiệu lực",
+    remaining: "253 ngày",
+  },
+  {
+    number: "HĐLĐ-2026-1145",
+    code: "CB2026-2135",
+    name: "Nguyễn Ngọc An",
+    unit: "Khoa Kinh tế và Quản lý",
+    type: "Xác định thời hạn 36 tháng",
+    start: "01/03/2023",
+    end: "28/03/2024",
+    status: "Hết hiệu lực",
+    remaining: "Quá hạn",
+  },
+  {
+    number: "HĐLĐ-2026-1146",
+    code: "CB2026-2136",
+    name: "Trần Ngọc An",
+    unit: "Ban Giám hiệu",
+    type: "Xác định thời hạn 12 tháng",
+    start: "01/04/2025",
+    end: "28/04/2027",
+    status: "Còn hiệu lực",
+    remaining: "255 ngày",
+  },
+  {
+    number: "HĐLĐ-2026-1147",
+    code: "CB2026-2137",
+    name: "Lê Ngọc An",
+    unit: "Phòng Tổ chức - Cán bộ",
+    type: "Không xác định thời hạn",
+    start: "01/05/2024",
+    end: "28/05/2026",
+    status: "Còn hiệu lực",
+    remaining: "256 ngày",
+  },
+  {
+    number: "HĐLĐ-2026-1148",
+    code: "CB2026-2138",
+    name: "Phạm Ngọc An",
+    unit: "Phòng Tài chính - Kế toán",
+    type: "Xác định thời hạn 36 tháng",
+    start: "01/06/2025",
+    end: "28/06/2027",
+    status: "Còn hiệu lực",
+    remaining: "257 ngày",
+  },
+  {
+    number: "HĐLĐ-2026-1149",
+    code: "CB2026-2139",
+    name: "Hoàng Ngọc An",
+    unit: "Khoa Công nghệ thông tin",
+    type: "Xác định thời hạn 12 tháng",
+    start: "01/07/2024",
+    end: "28/07/2026",
+    status: "Còn hiệu lực",
+    remaining: "258 ngày",
+  },
+  {
+    number: "HĐLĐ-2026-1150",
+    code: "CB2026-2140",
+    name: "Huỳnh Ngọc An",
+    unit: "Khoa Kinh tế và Quản lý",
+    type: "Xác định thời hạn 24 tháng",
+    start: "01/08/2025",
+    end: "28/08/2027",
+    status: "Còn hiệu lực",
+    remaining: "259 ngày",
+  },
+  {
+    number: "HĐLĐ-2026-1151",
+    code: "CB2026-2141",
+    name: "Phan Ngọc An",
+    unit: "Ban Giám hiệu",
+    type: "Không xác định thời hạn",
+    start: "01/09/2024",
+    end: "28/09/2026",
+    status: "Còn hiệu lực",
+    remaining: "260 ngày",
+  },
+  {
+    number: "HĐLĐ-2026-1152",
+    code: "CB2026-2142",
+    name: "Vũ Ngọc An",
+    unit: "Phòng Tổ chức - Cán bộ",
+    type: "Xác định thời hạn 12 tháng",
+    start: "01/10/2025",
+    end: "28/10/2027",
+    status: "Còn hiệu lực",
+    remaining: "261 ngày",
+  },
+  {
+    number: "HĐLĐ-2026-1153",
+    code: "CB2026-2143",
+    name: "Võ Ngọc An",
+    unit: "Phòng Tài chính - Kế toán",
+    type: "Xác định thời hạn 24 tháng",
+    start: "01/11/2024",
+    end: "28/11/2026",
+    status: "Còn hiệu lực",
+    remaining: "262 ngày",
+  },
+  {
+    number: "HĐLĐ-2026-1154",
+    code: "CB2026-2144",
+    name: "Đặng Ngọc An",
+    unit: "Khoa Công nghệ thông tin",
+    type: "Xác định thời hạn 36 tháng",
+    start: "01/12/2024",
+    end: "28/12/2025",
+    status: "Hết hiệu lực",
+    remaining: "Quá hạn",
+  },
+  {
+    number: "HĐLĐ-2026-1155",
+    code: "CB2026-2145",
+    name: "Bùi Ngọc An",
+    unit: "Khoa Kinh tế và Quản lý",
+    type: "Không xác định thời hạn",
+    start: "01/01/2024",
+    end: "28/01/2026",
+    status: "Còn hiệu lực",
+    remaining: "264 ngày",
+  },
+  {
+    number: "HĐLĐ-2026-1156",
+    code: "CB2026-2146",
+    name: "Đỗ Ngọc An",
+    unit: "Ban Giám hiệu",
+    type: "Xác định thời hạn 24 tháng",
+    start: "01/02/2025",
+    end: "28/02/2027",
+    status: "Còn hiệu lực",
+    remaining: "265 ngày",
+  },
+  {
+    number: "HĐLĐ-2026-1157",
+    code: "CB2026-2147",
+    name: "Hồ Ngọc An",
+    unit: "Phòng Tổ chức - Cán bộ",
+    type: "Xác định thời hạn 36 tháng",
+    start: "01/03/2024",
+    end: "28/03/2026",
+    status: "Còn hiệu lực",
+    remaining: "266 ngày",
+  },
+  {
+    number: "HĐLĐ-2026-1158",
+    code: "CB2026-2148",
+    name: "Ngô Ngọc An",
+    unit: "Phòng Tài chính - Kế toán",
+    type: "Xác định thời hạn 12 tháng",
+    start: "01/04/2025",
+    end: "28/04/2027",
+    status: "Còn hiệu lực",
+    remaining: "267 ngày",
+  },
+  {
+    number: "HĐLĐ-2026-1159",
+    code: "CB2026-2149",
+    name: "Dương Ngọc An",
+    unit: "Khoa Công nghệ thông tin",
+    type: "Không xác định thời hạn",
+    start: "01/05/2024",
+    end: "28/05/2026",
+    status: "Còn hiệu lực",
+    remaining: "268 ngày",
+  },
+  {
+    number: "HĐLĐ-2026-1160",
+    code: "CB2026-2150",
+    name: "Lý Ngọc An",
+    unit: "Khoa Kinh tế và Quản lý",
+    type: "Xác định thời hạn 36 tháng",
+    start: "01/06/2025",
+    end: "28/06/2027",
+    status: "Còn hiệu lực",
+    remaining: "269 ngày",
+  },
+  {
+    number: "HĐLĐ-2026-1161",
+    code: "CB2026-2151",
+    name: "Mai Ngọc An",
+    unit: "Ban Giám hiệu",
+    type: "Xác định thời hạn 12 tháng",
+    start: "01/07/2024",
+    end: "28/07/2026",
+    status: "Còn hiệu lực",
+    remaining: "270 ngày",
+  },
+  {
+    number: "HĐLĐ-2026-1162",
+    code: "CB2026-2152",
+    name: "Tạ Ngọc An",
+    unit: "Phòng Tổ chức - Cán bộ",
+    type: "Xác định thời hạn 24 tháng",
+    start: "01/08/2025",
+    end: "28/08/2027",
+    status: "Còn hiệu lực",
+    remaining: "271 ngày",
+  },
+  {
+    number: "HĐLĐ-2026-1163",
+    code: "CB2026-2153",
+    name: "Cao Ngọc An",
+    unit: "Phòng Tài chính - Kế toán",
+    type: "Không xác định thời hạn",
+    start: "01/09/2021",
+    end: "28/09/2022",
+    status: "Hết hiệu lực",
+    remaining: "Quá hạn",
+  },
+  {
+    number: "HĐLĐ-2026-1164",
+    code: "CB2026-2154",
+    name: "Đinh Ngọc An",
+    unit: "Khoa Công nghệ thông tin",
+    type: "Xác định thời hạn 12 tháng",
+    start: "01/10/2025",
+    end: "28/10/2027",
+    status: "Còn hiệu lực",
+    remaining: "273 ngày",
+  },
+  {
+    number: "HĐLĐ-2026-1165",
+    code: "CB2026-2155",
+    name: "Trịnh Ngọc An",
+    unit: "Khoa Kinh tế và Quản lý",
+    type: "Xác định thời hạn 24 tháng",
+    start: "01/11/2024",
+    end: "28/11/2026",
+    status: "Còn hiệu lực",
+    remaining: "274 ngày",
+  },
+  {
+    number: "HĐLĐ-2026-1166",
+    code: "CB2026-2156",
+    name: "Đoàn Ngọc An",
+    unit: "Ban Giám hiệu",
+    type: "Xác định thời hạn 36 tháng",
+    start: "01/12/2025",
+    end: "28/12/2027",
+    status: "Còn hiệu lực",
+    remaining: "275 ngày",
+  },
+  {
+    number: "HĐLĐ-2026-1167",
+    code: "CB2026-2157",
+    name: "Lương Ngọc An",
+    unit: "Phòng Tổ chức - Cán bộ",
+    type: "Không xác định thời hạn",
+    start: "01/01/2024",
+    end: "28/01/2026",
+    status: "Còn hiệu lực",
+    remaining: "276 ngày",
+  },
+  {
+    number: "HĐLĐ-2026-1168",
+    code: "CB2026-2158",
+    name: "Tô Ngọc An",
+    unit: "Phòng Tài chính - Kế toán",
+    type: "Xác định thời hạn 24 tháng",
+    start: "01/02/2025",
+    end: "28/02/2027",
+    status: "Còn hiệu lực",
+    remaining: "277 ngày",
+  },
+  {
+    number: "HĐLĐ-2026-1169",
+    code: "CB2026-2159",
+    name: "Nguyễn Đức An",
+    unit: "Khoa Công nghệ thông tin",
+    type: "Xác định thời hạn 36 tháng",
+    start: "01/03/2024",
+    end: "28/03/2026",
+    status: "Còn hiệu lực",
+    remaining: "278 ngày",
+  },
+  {
+    number: "HĐLĐ-2026-1170",
+    code: "CB2026-2160",
+    name: "Trần Đức An",
+    unit: "Khoa Kinh tế và Quản lý",
+    type: "Xác định thời hạn 12 tháng",
+    start: "01/04/2025",
+    end: "28/04/2027",
+    status: "Còn hiệu lực",
+    remaining: "279 ngày",
+  },
+  {
+    number: "HĐLĐ-2026-1171",
+    code: "CB2026-2161",
+    name: "Lê Đức An",
+    unit: "Ban Giám hiệu",
+    type: "Không xác định thời hạn",
+    start: "01/05/2024",
+    end: "28/05/2026",
+    status: "Còn hiệu lực",
+    remaining: "280 ngày",
+  },
+  {
+    number: "HĐLĐ-2026-1172",
+    code: "CB2026-2162",
+    name: "Phạm Đức An",
+    unit: "Phòng Tổ chức - Cán bộ",
+    type: "Xác định thời hạn 36 tháng",
+    start: "01/06/2022",
+    end: "28/06/2023",
+    status: "Hết hiệu lực",
+    remaining: "Quá hạn",
+  },
+  {
+    number: "HĐLĐ-2026-1173",
+    code: "CB2026-2163",
+    name: "Hoàng Đức An",
+    unit: "Phòng Tài chính - Kế toán",
+    type: "Xác định thời hạn 12 tháng",
+    start: "01/07/2024",
+    end: "28/07/2026",
+    status: "Còn hiệu lực",
+    remaining: "282 ngày",
+  },
+  {
+    number: "HĐLĐ-2026-1174",
+    code: "CB2026-2164",
+    name: "Huỳnh Đức An",
+    unit: "Khoa Công nghệ thông tin",
+    type: "Xác định thời hạn 24 tháng",
+    start: "01/08/2025",
+    end: "28/08/2027",
+    status: "Còn hiệu lực",
+    remaining: "283 ngày",
+  },
+  {
+    number: "HĐLĐ-2026-1175",
+    code: "CB2026-2165",
+    name: "Phan Đức An",
+    unit: "Khoa Kinh tế và Quản lý",
+    type: "Không xác định thời hạn",
+    start: "01/09/2024",
+    end: "28/09/2026",
+    status: "Còn hiệu lực",
+    remaining: "284 ngày",
+  },
+  {
+    number: "HĐLĐ-2026-1176",
+    code: "CB2026-2166",
+    name: "Vũ Đức An",
+    unit: "Ban Giám hiệu",
+    type: "Xác định thời hạn 12 tháng",
+    start: "01/10/2025",
+    end: "28/10/2027",
+    status: "Còn hiệu lực",
+    remaining: "285 ngày",
+  },
+  {
+    number: "HĐLĐ-2026-1177",
+    code: "CB2026-2167",
+    name: "Võ Đức An",
+    unit: "Phòng Tổ chức - Cán bộ",
+    type: "Xác định thời hạn 24 tháng",
+    start: "01/11/2024",
+    end: "28/06/2026",
+    status: "Sắp hết hạn",
+    remaining: "27 ngày",
+  },
+  {
+    number: "HĐLĐ-2026-1178",
+    code: "CB2026-2168",
+    name: "Đặng Đức An",
+    unit: "Phòng Tài chính - Kế toán",
+    type: "Xác định thời hạn 36 tháng",
+    start: "01/12/2025",
+    end: "28/12/2027",
+    status: "Còn hiệu lực",
+    remaining: "287 ngày",
+  },
+  {
+    number: "HĐLĐ-2026-1179",
+    code: "CB2026-2169",
+    name: "Bùi Đức An",
+    unit: "Khoa Công nghệ thông tin",
+    type: "Không xác định thời hạn",
+    start: "01/01/2024",
+    end: "28/01/2026",
+    status: "Còn hiệu lực",
+    remaining: "288 ngày",
+  },
+  {
+    number: "HĐLĐ-2026-1180",
+    code: "CB2026-2170",
+    name: "Đỗ Đức An",
+    unit: "Khoa Kinh tế và Quản lý",
+    type: "Xác định thời hạn 24 tháng",
+    start: "01/02/2025",
+    end: "28/02/2027",
+    status: "Còn hiệu lực",
+    remaining: "289 ngày",
+  },
+  {
+    number: "HĐLĐ-2026-1181",
+    code: "CB2026-2171",
+    name: "Hồ Đức An",
+    unit: "Ban Giám hiệu",
+    type: "Hợp đồng thử việc",
+    start: "01/03/2023",
+    end: "28/03/2024",
+    status: "Hết hiệu lực",
+    remaining: "Quá hạn",
+  },
+  {
+    number: "HĐLĐ-2026-1182",
+    code: "CB2026-2172",
+    name: "Ngô Đức An",
+    unit: "Phòng Tổ chức - Cán bộ",
+    type: "Xác định thời hạn 12 tháng",
+    start: "01/04/2025",
+    end: "28/04/2027",
+    status: "Còn hiệu lực",
+    remaining: "291 ngày",
+  },
+  {
+    number: "HĐLĐ-2026-1183",
+    code: "CB2026-2173",
+    name: "Dương Đức An",
+    unit: "Phòng Tài chính - Kế toán",
+    type: "Không xác định thời hạn",
+    start: "01/05/2024",
+    end: "28/05/2026",
+    status: "Còn hiệu lực",
+    remaining: "292 ngày",
+  },
+  {
+    number: "HĐLĐ-2026-1184",
+    code: "CB2026-2174",
+    name: "Lý Đức An",
+    unit: "Khoa Công nghệ thông tin",
+    type: "Xác định thời hạn 36 tháng",
+    start: "01/06/2025",
+    end: "28/06/2027",
+    status: "Còn hiệu lực",
+    remaining: "293 ngày",
+  },
+  {
+    number: "HĐLĐ-2026-1185",
+    code: "CB2026-2175",
+    name: "Mai Đức An",
+    unit: "Khoa Kinh tế và Quản lý",
+    type: "Xác định thời hạn 12 tháng",
+    start: "01/07/2024",
+    end: "28/07/2026",
+    status: "Còn hiệu lực",
+    remaining: "294 ngày",
+  },
+  {
+    number: "HĐLĐ-2026-1186",
+    code: "CB2026-2176",
+    name: "Tạ Đức An",
+    unit: "Ban Giám hiệu",
+    type: "Xác định thời hạn 24 tháng",
+    start: "01/08/2025",
+    end: "28/08/2027",
+    status: "Còn hiệu lực",
+    remaining: "295 ngày",
+  },
+  {
+    number: "HĐLĐ-2026-1187",
+    code: "CB2026-2177",
+    name: "Cao Đức An",
+    unit: "Phòng Tổ chức - Cán bộ",
+    type: "Không xác định thời hạn",
+    start: "01/09/2024",
+    end: "28/09/2026",
+    status: "Còn hiệu lực",
+    remaining: "296 ngày",
+  },
+  {
+    number: "HĐLĐ-2026-1188",
+    code: "CB2026-2178",
+    name: "Đinh Đức An",
+    unit: "Phòng Tài chính - Kế toán",
+    type: "Xác định thời hạn 12 tháng",
+    start: "01/10/2025",
+    end: "28/10/2027",
+    status: "Còn hiệu lực",
+    remaining: "297 ngày",
+  },
+  {
+    number: "HĐLĐ-2026-1189",
+    code: "CB2026-2179",
+    name: "Trịnh Đức An",
+    unit: "Khoa Công nghệ thông tin",
+    type: "Xác định thời hạn 24 tháng",
+    start: "01/11/2024",
+    end: "28/11/2026",
+    status: "Còn hiệu lực",
+    remaining: "298 ngày",
+  },
+  {
+    number: "HĐLĐ-2026-1190",
+    code: "CB2026-2180",
+    name: "Đoàn Đức An",
+    unit: "Khoa Kinh tế và Quản lý",
+    type: "Xác định thời hạn 36 tháng",
+    start: "01/12/2024",
+    end: "28/12/2025",
+    status: "Hết hiệu lực",
+    remaining: "Quá hạn",
+  },
+  {
+    number: "HĐLĐ-2026-1191",
+    code: "CB2026-2181",
+    name: "Lương Đức An",
+    unit: "Ban Giám hiệu",
+    type: "Không xác định thời hạn",
+    start: "01/01/2024",
+    end: "28/01/2026",
+    status: "Còn hiệu lực",
+    remaining: "300 ngày",
+  },
+  {
+    number: "HĐLĐ-2026-1192",
+    code: "CB2026-2182",
+    name: "Tô Đức An",
+    unit: "Phòng Tổ chức - Cán bộ",
+    type: "Xác định thời hạn 24 tháng",
+    start: "01/02/2025",
+    end: "28/02/2027",
+    status: "Còn hiệu lực",
+    remaining: "301 ngày",
+  },
+  {
+    number: "HĐLĐ-2026-1193",
+    code: "CB2026-2183",
+    name: "Nguyễn Anh An",
+    unit: "Phòng Tài chính - Kế toán",
+    type: "Xác định thời hạn 36 tháng",
+    start: "01/03/2024",
+    end: "28/03/2026",
+    status: "Còn hiệu lực",
+    remaining: "302 ngày",
+  },
+  {
+    number: "HĐLĐ-2026-1194",
+    code: "CB2026-2184",
+    name: "Trần Anh An",
+    unit: "Khoa Công nghệ thông tin",
+    type: "Xác định thời hạn 12 tháng",
+    start: "01/04/2025",
+    end: "28/04/2027",
+    status: "Còn hiệu lực",
+    remaining: "303 ngày",
+  },
+  {
+    number: "HĐLĐ-2026-1195",
+    code: "CB2026-2185",
+    name: "Lê Anh An",
+    unit: "Khoa Kinh tế và Quản lý",
+    type: "Không xác định thời hạn",
+    start: "01/05/2024",
+    end: "28/05/2026",
+    status: "Còn hiệu lực",
+    remaining: "304 ngày",
+  },
+  {
+    number: "HĐLĐ-2026-1196",
+    code: "CB2026-2186",
+    name: "Phạm Anh An",
+    unit: "Ban Giám hiệu",
+    type: "Xác định thời hạn 36 tháng",
+    start: "01/06/2025",
+    end: "28/06/2027",
+    status: "Còn hiệu lực",
+    remaining: "305 ngày",
+  },
+  {
+    number: "HĐLĐ-2026-1197",
+    code: "CB2026-2187",
+    name: "Hoàng Anh An",
+    unit: "Phòng Tổ chức - Cán bộ",
+    type: "Xác định thời hạn 12 tháng",
+    start: "01/07/2024",
+    end: "28/07/2026",
+    status: "Còn hiệu lực",
+    remaining: "306 ngày",
+  },
+  {
+    number: "HĐLĐ-2026-1198",
+    code: "CB2026-2188",
+    name: "Huỳnh Anh An",
+    unit: "Phòng Tài chính - Kế toán",
+    type: "Xác định thời hạn 24 tháng",
+    start: "01/08/2025",
+    end: "28/08/2027",
+    status: "Còn hiệu lực",
+    remaining: "307 ngày",
+  },
+  {
+    number: "HĐLĐ-2026-1199",
+    code: "CB2026-2189",
+    name: "Phan Anh An",
+    unit: "Khoa Công nghệ thông tin",
+    type: "Không xác định thời hạn",
+    start: "01/09/2021",
+    end: "28/09/2022",
+    status: "Hết hiệu lực",
+    remaining: "Quá hạn",
+  },
+  {
+    number: "HĐLĐ-2026-1200",
+    code: "CB2026-2190",
+    name: "Vũ Anh An",
+    unit: "Khoa Kinh tế và Quản lý",
+    type: "Xác định thời hạn 12 tháng",
+    start: "01/10/2025",
+    end: "28/10/2027",
+    status: "Còn hiệu lực",
+    remaining: "309 ngày",
+  },
+  {
+    number: "HĐLĐ-2026-1201",
+    code: "CB2026-2191",
+    name: "Võ Anh An",
+    unit: "Ban Giám hiệu",
+    type: "Xác định thời hạn 24 tháng",
+    start: "01/11/2024",
+    end: "28/11/2026",
+    status: "Còn hiệu lực",
+    remaining: "310 ngày",
+  },
+  {
+    number: "HĐLĐ-2026-1202",
+    code: "CB2026-2192",
+    name: "Đặng Anh An",
+    unit: "Phòng Tổ chức - Cán bộ",
+    type: "Xác định thời hạn 36 tháng",
+    start: "01/12/2025",
+    end: "28/12/2027",
+    status: "Còn hiệu lực",
+    remaining: "311 ngày",
+  },
+  {
+    number: "HĐLĐ-2026-1203",
+    code: "CB2026-2193",
+    name: "Bùi Anh An",
+    unit: "Phòng Tài chính - Kế toán",
+    type: "Không xác định thời hạn",
+    start: "01/01/2024",
+    end: "28/01/2026",
+    status: "Còn hiệu lực",
+    remaining: "312 ngày",
+  },
+  {
+    number: "HĐLĐ-2026-1204",
+    code: "CB2026-2194",
+    name: "Đỗ Anh An",
+    unit: "Khoa Công nghệ thông tin",
+    type: "Xác định thời hạn 24 tháng",
+    start: "01/02/2025",
+    end: "28/02/2027",
+    status: "Còn hiệu lực",
+    remaining: "313 ngày",
+  },
+  {
+    number: "HĐLĐ-2026-1205",
+    code: "CB2026-2195",
+    name: "Hồ Anh An",
+    unit: "Khoa Kinh tế và Quản lý",
+    type: "Xác định thời hạn 36 tháng",
+    start: "01/03/2024",
+    end: "28/03/2026",
+    status: "Còn hiệu lực",
+    remaining: "314 ngày",
+  },
+  {
+    number: "HĐLĐ-2026-1206",
+    code: "CB2026-2196",
+    name: "Ngô Anh An",
+    unit: "Ban Giám hiệu",
+    type: "Xác định thời hạn 12 tháng",
+    start: "01/04/2025",
+    end: "28/04/2027",
+    status: "Còn hiệu lực",
+    remaining: "315 ngày",
+  },
+  {
+    number: "HĐLĐ-2026-1207",
+    code: "CB2026-2197",
+    name: "Dương Anh An",
+    unit: "Phòng Tổ chức - Cán bộ",
+    type: "Không xác định thời hạn",
+    start: "01/05/2024",
+    end: "28/05/2026",
+    status: "Còn hiệu lực",
+    remaining: "316 ngày",
+  },
+  {
+    number: "HĐLĐ-2026-1208",
+    code: "CB2026-2198",
+    name: "Lý Anh An",
+    unit: "Phòng Tài chính - Kế toán",
+    type: "Xác định thời hạn 36 tháng",
+    start: "01/06/2022",
+    end: "28/06/2023",
+    status: "Hết hiệu lực",
+    remaining: "Quá hạn",
+  },
+  {
+    number: "HĐLĐ-2026-1209",
+    code: "CB2026-2199",
+    name: "Mai Anh An",
+    unit: "Khoa Công nghệ thông tin",
+    type: "Xác định thời hạn 12 tháng",
+    start: "01/07/2024",
+    end: "28/07/2026",
+    status: "Còn hiệu lực",
+    remaining: "318 ngày",
+  },
+  {
+    number: "HĐLĐ-2026-1210",
+    code: "CB2026-2200",
+    name: "Tạ Anh An",
+    unit: "Khoa Kinh tế và Quản lý",
+    type: "Xác định thời hạn 24 tháng",
+    start: "01/08/2025",
+    end: "28/08/2027",
+    status: "Còn hiệu lực",
+    remaining: "319 ngày",
+  },
+  {
+    number: "HĐLĐ-2026-1211",
+    code: "CB2026-2201",
+    name: "Cao Anh An",
+    unit: "Ban Giám hiệu",
+    type: "Không xác định thời hạn",
+    start: "01/09/2024",
+    end: "28/09/2026",
+    status: "Còn hiệu lực",
+    remaining: "320 ngày",
+  },
+  {
+    number: "HĐLĐ-2026-1212",
+    code: "CB2026-2202",
+    name: "Đinh Anh An",
+    unit: "Phòng Tổ chức - Cán bộ",
+    type: "Xác định thời hạn 12 tháng",
+    start: "01/10/2025",
+    end: "28/10/2027",
+    status: "Còn hiệu lực",
+    remaining: "321 ngày",
+  },
+  {
+    number: "HĐLĐ-2026-1213",
+    code: "CB2026-2203",
+    name: "Trịnh Anh An",
+    unit: "Phòng Tài chính - Kế toán",
+    type: "Xác định thời hạn 24 tháng",
+    start: "01/11/2024",
+    end: "28/11/2026",
+    status: "Còn hiệu lực",
+    remaining: "322 ngày",
+  },
+  {
+    number: "HĐLĐ-2026-1214",
+    code: "CB2026-2204",
+    name: "Đoàn Anh An",
+    unit: "Khoa Công nghệ thông tin",
+    type: "Xác định thời hạn 36 tháng",
+    start: "01/12/2024",
+    end: "29/06/2026",
+    status: "Sắp hết hạn",
+    remaining: "16 ngày",
+  },
+  {
+    number: "HĐLĐ-2026-1215",
+    code: "CB2026-2205",
+    name: "Lương Anh An",
+    unit: "Khoa Kinh tế và Quản lý",
+    type: "Không xác định thời hạn",
+    start: "01/01/2024",
+    end: "28/01/2026",
+    status: "Còn hiệu lực",
+    remaining: "324 ngày",
+  },
+  {
+    number: "HĐLĐ-2026-1216",
+    code: "CB2026-2206",
+    name: "Tô Anh An",
+    unit: "Ban Giám hiệu",
+    type: "Xác định thời hạn 24 tháng",
+    start: "01/02/2025",
+    end: "28/02/2027",
+    status: "Còn hiệu lực",
+    remaining: "325 ngày",
+  },
+  {
+    number: "HĐLĐ-2026-1217",
+    code: "CB2026-2207",
+    name: "Nguyễn Thu An",
+    unit: "Phòng Tổ chức - Cán bộ",
+    type: "Xác định thời hạn 36 tháng",
+    start: "01/03/2023",
+    end: "28/03/2024",
+    status: "Hết hiệu lực",
+    remaining: "Quá hạn",
+  },
+  {
+    number: "HĐLĐ-2026-1218",
+    code: "CB2026-2208",
+    name: "Trần Thu An",
+    unit: "Phòng Tài chính - Kế toán",
+    type: "Xác định thời hạn 12 tháng",
+    start: "01/04/2025",
+    end: "28/04/2027",
+    status: "Còn hiệu lực",
+    remaining: "327 ngày",
+  },
+  {
+    number: "HĐLĐ-2026-1219",
+    code: "CB2026-2209",
+    name: "Lê Thu An",
+    unit: "Khoa Công nghệ thông tin",
+    type: "Không xác định thời hạn",
+    start: "01/05/2024",
+    end: "28/05/2026",
+    status: "Còn hiệu lực",
+    remaining: "328 ngày",
+  },
+  {
+    number: "HĐLĐ-2026-1220",
+    code: "CB2026-2210",
+    name: "Phạm Thu An",
+    unit: "Khoa Kinh tế và Quản lý",
+    type: "Xác định thời hạn 36 tháng",
+    start: "01/06/2025",
+    end: "28/06/2027",
+    status: "Còn hiệu lực",
+    remaining: "329 ngày",
+  },
+  {
+    number: "HĐLĐ-2026-1221",
+    code: "CB2026-2211",
+    name: "Hoàng Thu An",
+    unit: "Ban Giám hiệu",
+    type: "Xác định thời hạn 12 tháng",
+    start: "01/07/2024",
+    end: "28/07/2026",
+    status: "Còn hiệu lực",
+    remaining: "330 ngày",
+  },
+  {
+    number: "HĐLĐ-2026-1222",
+    code: "CB2026-2212",
+    name: "Huỳnh Thu An",
+    unit: "Phòng Tổ chức - Cán bộ",
+    type: "Xác định thời hạn 24 tháng",
+    start: "01/08/2025",
+    end: "28/08/2027",
+    status: "Còn hiệu lực",
+    remaining: "331 ngày",
+  },
+  {
+    number: "HĐLĐ-2026-1223",
+    code: "CB2026-2213",
+    name: "Phan Thu An",
+    unit: "Phòng Tài chính - Kế toán",
+    type: "Không xác định thời hạn",
+    start: "01/09/2024",
+    end: "28/09/2026",
+    status: "Còn hiệu lực",
+    remaining: "332 ngày",
+  },
+  {
+    number: "HĐLĐ-2026-1224",
+    code: "CB2026-2214",
+    name: "Vũ Thu An",
+    unit: "Khoa Công nghệ thông tin",
+    type: "Xác định thời hạn 12 tháng",
+    start: "01/10/2025",
+    end: "28/10/2027",
+    status: "Còn hiệu lực",
+    remaining: "333 ngày",
+  },
+  {
+    number: "HĐLĐ-2026-1225",
+    code: "CB2026-2215",
+    name: "Võ Thu An",
+    unit: "Khoa Kinh tế và Quản lý",
+    type: "Xác định thời hạn 24 tháng",
+    start: "01/11/2024",
+    end: "28/11/2026",
+    status: "Còn hiệu lực",
+    remaining: "334 ngày",
+  },
+  {
+    number: "HĐLĐ-2026-1226",
+    code: "CB2026-2216",
+    name: "Đặng Thu An",
+    unit: "Ban Giám hiệu",
+    type: "Hợp đồng thử việc",
+    start: "01/12/2024",
+    end: "28/12/2025",
+    status: "Hết hiệu lực",
+    remaining: "Quá hạn",
+  },
+  {
+    number: "HĐLĐ-2026-1227",
+    code: "CB2026-2217",
+    name: "Bùi Thu An",
+    unit: "Phòng Tổ chức - Cán bộ",
+    type: "Không xác định thời hạn",
+    start: "01/01/2024",
+    end: "28/01/2026",
+    status: "Còn hiệu lực",
+    remaining: "336 ngày",
+  },
+  {
+    number: "HĐLĐ-2026-1228",
+    code: "CB2026-2218",
+    name: "Đỗ Thu An",
+    unit: "Phòng Tài chính - Kế toán",
+    type: "Xác định thời hạn 24 tháng",
+    start: "01/02/2025",
+    end: "28/02/2027",
+    status: "Còn hiệu lực",
+    remaining: "337 ngày",
+  },
+  {
+    number: "HĐLĐ-2026-1229",
+    code: "CB2026-2219",
+    name: "Hồ Thu An",
+    unit: "Khoa Công nghệ thông tin",
+    type: "Xác định thời hạn 36 tháng",
+    start: "01/03/2024",
+    end: "28/03/2026",
+    status: "Còn hiệu lực",
+    remaining: "338 ngày",
+  },
+  {
+    number: "HĐLĐ-2026-1230",
+    code: "CB2026-2220",
+    name: "Ngô Thu An",
+    unit: "Khoa Kinh tế và Quản lý",
+    type: "Xác định thời hạn 12 tháng",
+    start: "15/04/2024",
+    end: "23/06/2026",
+    status: "Chờ gia hạn",
+    remaining: "4 ngày",
+  },
+  {
+    number: "HĐLĐ-2026-1231",
+    code: "CB2026-2221",
+    name: "Dương Thu An",
+    unit: "Ban Giám hiệu",
+    type: "Không xác định thời hạn",
+    start: "01/05/2024",
+    end: "28/05/2026",
+    status: "Còn hiệu lực",
+    remaining: "340 ngày",
+  },
+  {
+    number: "HĐLĐ-2026-1232",
+    code: "CB2026-2222",
+    name: "Lý Thu An",
+    unit: "Phòng Tổ chức - Cán bộ",
+    type: "Xác định thời hạn 36 tháng",
+    start: "01/06/2025",
+    end: "28/06/2027",
+    status: "Còn hiệu lực",
+    remaining: "341 ngày",
+  },
+  {
+    number: "HĐLĐ-2026-1233",
+    code: "CB2026-2223",
+    name: "Mai Thu An",
+    unit: "Phòng Tài chính - Kế toán",
+    type: "Xác định thời hạn 12 tháng",
+    start: "01/07/2024",
+    end: "28/07/2026",
+    status: "Còn hiệu lực",
+    remaining: "342 ngày",
+  },
+  {
+    number: "HĐLĐ-2026-1234",
+    code: "CB2026-2224",
+    name: "Tạ Thu An",
+    unit: "Khoa Công nghệ thông tin",
+    type: "Xác định thời hạn 24 tháng",
+    start: "01/08/2025",
+    end: "28/08/2027",
+    status: "Còn hiệu lực",
+    remaining: "343 ngày",
+  },
+  {
+    number: "HĐLĐ-2026-1235",
+    code: "CB2026-2225",
+    name: "Cao Thu An",
+    unit: "Khoa Kinh tế và Quản lý",
+    type: "Không xác định thời hạn",
+    start: "01/09/2021",
+    end: "28/09/2022",
+    status: "Hết hiệu lực",
+    remaining: "Quá hạn",
+  },
+  {
+    number: "HĐLĐ-2026-1236",
+    code: "CB2026-2226",
+    name: "Đinh Thu An",
+    unit: "Ban Giám hiệu",
+    type: "Xác định thời hạn 12 tháng",
+    start: "01/10/2025",
+    end: "28/10/2027",
+    status: "Còn hiệu lực",
+    remaining: "345 ngày",
+  },
+  {
+    number: "HĐLĐ-2026-1237",
+    code: "CB2026-2227",
+    name: "Trịnh Thu An",
+    unit: "Phòng Tổ chức - Cán bộ",
+    type: "Xác định thời hạn 24 tháng",
+    start: "01/11/2024",
+    end: "28/11/2026",
+    status: "Còn hiệu lực",
+    remaining: "346 ngày",
+  },
+  {
+    number: "HĐLĐ-2026-1238",
+    code: "CB2026-2228",
+    name: "Đoàn Thu An",
+    unit: "Phòng Tài chính - Kế toán",
+    type: "Xác định thời hạn 36 tháng",
+    start: "01/12/2025",
+    end: "28/12/2027",
+    status: "Còn hiệu lực",
+    remaining: "347 ngày",
+  },
+  {
+    number: "HĐLĐ-2026-1239",
+    code: "CB2026-2229",
+    name: "Lương Thu An",
+    unit: "Khoa Công nghệ thông tin",
+    type: "Không xác định thời hạn",
+    start: "01/01/2024",
+    end: "28/01/2026",
+    status: "Còn hiệu lực",
+    remaining: "348 ngày",
+  },
+  {
+    number: "HĐLĐ-2026-1240",
+    code: "CB2026-2230",
+    name: "Tô Thu An",
+    unit: "Khoa Kinh tế và Quản lý",
+    type: "Xác định thời hạn 24 tháng",
+    start: "01/02/2025",
+    end: "28/02/2027",
+    status: "Còn hiệu lực",
+    remaining: "349 ngày",
+  },
+  {
+    number: "HĐLĐ-2026-1241",
+    code: "CB2026-2231",
+    name: "Nguyễn Gia An",
+    unit: "Ban Giám hiệu",
+    type: "Xác định thời hạn 36 tháng",
+    start: "01/03/2024",
+    end: "28/03/2026",
+    status: "Còn hiệu lực",
+    remaining: "350 ngày",
+  },
+  {
+    number: "HĐLĐ-2026-1242",
+    code: "CB2026-2232",
+    name: "Trần Gia An",
+    unit: "Phòng Tổ chức - Cán bộ",
+    type: "Xác định thời hạn 12 tháng",
+    start: "01/04/2025",
+    end: "28/04/2027",
+    status: "Còn hiệu lực",
+    remaining: "351 ngày",
+  },
+  {
+    number: "HĐLĐ-2026-1243",
+    code: "CB2026-2233",
+    name: "Lê Gia An",
+    unit: "Phòng Tài chính - Kế toán",
+    type: "Không xác định thời hạn",
+    start: "01/05/2024",
+    end: "28/05/2026",
+    status: "Còn hiệu lực",
+    remaining: "352 ngày",
+  },
+  {
+    number: "HĐLĐ-2026-1244",
+    code: "CB2026-2234",
+    name: "Phạm Gia An",
+    unit: "Khoa Công nghệ thông tin",
+    type: "Xác định thời hạn 36 tháng",
+    start: "01/06/2022",
+    end: "28/06/2023",
+    status: "Hết hiệu lực",
+    remaining: "Quá hạn",
+  },
+  {
+    number: "HĐLĐ-2026-1245",
+    code: "CB2026-2235",
+    name: "Hoàng Gia An",
+    unit: "Khoa Kinh tế và Quản lý",
+    type: "Xác định thời hạn 12 tháng",
+    start: "01/07/2024",
+    end: "28/07/2026",
+    status: "Còn hiệu lực",
+    remaining: "354 ngày",
+  },
+  {
+    number: "HĐLĐ-2026-1246",
+    code: "CB2026-2236",
+    name: "Huỳnh Gia An",
+    unit: "Ban Giám hiệu",
+    type: "Xác định thời hạn 24 tháng",
+    start: "01/08/2025",
+    end: "28/08/2027",
+    status: "Còn hiệu lực",
+    remaining: "355 ngày",
+  },
+  {
+    number: "HĐLĐ-2026-1247",
+    code: "CB2026-2237",
+    name: "Phan Gia An",
+    unit: "Phòng Tổ chức - Cán bộ",
+    type: "Không xác định thời hạn",
+    start: "01/09/2024",
+    end: "28/09/2026",
+    status: "Còn hiệu lực",
+    remaining: "356 ngày",
+  },
+  {
+    number: "HĐLĐ-2026-1248",
+    code: "CB2026-2238",
+    name: "Vũ Gia An",
+    unit: "Phòng Tài chính - Kế toán",
+    type: "Xác định thời hạn 12 tháng",
+    start: "01/10/2025",
+    end: "28/10/2027",
+    status: "Còn hiệu lực",
+    remaining: "357 ngày",
+  },
+  {
+    number: "HĐLĐ-2026-1249",
+    code: "CB2026-2239",
+    name: "Võ Gia An",
+    unit: "Khoa Công nghệ thông tin",
+    type: "Xác định thời hạn 24 tháng",
+    start: "01/11/2024",
+    end: "28/11/2026",
+    status: "Còn hiệu lực",
+    remaining: "358 ngày",
+  },
+  {
+    number: "HĐLĐ-2026-1250",
+    code: "CB2026-2240",
+    name: "Đặng Gia An",
+    unit: "Khoa Kinh tế và Quản lý",
+    type: "Xác định thời hạn 36 tháng",
+    start: "01/12/2025",
+    end: "28/12/2027",
+    status: "Còn hiệu lực",
+    remaining: "359 ngày",
+  },
+  {
+    number: "HĐLĐ-2026-1251",
+    code: "CB2026-2241",
+    name: "Bùi Gia An",
+    unit: "Ban Giám hiệu",
+    type: "Không xác định thời hạn",
+    start: "01/01/2024",
+    end: "28/01/2026",
+    status: "Còn hiệu lực",
+    remaining: "360 ngày",
+  },
+  {
+    number: "HĐLĐ-2026-1252",
+    code: "CB2026-2242",
+    name: "Đỗ Gia An",
+    unit: "Phòng Tổ chức - Cán bộ",
+    type: "Xác định thời hạn 24 tháng",
+    start: "01/02/2024",
+    end: "19/06/2026",
+    status: "Sắp hết hạn",
+    remaining: "6 ngày",
+  },
+  {
+    number: "HĐLĐ-2026-1253",
+    code: "CB2026-2243",
+    name: "Hồ Gia An",
+    unit: "Phòng Tài chính - Kế toán",
+    type: "Xác định thời hạn 36 tháng",
+    start: "01/03/2023",
+    end: "28/03/2024",
+    status: "Hết hiệu lực",
+    remaining: "Quá hạn",
+  },
+  {
+    number: "HĐLĐ-2026-1254",
+    code: "CB2026-2244",
+    name: "Ngô Gia An",
+    unit: "Khoa Công nghệ thông tin",
+    type: "Xác định thời hạn 12 tháng",
+    start: "01/04/2025",
+    end: "28/04/2027",
+    status: "Còn hiệu lực",
+    remaining: "363 ngày",
+  },
+  {
+    number: "HĐLĐ-2026-1255",
+    code: "CB2026-2245",
+    name: "Dương Gia An",
+    unit: "Khoa Kinh tế và Quản lý",
+    type: "Không xác định thời hạn",
+    start: "01/05/2024",
+    end: "28/05/2026",
+    status: "Còn hiệu lực",
+    remaining: "364 ngày",
+  },
+  {
+    number: "HĐLĐ-2026-1256",
+    code: "CB2026-2246",
+    name: "Lý Gia An",
+    unit: "Ban Giám hiệu",
+    type: "Xác định thời hạn 36 tháng",
+    start: "01/06/2025",
+    end: "28/06/2027",
+    status: "Còn hiệu lực",
+    remaining: "365 ngày",
+  },
+  {
+    number: "HĐLĐ-2026-1257",
+    code: "CB2026-2247",
+    name: "Mai Gia An",
+    unit: "Phòng Tổ chức - Cán bộ",
+    type: "Xác định thời hạn 12 tháng",
+    start: "01/07/2024",
+    end: "28/07/2026",
+    status: "Còn hiệu lực",
+    remaining: "366 ngày",
+  },
+  {
+    number: "HĐLĐ-2026-1258",
+    code: "CB2026-2248",
+    name: "Tạ Gia An",
+    unit: "Phòng Tài chính - Kế toán",
+    type: "Xác định thời hạn 24 tháng",
+    start: "01/08/2025",
+    end: "28/08/2027",
+    status: "Còn hiệu lực",
+    remaining: "367 ngày",
+  },
+  {
+    number: "HĐLĐ-2026-1259",
+    code: "CB2026-2249",
+    name: "Cao Gia An",
+    unit: "Khoa Công nghệ thông tin",
+    type: "Không xác định thời hạn",
+    start: "01/09/2024",
+    end: "28/09/2026",
+    status: "Còn hiệu lực",
+    remaining: "368 ngày",
+  },
+  {
+    number: "HĐLĐ-2026-1260",
+    code: "CB2026-2250",
+    name: "Đinh Gia An",
+    unit: "Khoa Kinh tế và Quản lý",
+    type: "Xác định thời hạn 12 tháng",
+    start: "01/10/2025",
+    end: "28/10/2027",
+    status: "Còn hiệu lực",
+    remaining: "369 ngày",
+  },
+  {
+    number: "HĐLĐ-2026-1261",
+    code: "CB2026-2251",
+    name: "Trịnh Gia An",
+    unit: "Ban Giám hiệu",
+    type: "Xác định thời hạn 24 tháng",
+    start: "01/11/2024",
+    end: "28/11/2026",
+    status: "Còn hiệu lực",
+    remaining: "370 ngày",
+  },
+  {
+    number: "HĐLĐ-2026-1262",
+    code: "CB2026-2252",
+    name: "Đoàn Gia An",
+    unit: "Phòng Tổ chức - Cán bộ",
+    type: "Xác định thời hạn 36 tháng",
+    start: "01/12/2024",
+    end: "28/12/2025",
+    status: "Hết hiệu lực",
+    remaining: "Quá hạn",
+  },
+  {
+    number: "HĐLĐ-2026-1263",
+    code: "CB2026-2253",
+    name: "Lương Gia An",
+    unit: "Phòng Tài chính - Kế toán",
+    type: "Không xác định thời hạn",
+    start: "01/01/2024",
+    end: "28/01/2026",
+    status: "Còn hiệu lực",
+    remaining: "372 ngày",
+  },
+  {
+    number: "HĐLĐ-2026-1264",
+    code: "CB2026-2254",
+    name: "Tô Gia An",
+    unit: "Khoa Công nghệ thông tin",
+    type: "Xác định thời hạn 24 tháng",
+    start: "01/02/2025",
+    end: "28/02/2027",
+    status: "Còn hiệu lực",
+    remaining: "373 ngày",
+  },
+  {
+    number: "HĐLĐ-2026-1265",
+    code: "CB2026-2255",
+    name: "Nguyễn Hoài An",
+    unit: "Khoa Kinh tế và Quản lý",
+    type: "Xác định thời hạn 36 tháng",
+    start: "01/03/2024",
+    end: "28/03/2026",
+    status: "Còn hiệu lực",
+    remaining: "374 ngày",
+  },
+  {
+    number: "HĐLĐ-2026-1266",
+    code: "CB2026-2256",
+    name: "Trần Hoài An",
+    unit: "Ban Giám hiệu",
+    type: "Xác định thời hạn 12 tháng",
+    start: "01/04/2025",
+    end: "28/04/2027",
+    status: "Còn hiệu lực",
+    remaining: "375 ngày",
+  },
+  {
+    number: "HĐLĐ-2026-1267",
+    code: "CB2026-2257",
+    name: "Lê Hoài An",
+    unit: "Phòng Tổ chức - Cán bộ",
+    type: "Không xác định thời hạn",
+    start: "01/05/2024",
+    end: "28/05/2026",
+    status: "Còn hiệu lực",
+    remaining: "376 ngày",
+  },
+  {
+    number: "HĐLĐ-2026-1268",
+    code: "CB2026-2258",
+    name: "Phạm Hoài An",
+    unit: "Phòng Tài chính - Kế toán",
+    type: "Xác định thời hạn 36 tháng",
+    start: "01/06/2025",
+    end: "28/06/2027",
+    status: "Còn hiệu lực",
+    remaining: "377 ngày",
+  },
+  {
+    number: "HĐLĐ-2026-1269",
+    code: "CB2026-2259",
+    name: "Hoàng Hoài An",
+    unit: "Khoa Công nghệ thông tin",
+    type: "Xác định thời hạn 12 tháng",
+    start: "01/07/2024",
+    end: "28/07/2026",
+    status: "Còn hiệu lực",
+    remaining: "378 ngày",
+  },
+  {
+    number: "HĐLĐ-2026-1270",
+    code: "CB2026-2260",
+    name: "Huỳnh Hoài An",
+    unit: "Khoa Kinh tế và Quản lý",
+    type: "Xác định thời hạn 24 tháng",
+    start: "01/08/2025",
+    end: "28/08/2027",
+    status: "Còn hiệu lực",
+    remaining: "379 ngày",
+  },
+  {
+    number: "HĐLĐ-2026-1271",
+    code: "CB2026-2261",
+    name: "Phan Hoài An",
+    unit: "Ban Giám hiệu",
+    type: "Hợp đồng thử việc",
+    start: "01/09/2021",
+    end: "28/09/2022",
+    status: "Hết hiệu lực",
+    remaining: "Quá hạn",
+  },
+  {
+    number: "HĐLĐ-2026-1272",
+    code: "CB2026-2262",
+    name: "Vũ Hoài An",
+    unit: "Phòng Tổ chức - Cán bộ",
+    type: "Xác định thời hạn 12 tháng",
+    start: "01/10/2025",
+    end: "28/10/2027",
+    status: "Còn hiệu lực",
+    remaining: "381 ngày",
+  },
+  {
+    number: "HĐLĐ-2026-1273",
+    code: "CB2026-2263",
+    name: "Võ Hoài An",
+    unit: "Phòng Tài chính - Kế toán",
+    type: "Xác định thời hạn 24 tháng",
+    start: "01/11/2024",
+    end: "28/11/2026",
+    status: "Còn hiệu lực",
+    remaining: "382 ngày",
+  },
+  {
+    number: "HĐLĐ-2026-1274",
+    code: "CB2026-2264",
+    name: "Đặng Hoài An",
+    unit: "Khoa Công nghệ thông tin",
+    type: "Xác định thời hạn 36 tháng",
+    start: "01/12/2025",
+    end: "28/12/2027",
+    status: "Còn hiệu lực",
+    remaining: "383 ngày",
+  },
+  {
+    number: "HĐLĐ-2026-1275",
+    code: "CB2026-2265",
+    name: "Bùi Hoài An",
+    unit: "Khoa Kinh tế và Quản lý",
+    type: "Không xác định thời hạn",
+    start: "01/01/2024",
+    end: "28/01/2026",
+    status: "Còn hiệu lực",
+    remaining: "384 ngày",
+  },
+  {
+    number: "HĐLĐ-2026-1276",
+    code: "CB2026-2266",
+    name: "Đỗ Hoài An",
+    unit: "Ban Giám hiệu",
+    type: "Xác định thời hạn 24 tháng",
+    start: "01/02/2025",
+    end: "28/02/2027",
+    status: "Còn hiệu lực",
+    remaining: "385 ngày",
+  },
+  {
+    number: "HĐLĐ-2026-1277",
+    code: "CB2026-2267",
+    name: "Hồ Hoài An",
+    unit: "Phòng Tổ chức - Cán bộ",
+    type: "Xác định thời hạn 36 tháng",
+    start: "01/03/2024",
+    end: "28/03/2026",
+    status: "Còn hiệu lực",
+    remaining: "386 ngày",
+  },
+  {
+    number: "HĐLĐ-2026-1278",
+    code: "CB2026-2268",
+    name: "Ngô Hoài An",
+    unit: "Phòng Tài chính - Kế toán",
+    type: "Xác định thời hạn 12 tháng",
+    start: "01/04/2025",
+    end: "28/04/2027",
+    status: "Còn hiệu lực",
+    remaining: "387 ngày",
+  },
+  {
+    number: "HĐLĐ-2026-1279",
+    code: "CB2026-2269",
+    name: "Dương Hoài An",
+    unit: "Khoa Công nghệ thông tin",
+    type: "Không xác định thời hạn",
+    start: "01/05/2024",
+    end: "28/05/2026",
+    status: "Còn hiệu lực",
+    remaining: "388 ngày",
+  },
+  {
+    number: "HĐLĐ-2026-1280",
+    code: "CB2026-2270",
+    name: "Lý Hoài An",
+    unit: "Khoa Kinh tế và Quản lý",
+    type: "Xác định thời hạn 36 tháng",
+    start: "01/06/2022",
+    end: "28/06/2023",
+    status: "Hết hiệu lực",
+    remaining: "Quá hạn",
+  },
+  {
+    number: "HĐLĐ-2026-1281",
+    code: "CB2026-2271",
+    name: "Mai Hoài An",
+    unit: "Ban Giám hiệu",
+    type: "Xác định thời hạn 12 tháng",
+    start: "01/07/2024",
+    end: "28/07/2026",
+    status: "Còn hiệu lực",
+    remaining: "390 ngày",
+  },
+  {
+    number: "HĐLĐ-2026-1282",
+    code: "CB2026-2272",
+    name: "Tạ Hoài An",
+    unit: "Phòng Tổ chức - Cán bộ",
+    type: "Xác định thời hạn 24 tháng",
+    start: "01/08/2025",
+    end: "28/08/2027",
+    status: "Còn hiệu lực",
+    remaining: "391 ngày",
+  },
+  {
+    number: "HĐLĐ-2026-1283",
+    code: "CB2026-2273",
+    name: "Cao Hoài An",
+    unit: "Phòng Tài chính - Kế toán",
+    type: "Không xác định thời hạn",
+    start: "01/09/2024",
+    end: "28/09/2026",
+    status: "Còn hiệu lực",
+    remaining: "392 ngày",
+  },
+  {
+    number: "HĐLĐ-2026-1284",
+    code: "CB2026-2274",
+    name: "Đinh Hoài An",
+    unit: "Khoa Công nghệ thông tin",
+    type: "Xác định thời hạn 12 tháng",
+    start: "01/10/2025",
+    end: "28/10/2027",
+    status: "Còn hiệu lực",
+    remaining: "393 ngày",
+  },
+  {
+    number: "HĐLĐ-2026-1285",
+    code: "CB2026-2275",
+    name: "Trịnh Hoài An",
+    unit: "Khoa Kinh tế và Quản lý",
+    type: "Xác định thời hạn 24 tháng",
+    start: "01/11/2024",
+    end: "28/11/2026",
+    status: "Còn hiệu lực",
+    remaining: "394 ngày",
+  },
+  {
+    number: "HĐLĐ-2026-1286",
+    code: "CB2026-2276",
+    name: "Đoàn Hoài An",
+    unit: "Ban Giám hiệu",
+    type: "Xác định thời hạn 36 tháng",
+    start: "01/12/2025",
+    end: "28/12/2027",
+    status: "Còn hiệu lực",
+    remaining: "395 ngày",
+  },
+  {
+    number: "HĐLĐ-2026-1287",
+    code: "CB2026-2277",
+    name: "Lương Hoài An",
+    unit: "Phòng Tổ chức - Cán bộ",
+    type: "Không xác định thời hạn",
+    start: "01/01/2024",
+    end: "28/01/2026",
+    status: "Còn hiệu lực",
+    remaining: "396 ngày",
+  },
+  {
+    number: "HĐLĐ-2026-1288",
+    code: "CB2026-2278",
+    name: "Tô Hoài An",
+    unit: "Phòng Tài chính - Kế toán",
+    type: "Xác định thời hạn 24 tháng",
+    start: "01/02/2025",
+    end: "28/02/2027",
+    status: "Còn hiệu lực",
+    remaining: "397 ngày",
+  },
+  {
+    number: "HĐLĐ-2026-1289",
+    code: "CB2026-2279",
+    name: "Nguyễn Khánh An",
+    unit: "Khoa Công nghệ thông tin",
+    type: "Xác định thời hạn 36 tháng",
+    start: "01/03/2023",
+    end: "28/03/2024",
+    status: "Hết hiệu lực",
+    remaining: "Quá hạn",
+  },
+  {
+    number: "HĐLĐ-2026-1290",
+    code: "CB2026-2280",
+    name: "Trần Khánh An",
+    unit: "Khoa Kinh tế và Quản lý",
+    type: "Xác định thời hạn 12 tháng",
+    start: "01/04/2024",
+    end: "21/06/2026",
+    status: "Sắp hết hạn",
+    remaining: "20 ngày",
+  },
+  {
+    number: "HĐLĐ-2026-1291",
+    code: "CB2026-2281",
+    name: "Lê Khánh An",
+    unit: "Ban Giám hiệu",
+    type: "Không xác định thời hạn",
+    start: "01/05/2024",
+    end: "28/05/2026",
+    status: "Còn hiệu lực",
+    remaining: "400 ngày",
+  },
+  {
+    number: "HĐLĐ-2026-1292",
+    code: "CB2026-2282",
+    name: "Phạm Khánh An",
+    unit: "Phòng Tổ chức - Cán bộ",
+    type: "Xác định thời hạn 36 tháng",
+    start: "01/06/2025",
+    end: "28/06/2027",
+    status: "Còn hiệu lực",
+    remaining: "401 ngày",
+  },
+  {
+    number: "HĐLĐ-2026-1293",
+    code: "CB2026-2283",
+    name: "Hoàng Khánh An",
+    unit: "Phòng Tài chính - Kế toán",
+    type: "Xác định thời hạn 12 tháng",
+    start: "01/07/2024",
+    end: "28/07/2026",
+    status: "Còn hiệu lực",
+    remaining: "402 ngày",
+  },
+  {
+    number: "HĐLĐ-2026-1294",
+    code: "CB2026-2284",
+    name: "Huỳnh Khánh An",
+    unit: "Khoa Công nghệ thông tin",
+    type: "Xác định thời hạn 24 tháng",
+    start: "01/08/2025",
+    end: "28/08/2027",
+    status: "Còn hiệu lực",
+    remaining: "403 ngày",
+  },
+  {
+    number: "HĐLĐ-2026-1295",
+    code: "CB2026-2285",
+    name: "Phan Khánh An",
+    unit: "Khoa Kinh tế và Quản lý",
+    type: "Không xác định thời hạn",
+    start: "01/09/2024",
+    end: "28/09/2026",
+    status: "Còn hiệu lực",
+    remaining: "404 ngày",
+  },
+  {
+    number: "HĐLĐ-2026-1296",
+    code: "CB2026-2286",
+    name: "Vũ Khánh An",
+    unit: "Ban Giám hiệu",
+    type: "Xác định thời hạn 12 tháng",
+    start: "01/10/2025",
+    end: "28/10/2027",
+    status: "Còn hiệu lực",
+    remaining: "405 ngày",
+  },
+  {
+    number: "HĐLĐ-2026-1297",
+    code: "CB2026-2287",
+    name: "Võ Khánh An",
+    unit: "Phòng Tổ chức - Cán bộ",
+    type: "Xác định thời hạn 24 tháng",
+    start: "01/11/2024",
+    end: "28/11/2026",
+    status: "Còn hiệu lực",
+    remaining: "406 ngày",
+  },
+  {
+    number: "HĐLĐ-2026-1298",
+    code: "CB2026-2288",
+    name: "Đặng Khánh An",
+    unit: "Phòng Tài chính - Kế toán",
+    type: "Xác định thời hạn 36 tháng",
+    start: "01/12/2024",
+    end: "28/12/2025",
+    status: "Hết hiệu lực",
+    remaining: "Quá hạn",
+  },
+  {
+    number: "HĐLĐ-2026-1299",
+    code: "CB2026-2289",
+    name: "Bùi Khánh An",
+    unit: "Khoa Công nghệ thông tin",
+    type: "Không xác định thời hạn",
+    start: "01/01/2024",
+    end: "28/01/2026",
+    status: "Còn hiệu lực",
+    remaining: "408 ngày",
+  },
+  {
+    number: "HĐLĐ-2026-1300",
+    code: "CB2026-2290",
+    name: "Đỗ Khánh An",
+    unit: "Khoa Kinh tế và Quản lý",
+    type: "Xác định thời hạn 24 tháng",
+    start: "01/02/2025",
+    end: "28/02/2027",
+    status: "Còn hiệu lực",
+    remaining: "409 ngày",
+  },
+  {
+    number: "HĐLĐ-2026-1301",
+    code: "CB2026-2291",
+    name: "Hồ Khánh An",
+    unit: "Ban Giám hiệu",
+    type: "Xác định thời hạn 36 tháng",
+    start: "01/03/2024",
+    end: "28/03/2026",
+    status: "Còn hiệu lực",
+    remaining: "410 ngày",
+  },
+  {
+    number: "HĐLĐ-2026-1302",
+    code: "CB2026-2292",
+    name: "Ngô Khánh An",
+    unit: "Phòng Tổ chức - Cán bộ",
+    type: "Xác định thời hạn 12 tháng",
+    start: "01/04/2025",
+    end: "28/04/2027",
+    status: "Còn hiệu lực",
+    remaining: "411 ngày",
+  },
+  {
+    number: "HĐLĐ-2026-1303",
+    code: "CB2026-2293",
+    name: "Dương Khánh An",
+    unit: "Phòng Tài chính - Kế toán",
+    type: "Không xác định thời hạn",
+    start: "01/05/2024",
+    end: "28/05/2026",
+    status: "Còn hiệu lực",
+    remaining: "412 ngày",
+  },
+  {
+    number: "HĐLĐ-2026-1304",
+    code: "CB2026-2294",
+    name: "Lý Khánh An",
+    unit: "Khoa Công nghệ thông tin",
+    type: "Xác định thời hạn 36 tháng",
+    start: "01/06/2025",
+    end: "28/06/2027",
+    status: "Còn hiệu lực",
+    remaining: "413 ngày",
+  },
+  {
+    number: "HĐLĐ-2026-1305",
+    code: "CB2026-2295",
+    name: "Mai Khánh An",
+    unit: "Khoa Kinh tế và Quản lý",
+    type: "Xác định thời hạn 12 tháng",
+    start: "01/07/2024",
+    end: "28/07/2026",
+    status: "Còn hiệu lực",
+    remaining: "414 ngày",
+  },
+  {
+    number: "HĐLĐ-2026-1306",
+    code: "CB2026-2296",
+    name: "Tạ Khánh An",
+    unit: "Ban Giám hiệu",
+    type: "Xác định thời hạn 24 tháng",
+    start: "01/08/2025",
+    end: "28/08/2027",
+    status: "Còn hiệu lực",
+    remaining: "415 ngày",
+  },
+  {
+    number: "HĐLĐ-2026-1307",
+    code: "CB2026-2297",
+    name: "Cao Khánh An",
+    unit: "Phòng Tổ chức - Cán bộ",
+    type: "Không xác định thời hạn",
+    start: "01/09/2021",
+    end: "28/09/2022",
+    status: "Hết hiệu lực",
+    remaining: "Quá hạn",
+  },
+  {
+    number: "HĐLĐ-2026-1308",
+    code: "CB2026-2298",
+    name: "Đinh Khánh An",
+    unit: "Phòng Tài chính - Kế toán",
+    type: "Xác định thời hạn 12 tháng",
+    start: "01/10/2025",
+    end: "28/10/2027",
+    status: "Còn hiệu lực",
+    remaining: "417 ngày",
+  },
+  {
+    number: "HĐLĐ-2026-1309",
+    code: "CB2026-2299",
+    name: "Trịnh Khánh An",
+    unit: "Khoa Công nghệ thông tin",
+    type: "Xác định thời hạn 24 tháng",
+    start: "01/11/2024",
+    end: "28/11/2026",
+    status: "Còn hiệu lực",
+    remaining: "418 ngày",
+  },
+  {
+    number: "HĐLĐ-2026-1310",
+    code: "CB2026-2300",
+    name: "Đoàn Khánh An",
+    unit: "Khoa Kinh tế và Quản lý",
+    type: "Xác định thời hạn 36 tháng",
+    start: "01/12/2025",
+    end: "28/12/2027",
+    status: "Còn hiệu lực",
+    remaining: "419 ngày",
+  },
+  {
+    number: "HĐLĐ-2026-1311",
+    code: "CB2026-2301",
+    name: "Lương Khánh An",
+    unit: "Ban Giám hiệu",
+    type: "Không xác định thời hạn",
+    start: "01/01/2024",
+    end: "28/01/2026",
+    status: "Còn hiệu lực",
+    remaining: "420 ngày",
+  },
+  {
+    number: "HĐLĐ-2026-1312",
+    code: "CB2026-2302",
+    name: "Tô Khánh An",
+    unit: "Phòng Tổ chức - Cán bộ",
+    type: "Xác định thời hạn 24 tháng",
+    start: "01/02/2025",
+    end: "28/02/2027",
+    status: "Còn hiệu lực",
+    remaining: "421 ngày",
+  },
+  {
+    number: "HĐLĐ-2026-1313",
+    code: "CB2026-2303",
+    name: "Nguyễn Nhật An",
+    unit: "Phòng Tài chính - Kế toán",
+    type: "Xác định thời hạn 36 tháng",
+    start: "15/03/2024",
+    end: "16/06/2026",
+    status: "Chờ gia hạn",
+    remaining: "15 ngày",
+  },
+  {
+    number: "HĐLĐ-2026-1314",
+    code: "CB2026-2304",
+    name: "Trần Nhật An",
+    unit: "Khoa Công nghệ thông tin",
+    type: "Xác định thời hạn 12 tháng",
+    start: "01/04/2025",
+    end: "28/04/2027",
+    status: "Còn hiệu lực",
+    remaining: "423 ngày",
+  },
+  {
+    number: "HĐLĐ-2026-1315",
+    code: "CB2026-2305",
+    name: "Lê Nhật An",
+    unit: "Khoa Kinh tế và Quản lý",
+    type: "Không xác định thời hạn",
+    start: "01/05/2024",
+    end: "28/05/2026",
+    status: "Còn hiệu lực",
+    remaining: "424 ngày",
+  },
+  {
+    number: "HĐLĐ-2026-1316",
+    code: "CB2026-2306",
+    name: "Phạm Nhật An",
+    unit: "Ban Giám hiệu",
+    type: "Hợp đồng thử việc",
+    start: "01/06/2022",
+    end: "28/06/2023",
+    status: "Hết hiệu lực",
+    remaining: "Quá hạn",
+  },
+  {
+    number: "HĐLĐ-2026-1317",
+    code: "CB2026-2307",
+    name: "Hoàng Nhật An",
+    unit: "Phòng Tổ chức - Cán bộ",
+    type: "Xác định thời hạn 12 tháng",
+    start: "01/07/2024",
+    end: "28/07/2026",
+    status: "Còn hiệu lực",
+    remaining: "426 ngày",
+  },
+  {
+    number: "HĐLĐ-2026-1318",
+    code: "CB2026-2308",
+    name: "Huỳnh Nhật An",
+    unit: "Phòng Tài chính - Kế toán",
+    type: "Xác định thời hạn 24 tháng",
+    start: "01/08/2025",
+    end: "28/08/2027",
+    status: "Còn hiệu lực",
+    remaining: "427 ngày",
+  },
+  {
+    number: "HĐLĐ-2026-1319",
+    code: "CB2026-2309",
+    name: "Phan Nhật An",
+    unit: "Khoa Công nghệ thông tin",
+    type: "Không xác định thời hạn",
+    start: "01/09/2024",
+    end: "28/09/2026",
+    status: "Còn hiệu lực",
+    remaining: "428 ngày",
+  },
+  {
+    number: "HĐLĐ-2026-1320",
+    code: "CB2026-2310",
+    name: "Vũ Nhật An",
+    unit: "Khoa Kinh tế và Quản lý",
+    type: "Xác định thời hạn 12 tháng",
+    start: "01/10/2025",
+    end: "28/10/2027",
+    status: "Còn hiệu lực",
+    remaining: "429 ngày",
+  },
+  {
+    number: "HĐLĐ-2026-1321",
+    code: "CB2026-2311",
+    name: "Võ Nhật An",
+    unit: "Ban Giám hiệu",
+    type: "Xác định thời hạn 24 tháng",
+    start: "01/11/2024",
+    end: "28/11/2026",
+    status: "Còn hiệu lực",
+    remaining: "430 ngày",
+  },
+  {
+    number: "HĐLĐ-2026-1322",
+    code: "CB2026-2312",
+    name: "Đặng Nhật An",
+    unit: "Phòng Tổ chức - Cán bộ",
+    type: "Xác định thời hạn 36 tháng",
+    start: "01/12/2025",
+    end: "28/12/2027",
+    status: "Còn hiệu lực",
+    remaining: "431 ngày",
+  },
+  {
+    number: "HĐLĐ-2026-1323",
+    code: "CB2026-2313",
+    name: "Bùi Nhật An",
+    unit: "Phòng Tài chính - Kế toán",
+    type: "Không xác định thời hạn",
+    start: "01/01/2024",
+    end: "28/01/2026",
+    status: "Còn hiệu lực",
+    remaining: "432 ngày",
+  },
+  {
+    number: "HĐLĐ-2026-1324",
+    code: "CB2026-2314",
+    name: "Đỗ Nhật An",
+    unit: "Khoa Công nghệ thông tin",
+    type: "Xác định thời hạn 24 tháng",
+    start: "01/02/2025",
+    end: "28/02/2027",
+    status: "Còn hiệu lực",
+    remaining: "433 ngày",
+  },
+  {
+    number: "HĐLĐ-2026-1325",
+    code: "CB2026-2315",
+    name: "Hồ Nhật An",
+    unit: "Khoa Kinh tế và Quản lý",
+    type: "Xác định thời hạn 36 tháng",
+    start: "01/03/2023",
+    end: "28/03/2024",
+    status: "Hết hiệu lực",
+    remaining: "Quá hạn",
+  },
+  {
+    number: "HĐLĐ-2026-1326",
+    code: "CB2026-2316",
+    name: "Ngô Nhật An",
+    unit: "Ban Giám hiệu",
+    type: "Xác định thời hạn 12 tháng",
+    start: "01/04/2025",
+    end: "28/04/2027",
+    status: "Còn hiệu lực",
+    remaining: "435 ngày",
+  },
+  {
+    number: "HĐLĐ-2026-1327",
+    code: "CB2026-2317",
+    name: "Dương Nhật An",
+    unit: "Phòng Tổ chức - Cán bộ",
+    type: "Không xác định thời hạn",
+    start: "01/05/2024",
+    end: "28/05/2026",
+    status: "Còn hiệu lực",
+    remaining: "436 ngày",
+  },
+  {
+    number: "HĐLĐ-2026-1328",
+    code: "CB2026-2318",
+    name: "Lý Nhật An",
+    unit: "Phòng Tài chính - Kế toán",
+    type: "Xác định thời hạn 36 tháng",
+    start: "01/06/2025",
+    end: "28/06/2027",
+    status: "Còn hiệu lực",
+    remaining: "437 ngày",
+  },
+  {
+    number: "HĐLĐ-2026-1329",
+    code: "CB2026-2319",
+    name: "Mai Nhật An",
+    unit: "Khoa Công nghệ thông tin",
+    type: "Xác định thời hạn 12 tháng",
+    start: "01/07/2024",
+    end: "28/07/2026",
+    status: "Còn hiệu lực",
+    remaining: "438 ngày",
+  },
+  {
+    number: "HĐLĐ-2026-1330",
+    code: "CB2026-2320",
+    name: "Tạ Nhật An",
+    unit: "Khoa Kinh tế và Quản lý",
+    type: "Xác định thời hạn 24 tháng",
+    start: "01/08/2025",
+    end: "28/08/2027",
+    status: "Còn hiệu lực",
+    remaining: "439 ngày",
+  },
+  {
+    number: "HĐLĐ-2026-1331",
+    code: "CB2026-2321",
+    name: "Cao Nhật An",
+    unit: "Ban Giám hiệu",
+    type: "Không xác định thời hạn",
+    start: "01/09/2024",
+    end: "28/09/2026",
+    status: "Còn hiệu lực",
+    remaining: "440 ngày",
+  },
+  {
+    number: "HĐLĐ-2026-1332",
+    code: "CB2026-2322",
+    name: "Đinh Nhật An",
+    unit: "Phòng Tổ chức - Cán bộ",
+    type: "Xác định thời hạn 12 tháng",
+    start: "01/10/2024",
+    end: "27/06/2026",
+    status: "Sắp hết hạn",
+    remaining: "14 ngày",
+  },
+  {
+    number: "HĐLĐ-2026-1333",
+    code: "CB2026-2323",
+    name: "Trịnh Nhật An",
+    unit: "Phòng Tài chính - Kế toán",
+    type: "Xác định thời hạn 24 tháng",
+    start: "01/11/2024",
+    end: "28/11/2026",
+    status: "Còn hiệu lực",
+    remaining: "442 ngày",
+  },
+  {
+    number: "HĐLĐ-2026-1334",
+    code: "CB2026-2324",
+    name: "Đoàn Nhật An",
+    unit: "Khoa Công nghệ thông tin",
+    type: "Xác định thời hạn 36 tháng",
+    start: "01/12/2024",
+    end: "28/12/2025",
+    status: "Hết hiệu lực",
+    remaining: "Quá hạn",
+  },
+  {
+    number: "HĐLĐ-2026-1335",
+    code: "CB2026-2325",
+    name: "Lương Nhật An",
+    unit: "Khoa Kinh tế và Quản lý",
+    type: "Không xác định thời hạn",
+    start: "01/01/2024",
+    end: "28/01/2026",
+    status: "Còn hiệu lực",
+    remaining: "444 ngày",
+  },
+  {
+    number: "HĐLĐ-2026-1336",
+    code: "CB2026-2326",
+    name: "Tô Nhật An",
+    unit: "Ban Giám hiệu",
+    type: "Xác định thời hạn 24 tháng",
+    start: "01/02/2025",
+    end: "28/02/2027",
+    status: "Còn hiệu lực",
+    remaining: "445 ngày",
+  },
+  {
+    number: "HĐLĐ-2026-1337",
+    code: "CB2026-2327",
+    name: "Nguyễn Bảo An",
+    unit: "Phòng Tổ chức - Cán bộ",
+    type: "Xác định thời hạn 36 tháng",
+    start: "01/03/2024",
+    end: "28/03/2026",
+    status: "Còn hiệu lực",
+    remaining: "446 ngày",
+  },
+  {
+    number: "HĐLĐ-2026-1338",
+    code: "CB2026-2328",
+    name: "Trần Bảo An",
+    unit: "Phòng Tài chính - Kế toán",
+    type: "Xác định thời hạn 12 tháng",
+    start: "01/04/2025",
+    end: "28/04/2027",
+    status: "Còn hiệu lực",
+    remaining: "447 ngày",
+  },
+  {
+    number: "HĐLĐ-2026-1339",
+    code: "CB2026-2329",
+    name: "Lê Bảo An",
+    unit: "Khoa Công nghệ thông tin",
+    type: "Không xác định thời hạn",
+    start: "01/05/2024",
+    end: "28/05/2026",
+    status: "Còn hiệu lực",
+    remaining: "448 ngày",
+  },
+  {
+    number: "HĐLĐ-2026-1340",
+    code: "CB2026-2330",
+    name: "Phạm Bảo An",
+    unit: "Khoa Kinh tế và Quản lý",
+    type: "Xác định thời hạn 36 tháng",
+    start: "01/06/2025",
+    end: "28/06/2027",
+    status: "Còn hiệu lực",
+    remaining: "449 ngày",
+  },
+  {
+    number: "HĐLĐ-2026-1341",
+    code: "CB2026-2331",
+    name: "Hoàng Bảo An",
+    unit: "Ban Giám hiệu",
+    type: "Xác định thời hạn 12 tháng",
+    start: "01/07/2024",
+    end: "28/07/2026",
+    status: "Còn hiệu lực",
+    remaining: "450 ngày",
+  },
+  {
+    number: "HĐLĐ-2026-1342",
+    code: "CB2026-2332",
+    name: "Huỳnh Bảo An",
+    unit: "Phòng Tổ chức - Cán bộ",
+    type: "Xác định thời hạn 24 tháng",
+    start: "01/08/2025",
+    end: "28/08/2027",
+    status: "Còn hiệu lực",
+    remaining: "451 ngày",
+  },
+  {
+    number: "HĐLĐ-2026-1343",
+    code: "CB2026-2333",
+    name: "Phan Bảo An",
+    unit: "Phòng Tài chính - Kế toán",
+    type: "Không xác định thời hạn",
+    start: "01/09/2021",
+    end: "28/09/2022",
+    status: "Hết hiệu lực",
+    remaining: "Quá hạn",
+  },
+  {
+    number: "HĐLĐ-2026-1344",
+    code: "CB2026-2334",
+    name: "Vũ Bảo An",
+    unit: "Khoa Công nghệ thông tin",
+    type: "Xác định thời hạn 12 tháng",
+    start: "01/10/2025",
+    end: "28/10/2027",
+    status: "Còn hiệu lực",
+    remaining: "453 ngày",
+  },
+  {
+    number: "HĐLĐ-2025-4345",
+    code: "CB2026-2335",
+    name: "Võ Bảo An",
+    unit: "Khoa Kinh tế và Quản lý",
+    type: "Xác định thời hạn 24 tháng",
+    start: "01/11/2024",
+    end: "28/11/2026",
+    status: "Còn hiệu lực",
+    remaining: "454 ngày",
+  },
+  {
+    number: "HĐLĐ-2025-4346",
+    code: "CB2026-2336",
+    name: "Đặng Bảo An",
+    unit: "Ban Giám hiệu",
+    type: "Xác định thời hạn 36 tháng",
+    start: "01/12/2025",
+    end: "28/12/2027",
+    status: "Còn hiệu lực",
+    remaining: "455 ngày",
+  },
+  {
+    number: "HĐLĐ-2025-4347",
+    code: "CB2026-2337",
+    name: "Bùi Bảo An",
+    unit: "Phòng Tổ chức - Cán bộ",
+    type: "Không xác định thời hạn",
+    start: "01/01/2024",
+    end: "28/01/2026",
+    status: "Còn hiệu lực",
+    remaining: "456 ngày",
+  },
+  {
+    number: "HĐLĐ-2025-4348",
+    code: "CB2026-2338",
+    name: "Đỗ Bảo An",
+    unit: "Phòng Tài chính - Kế toán",
+    type: "Xác định thời hạn 24 tháng",
+    start: "01/02/2025",
+    end: "28/02/2027",
+    status: "Còn hiệu lực",
+    remaining: "457 ngày",
+  },
+  {
+    number: "HĐLĐ-2025-4349",
+    code: "CB2026-2339",
+    name: "Hồ Bảo An",
+    unit: "Khoa Công nghệ thông tin",
+    type: "Xác định thời hạn 36 tháng",
+    start: "01/03/2024",
+    end: "28/03/2026",
+    status: "Còn hiệu lực",
+    remaining: "458 ngày",
+  },
+  {
+    number: "HĐLĐ-2023-5350",
+    code: "CB2026-2340",
+    name: "Ngô Bảo An",
+    unit: "Khoa Kinh tế và Quản lý",
+    type: "Xác định thời hạn 12 tháng",
+    start: "01/04/2025",
+    end: "28/04/2027",
+    status: "Còn hiệu lực",
+    remaining: "459 ngày",
+  },
+  {
+    number: "HĐLĐ-2023-5351",
+    code: "CB2026-2341",
+    name: "Dương Bảo An",
+    unit: "Ban Giám hiệu",
+    type: "Không xác định thời hạn",
+    start: "01/05/2024",
+    end: "28/05/2026",
+    status: "Còn hiệu lực",
+    remaining: "460 ngày",
+  },
+  {
+    number: "HĐLĐ-2023-5352",
+    code: "CB2026-2342",
+    name: "Lý Bảo An",
+    unit: "Phòng Tổ chức - Cán bộ",
+    type: "Xác định thời hạn 36 tháng",
+    start: "01/06/2022",
+    end: "28/06/2023",
+    status: "Hết hiệu lực",
+    remaining: "Quá hạn",
+  },
+  {
+    number: "HĐLĐ-2023-5353",
+    code: "CB2026-2343",
+    name: "Mai Bảo An",
+    unit: "Phòng Tài chính - Kế toán",
+    type: "Xác định thời hạn 12 tháng",
+    start: "01/07/2024",
+    end: "28/07/2026",
+    status: "Còn hiệu lực",
+    remaining: "462 ngày",
+  },
+  {
+    number: "HĐLĐ-2023-5354",
+    code: "CB2026-2344",
+    name: "Tạ Bảo An",
+    unit: "Khoa Công nghệ thông tin",
+    type: "Xác định thời hạn 24 tháng",
+    start: "01/08/2025",
+    end: "28/08/2027",
+    status: "Còn hiệu lực",
+    remaining: "463 ngày",
+  },
+  {
+    number: "HĐLĐ-2023-5355",
+    code: "CB2026-2345",
+    name: "Cao Bảo An",
+    unit: "Khoa Kinh tế và Quản lý",
+    type: "Không xác định thời hạn",
+    start: "01/09/2024",
+    end: "28/09/2026",
+    status: "Còn hiệu lực",
+    remaining: "464 ngày",
+  },
+  {
+    number: "HĐLĐ-2023-5356",
+    code: "CB2026-2346",
+    name: "Đinh Bảo An",
+    unit: "Ban Giám hiệu",
+    type: "Xác định thời hạn 12 tháng",
+    start: "01/10/2025",
+    end: "28/10/2027",
+    status: "Còn hiệu lực",
+    remaining: "465 ngày",
+  },
+  {
+    number: "HĐLĐ-2023-5357",
+    code: "CB2026-2347",
+    name: "Trịnh Bảo An",
+    unit: "Phòng Tổ chức - Cán bộ",
+    type: "Xác định thời hạn 24 tháng",
+    start: "01/11/2024",
+    end: "28/11/2026",
+    status: "Còn hiệu lực",
+    remaining: "466 ngày",
+  },
+  {
+    number: "HĐLĐ-2023-5358",
+    code: "CB2026-2348",
+    name: "Đoàn Bảo An",
+    unit: "Phòng Tài chính - Kế toán",
+    type: "Xác định thời hạn 36 tháng",
+    start: "01/12/2025",
+    end: "28/12/2027",
+    status: "Còn hiệu lực",
+    remaining: "467 ngày",
+  },
+  {
+    number: "HĐLĐ-2023-5359",
+    code: "CB2026-2349",
+    name: "Lương Bảo An",
+    unit: "Khoa Công nghệ thông tin",
+    type: "Không xác định thời hạn",
+    start: "01/01/2024",
+    end: "28/01/2026",
+    status: "Còn hiệu lực",
+    remaining: "468 ngày",
+  },
+  {
+    number: "HĐLĐ-2023-5360",
+    code: "CB2026-2350",
+    name: "Tô Bảo An",
+    unit: "Khoa Kinh tế và Quản lý",
+    type: "Xác định thời hạn 24 tháng",
+    start: "01/02/2025",
+    end: "28/02/2027",
+    status: "Còn hiệu lực",
+    remaining: "469 ngày",
+  },
+  {
+    number: "HĐLĐ-2023-5361",
+    code: "CB2026-2351",
+    name: "Nguyễn Kim An",
+    unit: "Ban Giám hiệu",
+    type: "Hợp đồng thử việc",
+    start: "01/03/2023",
+    end: "28/03/2024",
+    status: "Hết hiệu lực",
+    remaining: "Quá hạn",
+  },
+  {
+    number: "HĐLĐ-2023-5362",
+    code: "CB2026-2352",
+    name: "Trần Kim An",
+    unit: "Phòng Tổ chức - Cán bộ",
+    type: "Xác định thời hạn 12 tháng",
+    start: "01/04/2025",
+    end: "28/04/2027",
+    status: "Còn hiệu lực",
+    remaining: "471 ngày",
+  },
+  {
+    number: "HĐLĐ-2023-5363",
+    code: "CB2026-2353",
+    name: "Lê Kim An",
+    unit: "Phòng Tài chính - Kế toán",
+    type: "Không xác định thời hạn",
+    start: "01/05/2024",
+    end: "28/05/2026",
+    status: "Còn hiệu lực",
+    remaining: "472 ngày",
+  },
+  {
+    number: "HĐLĐ-2023-5364",
+    code: "CB2026-2354",
+    name: "Phạm Kim An",
+    unit: "Khoa Công nghệ thông tin",
+    type: "Xác định thời hạn 36 tháng",
+    start: "01/06/2025",
+    end: "28/06/2027",
+    status: "Còn hiệu lực",
+    remaining: "473 ngày",
+  },
+  {
+    number: "HĐLĐ-2023-5365",
+    code: "CB2026-2355",
+    name: "Hoàng Kim An",
+    unit: "Khoa Kinh tế và Quản lý",
+    type: "Xác định thời hạn 12 tháng",
+    start: "01/07/2024",
+    end: "28/07/2026",
+    status: "Còn hiệu lực",
+    remaining: "474 ngày",
+  },
+  {
+    number: "HĐLĐ-2023-5366",
+    code: "CB2026-2356",
+    name: "Huỳnh Kim An",
+    unit: "Ban Giám hiệu",
+    type: "Xác định thời hạn 24 tháng",
+    start: "01/08/2025",
+    end: "28/08/2027",
+    status: "Còn hiệu lực",
+    remaining: "475 ngày",
+  },
+  {
+    number: "HĐLĐ-2023-5367",
+    code: "CB2026-2357",
+    name: "Phan Kim An",
+    unit: "Phòng Tổ chức - Cán bộ",
+    type: "Không xác định thời hạn",
+    start: "01/09/2024",
+    end: "28/09/2026",
+    status: "Còn hiệu lực",
+    remaining: "476 ngày",
+  },
+  {
+    number: "HĐLĐ-2023-5368",
+    code: "CB2026-2358",
+    name: "Vũ Kim An",
+    unit: "Phòng Tài chính - Kế toán",
+    type: "Xác định thời hạn 12 tháng",
+    start: "01/10/2025",
+    end: "28/10/2027",
+    status: "Còn hiệu lực",
+    remaining: "477 ngày",
+  },
+  {
+    number: "HĐLĐ-2023-5369",
+    code: "CB2026-2359",
+    name: "Võ Kim An",
+    unit: "Khoa Công nghệ thông tin",
+    type: "Xác định thời hạn 24 tháng",
+    start: "01/11/2024",
+    end: "28/11/2026",
+    status: "Còn hiệu lực",
+    remaining: "478 ngày",
+  },
+  {
+    number: "HĐLĐ-2023-5370",
+    code: "CB2026-2360",
+    name: "Đặng Kim An",
+    unit: "Khoa Kinh tế và Quản lý",
+    type: "Xác định thời hạn 36 tháng",
+    start: "01/12/2024",
+    end: "28/12/2025",
+    status: "Hết hiệu lực",
+    remaining: "Quá hạn",
+  },
+  {
+    number: "HĐLĐ-2023-5371",
+    code: "CB2026-2361",
+    name: "Bùi Kim An",
+    unit: "Ban Giám hiệu",
+    type: "Không xác định thời hạn",
+    start: "01/01/2024",
+    end: "18/06/2026",
+    status: "Sắp hết hạn",
+    remaining: "5 ngày",
+  },
+  {
+    number: "HĐLĐ-2023-5372",
+    code: "CB2026-2362",
+    name: "Đỗ Kim An",
+    unit: "Phòng Tổ chức - Cán bộ",
+    type: "Xác định thời hạn 24 tháng",
+    start: "01/02/2025",
+    end: "28/02/2027",
+    status: "Còn hiệu lực",
+    remaining: "481 ngày",
+  },
+  {
+    number: "HĐLĐ-2023-5373",
+    code: "CB2026-2363",
+    name: "Hồ Kim An",
+    unit: "Phòng Tài chính - Kế toán",
+    type: "Xác định thời hạn 36 tháng",
+    start: "01/03/2024",
+    end: "28/03/2026",
+    status: "Còn hiệu lực",
+    remaining: "482 ngày",
+  },
+  {
+    number: "HĐLĐ-2023-5374",
+    code: "CB2026-2364",
+    name: "Ngô Kim An",
+    unit: "Khoa Công nghệ thông tin",
+    type: "Xác định thời hạn 12 tháng",
+    start: "01/04/2025",
+    end: "28/04/2027",
+    status: "Còn hiệu lực",
+    remaining: "483 ngày",
+  },
+  {
+    number: "HĐLĐ-2023-5375",
+    code: "CB2026-2365",
+    name: "Dương Kim An",
+    unit: "Khoa Kinh tế và Quản lý",
+    type: "Không xác định thời hạn",
+    start: "01/05/2024",
+    end: "28/05/2026",
+    status: "Còn hiệu lực",
+    remaining: "484 ngày",
+  },
+  {
+    number: "HĐLĐ-2023-5376",
+    code: "CB2026-2366",
+    name: "Lý Kim An",
+    unit: "Ban Giám hiệu",
+    type: "Xác định thời hạn 36 tháng",
+    start: "01/06/2025",
+    end: "28/06/2027",
+    status: "Còn hiệu lực",
+    remaining: "485 ngày",
+  },
+  {
+    number: "HĐLĐ-2023-5377",
+    code: "CB2026-2367",
+    name: "Mai Kim An",
+    unit: "Phòng Tổ chức - Cán bộ",
+    type: "Xác định thời hạn 12 tháng",
+    start: "01/07/2024",
+    end: "28/07/2026",
+    status: "Còn hiệu lực",
+    remaining: "486 ngày",
+  },
+  {
+    number: "HĐLĐ-2023-5378",
+    code: "CB2026-2368",
+    name: "Tạ Kim An",
+    unit: "Phòng Tài chính - Kế toán",
+    type: "Xác định thời hạn 24 tháng",
+    start: "01/08/2025",
+    end: "28/08/2027",
+    status: "Còn hiệu lực",
+    remaining: "487 ngày",
+  },
+  {
+    number: "HĐLĐ-2023-5379",
+    code: "CB2026-2369",
+    name: "Cao Kim An",
+    unit: "Khoa Công nghệ thông tin",
+    type: "Không xác định thời hạn",
+    start: "01/09/2021",
+    end: "28/09/2022",
+    status: "Hết hiệu lực",
+    remaining: "Quá hạn",
+  },
+  {
+    number: "HĐLĐ-2023-5380",
+    code: "CB2026-2370",
+    name: "Đinh Kim An",
+    unit: "Khoa Kinh tế và Quản lý",
+    type: "Xác định thời hạn 12 tháng",
+    start: "01/10/2025",
+    end: "28/10/2027",
+    status: "Còn hiệu lực",
+    remaining: "489 ngày",
+  },
+  {
+    number: "HĐLĐ-2023-5381",
+    code: "CB2026-2371",
+    name: "Trịnh Kim An",
+    unit: "Ban Giám hiệu",
+    type: "Xác định thời hạn 24 tháng",
+    start: "01/11/2024",
+    end: "28/11/2026",
+    status: "Còn hiệu lực",
+    remaining: "490 ngày",
+  },
+  {
+    number: "HĐLĐ-2023-5382",
+    code: "CB2026-2372",
+    name: "Đoàn Kim An",
+    unit: "Phòng Tổ chức - Cán bộ",
+    type: "Xác định thời hạn 36 tháng",
+    start: "01/12/2025",
+    end: "28/12/2027",
+    status: "Còn hiệu lực",
+    remaining: "491 ngày",
+  },
+  {
+    number: "HĐLĐ-2023-5383",
+    code: "CB2026-2373",
+    name: "Lương Kim An",
+    unit: "Phòng Tài chính - Kế toán",
+    type: "Không xác định thời hạn",
+    start: "01/01/2024",
+    end: "28/01/2026",
+    status: "Còn hiệu lực",
+    remaining: "492 ngày",
+  },
+  {
+    number: "HĐLĐ-2023-5384",
+    code: "CB2026-2374",
+    name: "Tô Kim An",
+    unit: "Khoa Công nghệ thông tin",
+    type: "Xác định thời hạn 24 tháng",
+    start: "01/02/2025",
+    end: "28/02/2027",
+    status: "Còn hiệu lực",
+    remaining: "493 ngày",
+  },
+  {
+    number: "HĐLĐ-2023-5385",
+    code: "CB2026-2375",
+    name: "Nguyễn Văn Bình",
+    unit: "Khoa Kinh tế và Quản lý",
+    type: "Xác định thời hạn 36 tháng",
+    start: "01/03/2024",
+    end: "28/03/2026",
+    status: "Còn hiệu lực",
+    remaining: "494 ngày",
+  },
+  {
+    number: "HĐLĐ-2023-5386",
+    code: "CB2026-2376",
+    name: "Trần Văn Bình",
+    unit: "Ban Giám hiệu",
+    type: "Xác định thời hạn 12 tháng",
+    start: "01/04/2025",
+    end: "28/04/2027",
+    status: "Còn hiệu lực",
+    remaining: "495 ngày",
+  },
+  {
+    number: "HĐLĐ-2023-5387",
+    code: "CB2026-2377",
+    name: "Lê Văn Bình",
+    unit: "Phòng Tổ chức - Cán bộ",
+    type: "Không xác định thời hạn",
+    start: "15/05/2024",
+    end: "20/06/2026",
+    status: "Chờ gia hạn",
+    remaining: "17 ngày",
+  },
+  {
+    number: "HĐLĐ-2023-5388",
+    code: "CB2026-2378",
+    name: "Phạm Văn Bình",
+    unit: "Phòng Tài chính - Kế toán",
+    type: "Xác định thời hạn 36 tháng",
+    start: "01/06/2022",
+    end: "28/06/2023",
+    status: "Hết hiệu lực",
+    remaining: "Quá hạn",
+  },
+  {
+    number: "HĐLĐ-2023-5389",
+    code: "CB2026-2379",
+    name: "Hoàng Văn Bình",
+    unit: "Khoa Công nghệ thông tin",
+    type: "Xác định thời hạn 12 tháng",
+    start: "01/07/2024",
+    end: "28/07/2026",
+    status: "Còn hiệu lực",
+    remaining: "498 ngày",
+  },
+  {
+    number: "HĐLĐ-2023-5390",
+    code: "CB2026-2380",
+    name: "Huỳnh Văn Bình",
+    unit: "Khoa Kinh tế và Quản lý",
+    type: "Xác định thời hạn 24 tháng",
+    start: "01/08/2025",
+    end: "28/08/2027",
+    status: "Còn hiệu lực",
+    remaining: "499 ngày",
+  },
+  {
+    number: "HĐLĐ-2023-5391",
+    code: "CB2026-2381",
+    name: "Phan Văn Bình",
+    unit: "Ban Giám hiệu",
+    type: "Không xác định thời hạn",
+    start: "01/09/2024",
+    end: "28/09/2026",
+    status: "Còn hiệu lực",
+    remaining: "500 ngày",
+  },
+  {
+    number: "HĐLĐ-2023-5392",
+    code: "CB2026-2382",
+    name: "Vũ Văn Bình",
+    unit: "Phòng Tổ chức - Cán bộ",
+    type: "Xác định thời hạn 12 tháng",
+    start: "01/10/2022",
+    end: "28/10/2023",
+    status: "Hết hiệu lực",
+    remaining: "Quá hạn",
   },
 ];
 
@@ -310,6 +5092,7 @@ const statusOptions: DropdownOption[] = [
 ];
 
 const unitOptions: DropdownOption[] = [
+  { label: "Ban Giám hiệu", description: "Khối điều hành" },
   { label: "Phòng Tổ chức - Cán bộ", description: "Khối hành chính" },
   { label: "Phòng Tài chính - Kế toán", description: "Khối hành chính" },
   { label: "Khoa Công nghệ thông tin", description: "Đơn vị đào tạo" },
@@ -484,60 +5267,181 @@ function SummaryCards() {
   );
 }
 
-function ContractFilters() {
-  const [keyword, setKeyword] = useState("");
-  const [contractType, setContractType] = useState("Xác định thời hạn");
-  const [status, setStatus] = useState("Sắp hết hạn");
-  const [expiryDate, setExpiryDate] = useState("30/06/2026");
-  const [unit, setUnit] = useState("Khoa CNTT");
-  const hasActiveFilters = [keyword, contractType, status, expiryDate, unit].some((item) => item.trim().length > 0);
+function ContractExpiryDateFilter({ value, onChange }: { value: string; onChange: (value: string) => void }) {
+  const selectedDate = parseContractDate(value);
+  const [open, setOpen] = useState(false);
+  const [visibleMonth, setVisibleMonth] = useState(() => selectedDate ?? new Date(2026, 5, 1));
+  const rootRef = useRef<HTMLDivElement>(null);
+  const hasSelectedValue = value.trim().length > 0;
+  const monthStart = new Date(visibleMonth.getFullYear(), visibleMonth.getMonth(), 1);
+  const calendarStartOffset = (monthStart.getDay() + 6) % 7;
+  const calendarStart = new Date(monthStart.getFullYear(), monthStart.getMonth(), 1 - calendarStartOffset);
+  const calendarDays = Array.from({ length: 42 }, (_, index) => new Date(calendarStart.getFullYear(), calendarStart.getMonth(), calendarStart.getDate() + index));
+  const today = new Date();
+  const expiryDates = useMemo(() => new Set(contractRows.map((row) => row.end)), []);
 
-  const clearFilters = () => {
-    setKeyword("");
-    setContractType("");
-    setStatus("");
-    setExpiryDate("");
-    setUnit("");
+  useEffect(() => {
+    const parsedDate = parseContractDate(value);
+    if (parsedDate) {
+      setVisibleMonth(new Date(parsedDate.getFullYear(), parsedDate.getMonth(), 1));
+    }
+  }, [value]);
+
+  useEffect(() => {
+    if (!open) return;
+
+    const handlePointerDown = (event: MouseEvent) => {
+      if (event.target instanceof Node && !rootRef.current?.contains(event.target)) {
+        setOpen(false);
+      }
+    };
+    const handleKeyDown = (event: KeyboardEvent) => {
+      if (event.key === "Escape") setOpen(false);
+    };
+
+    document.addEventListener("mousedown", handlePointerDown);
+    document.addEventListener("keydown", handleKeyDown);
+    return () => {
+      document.removeEventListener("mousedown", handlePointerDown);
+      document.removeEventListener("keydown", handleKeyDown);
+    };
+  }, [open]);
+
+  const shiftMonth = (offset: number) => {
+    setVisibleMonth((current) => new Date(current.getFullYear(), current.getMonth() + offset, 1));
   };
+
+  return (
+    <div ref={rootRef} className={`relative ${open ? "z-50" : "z-0"} w-[165px] shrink-0`}>
+      <button
+        type="button"
+        onClick={() => setOpen((current) => !current)}
+        className={`flex min-h-9 w-full items-center justify-between gap-2 border bg-white px-3 py-2 text-left text-[12px] shadow-sm ${
+          hasSelectedValue
+            ? "rounded-2xl border-[#8EC5FF] font-semibold text-[#1447E6]"
+            : "rounded-lg border-slate-300 text-slate-700"
+        } ${open ? "border-blue-300 ring-4 ring-blue-100" : ""}`}
+      >
+        <span className="flex min-w-0 flex-1 items-center gap-2">
+          <Calendar size={14} className={hasSelectedValue ? "shrink-0 text-[#1447E6]" : "shrink-0 text-slate-400"} />
+          <span className={`truncate ${hasSelectedValue ? "" : "text-slate-400"}`}>{value || "Ngày hết hạn"}</span>
+        </span>
+        <ChevronDown size={14} className={`shrink-0 text-slate-400 transition ${open ? "rotate-180" : ""}`} />
+      </button>
+
+      {open ? (
+        <div className="absolute left-0 top-[42px] z-50 w-[286px] rounded-xl border border-slate-200 bg-white p-3 text-left shadow-xl ring-1 ring-slate-100">
+          <div className="mb-3 flex items-center justify-between gap-2">
+            <button
+              type="button"
+              onClick={() => shiftMonth(-1)}
+              className="grid size-8 place-items-center rounded-lg border border-slate-200 text-slate-500 hover:bg-slate-50 hover:text-blue-700"
+              aria-label="Tháng trước"
+            >
+              <ArrowLeft size={14} />
+            </button>
+            <div>
+              <div className="text-center text-[11px] font-bold uppercase tracking-wide text-slate-500">Chọn ngày hết hạn</div>
+              <div className="mt-0.5 text-center text-[13px] font-semibold capitalize text-slate-900">
+                {visibleMonth.toLocaleDateString("vi-VN", { month: "long", year: "numeric" })}
+              </div>
+            </div>
+            <button
+              type="button"
+              onClick={() => shiftMonth(1)}
+              className="grid size-8 place-items-center rounded-lg border border-slate-200 text-slate-500 hover:bg-slate-50 hover:text-blue-700"
+              aria-label="Tháng sau"
+            >
+              <ArrowRight size={14} />
+            </button>
+          </div>
+
+          <div className="grid grid-cols-7 gap-1 text-center text-[10px] font-bold uppercase text-slate-400">
+            {['T2', 'T3', 'T4', 'T5', 'T6', 'T7', 'CN'].map((weekday) => (
+              <span key={weekday} className="py-1">{weekday}</span>
+            ))}
+          </div>
+          <div className="mt-1 grid grid-cols-7 gap-1">
+            {calendarDays.map((day) => {
+              const formattedDay = formatContractDate(day);
+              const isCurrentMonth = day.getMonth() === visibleMonth.getMonth();
+              const isSelected = isSameCalendarDate(selectedDate, day);
+              const isToday = isSameCalendarDate(today, day);
+              const hasExpiry = expiryDates.has(formattedDay);
+
+              return (
+                <button
+                  key={formattedDay}
+                  type="button"
+                  onClick={() => {
+                    onChange(formattedDay);
+                    setOpen(false);
+                  }}
+                  className={`relative grid size-8 place-items-center rounded-lg text-[12px] font-semibold transition ${
+                    isSelected
+                      ? "bg-blue-700 text-white shadow-sm"
+                      : isCurrentMonth
+                        ? "text-slate-700 hover:bg-blue-50 hover:text-blue-700"
+                        : "text-slate-300 hover:bg-slate-50"
+                  } ${isToday && !isSelected ? "ring-1 ring-blue-200" : ""}`}
+                  aria-label={`Chọn ngày ${formattedDay}`}
+                >
+                  {day.getDate()}
+                  {hasExpiry && !isSelected ? <span className="absolute bottom-1 size-1 rounded-full bg-blue-500" /> : null}
+                </button>
+              );
+            })}
+          </div>
+
+          <div className="mt-3 flex items-center justify-between border-t border-slate-100 pt-2">
+            <span className="text-[11px] text-slate-500">Chấm xanh: có hợp đồng hết hạn</span>
+            {hasSelectedValue ? (
+              <button
+                type="button"
+                onClick={() => {
+                  onChange("");
+                  setOpen(false);
+                }}
+                className="rounded-lg px-2 py-1.5 text-[12px] font-semibold text-slate-600 hover:bg-slate-50"
+              >
+                Xóa ngày
+              </button>
+            ) : null}
+          </div>
+        </div>
+      ) : null}
+    </div>
+  );
+}
+
+function ContractFilters({ filters, onChange, onClear }: { filters: ContractFiltersState; onChange: (filters: ContractFiltersState) => void; onClear: () => void }) {
+  const hasActiveFilters = Object.values(filters).some((item) => item.trim().length > 0);
+  const updateFilter = (key: keyof ContractFiltersState, value: string) => onChange({ ...filters, [key]: value });
 
   return (
     <section className="relative z-20">
       <div className="flex flex-wrap items-center gap-2">
         <div
           className={`flex h-9 w-[310px] items-center gap-2 border bg-white px-3 shadow-sm ${
-            keyword.trim().length > 0 ? "rounded-2xl border-[#8EC5FF]" : "rounded-lg border-slate-300"
+            filters.keyword.trim().length > 0 ? "rounded-2xl border-[#8EC5FF]" : "rounded-lg border-slate-300"
           }`}
         >
           <Search size={14} className="text-slate-400" />
           <input
-            value={keyword}
-            onChange={(event) => setKeyword(event.target.value)}
+            value={filters.keyword}
+            onChange={(event) => updateFilter("keyword", event.target.value)}
             className={`min-w-0 flex-1 bg-transparent text-[12px] placeholder:text-slate-400 focus:outline-none ${
-              keyword.trim().length > 0 ? "font-semibold text-[#1447E6]" : "text-slate-900"
+              filters.keyword.trim().length > 0 ? "font-semibold text-[#1447E6]" : "text-slate-900"
             }`}
             placeholder="Tìm theo mã cán bộ, họ tên, số hợp đồng..."
           />
         </div>
-        <ExpandedSelect label="Loại hợp đồng" value={contractType} options={contractTypeOptions} width="w-[185px]" hideLabelWhenSelected activeWhenSelected onChange={setContractType} />
-        <ExpandedSelect label="Trạng thái" value={status} options={statusOptions} width="w-[155px]" hideLabelWhenSelected activeWhenSelected onChange={setStatus} />
-        <div
-          className={`flex h-9 w-[145px] items-center gap-2 border bg-white px-3 shadow-sm ${
-            expiryDate.trim().length > 0 ? "rounded-2xl border-[#8EC5FF]" : "rounded-lg border-slate-300"
-          }`}
-        >
-          <Calendar size={14} className="text-slate-400" />
-          <input
-            value={expiryDate}
-            onChange={(event) => setExpiryDate(event.target.value)}
-            className={`min-w-0 flex-1 bg-transparent text-[12px] placeholder:text-slate-400 focus:outline-none ${
-              expiryDate.trim().length > 0 ? "font-semibold text-[#1447E6]" : "text-slate-900"
-            }`}
-            placeholder="Ngày hết hạn"
-          />
-        </div>
-        <ExpandedSelect label="Đơn vị" value={unit} options={unitOptions} width="w-[260px]" searchable hideLabelWhenSelected activeWhenSelected onChange={setUnit} />
+        <ExpandedSelect label="Loại hợp đồng" value={filters.contractType} options={contractTypeOptions} width="w-[185px]" hideLabelWhenSelected activeWhenSelected onChange={(value) => updateFilter("contractType", value)} />
+        <ExpandedSelect label="Trạng thái" value={filters.status} options={statusOptions} width="w-[155px]" hideLabelWhenSelected activeWhenSelected onChange={(value) => updateFilter("status", value)} />
+        <ContractExpiryDateFilter value={filters.expiryDate} onChange={(value) => updateFilter("expiryDate", value)} />
+        <ExpandedSelect label="Đơn vị" value={filters.unit} options={unitOptions} width="w-[260px]" searchable hideLabelWhenSelected activeWhenSelected onChange={(value) => updateFilter("unit", value)} />
         {hasActiveFilters ? (
-          <button onClick={clearFilters} className="inline-flex h-9 items-center gap-2 rounded-lg border border-slate-300 bg-white px-3.5 text-[12px] font-semibold text-slate-600 shadow-sm hover:bg-slate-50">
+          <button onClick={onClear} className="inline-flex h-9 items-center gap-2 rounded-lg border border-slate-300 bg-white px-3.5 text-[12px] font-semibold text-slate-600 shadow-sm hover:bg-slate-50">
             <svg width="13" height="13" viewBox="0 0 13 13" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
               <path d="M1.625 6.5C1.625 7.46418 1.91091 8.40672 2.44659 9.2084C2.98226 10.0101 3.74363 10.6349 4.63442 11.0039C5.52521 11.3729 6.50541 11.4694 7.45107 11.2813C8.39672 11.0932 9.26536 10.6289 9.94715 9.94715C10.6289 9.26536 11.0932 8.39672 11.2813 7.45107C11.4694 6.50541 11.3729 5.52521 11.0039 4.63442C10.6349 3.74363 10.0101 2.98226 9.2084 2.44659C8.40672 1.91091 7.46418 1.625 6.5 1.625C5.13714 1.63013 3.82903 2.16191 2.84917 3.10917L1.625 4.33333" stroke="#45556C" strokeWidth="1.08333" strokeLinecap="round" strokeLinejoin="round" />
               <path d="M1.625 1.625V4.33333H4.33333" stroke="#45556C" strokeWidth="1.08333" strokeLinecap="round" strokeLinejoin="round" />
@@ -550,7 +5454,7 @@ function ContractFilters() {
   );
 }
 
-function ContractTable({ compact = false, onOpenFrame, onViewContract }: { compact?: boolean; onOpenFrame?: (frame: ContractFrame) => void; onViewContract?: (contract: ContractRow) => void }) {
+function ContractTable({ rows, compact = false, onOpenFrame, onViewContract }: { rows: ContractRow[]; compact?: boolean; onOpenFrame?: (frame: ContractFrame) => void; onViewContract?: (contract: ContractRow) => void }) {
   const [openActionFor, setOpenActionFor] = useState<string | null>(null);
 
   return (
@@ -567,7 +5471,7 @@ function ContractTable({ compact = false, onOpenFrame, onViewContract }: { compa
         <span className="text-center">Thao tác</span>
       </div>
 
-      {contractRows.map((row) => {
+      {rows.map((row) => {
         const isActionMenuOpen = openActionFor === row.number;
 
         return (
@@ -638,11 +5542,47 @@ function ContractTable({ compact = false, onOpenFrame, onViewContract }: { compa
           </div>
         );
       })}
+      {rows.length === 0 ? (
+        <div className="px-4 py-8 text-center text-[13px] text-slate-500">Không có hợp đồng phù hợp với bộ lọc hiện tại.</div>
+      ) : null}
     </section>
   );
 }
 
 function ContractListContent({ dimmed = false, onOpenFrame, onViewContract }: { dimmed?: boolean; onOpenFrame?: (frame: ContractFrame) => void; onViewContract?: (contract: ContractRow) => void }) {
+  const [filters, setFilters] = useState<ContractFiltersState>(initialContractFilters);
+  const [page, setPage] = useState(1);
+  const filteredRows = contractRows.filter((row) => {
+    const keyword = normalizeSearch(filters.keyword);
+    const contractType = normalizeSearch(filters.contractType);
+    const expiryDate = filters.expiryDate.trim();
+
+    if (keyword) {
+      const haystack = normalizeSearch(`${row.number} ${row.code} ${row.name} ${row.unit} ${row.type} ${row.status} ${row.end}`);
+      if (!haystack.includes(keyword)) return false;
+    }
+    if (contractType && !normalizeSearch(row.type).includes(contractType)) return false;
+    if (filters.status && row.status !== filters.status) return false;
+    if (expiryDate && !row.end.includes(expiryDate)) return false;
+    if (filters.unit && row.unit !== filters.unit) return false;
+
+    return true;
+  });
+  const totalPages = Math.max(1, Math.ceil(filteredRows.length / CONTRACT_PAGE_SIZE));
+  const currentPage = Math.min(page, totalPages);
+  const pageStart = (currentPage - 1) * CONTRACT_PAGE_SIZE;
+  const paginatedRows = filteredRows.slice(pageStart, pageStart + CONTRACT_PAGE_SIZE);
+  const visibleStart = filteredRows.length === 0 ? 0 : pageStart + 1;
+  const visibleEnd = pageStart + paginatedRows.length;
+  const handleFiltersChange = (nextFilters: ContractFiltersState) => {
+    setFilters(nextFilters);
+    setPage(1);
+  };
+  const clearFilters = () => {
+    setFilters({ keyword: "", contractType: "", status: "", expiryDate: "", unit: "" });
+    setPage(1);
+  };
+
   return (
     <div className={`px-6 py-5 ${dimmed ? "select-none opacity-25" : ""}`}>
       <div className="mb-5 flex items-start justify-between gap-4">
@@ -665,16 +5605,30 @@ function ContractListContent({ dimmed = false, onOpenFrame, onViewContract }: { 
 
       <div className="space-y-4">
         <SummaryCards />
-        <ContractFilters />
-        <ContractTable compact={dimmed} onOpenFrame={onOpenFrame} onViewContract={onViewContract} />
+        <ContractFilters filters={filters} onChange={handleFiltersChange} onClear={clearFilters} />
+        <ContractTable rows={paginatedRows} compact={dimmed} onOpenFrame={onOpenFrame} onViewContract={onViewContract} />
       </div>
 
       <div className="mt-4 flex items-center justify-between text-[12px] text-slate-500">
-        <span>Hiển thị 5 / 392 hợp đồng lao động</span>
+        <span>Hiển thị {visibleStart}-{visibleEnd} / {filteredRows.length} hợp đồng lao động</span>
         <div className="flex items-center gap-3">
-          <button className="h-8 rounded-lg border border-slate-300 bg-white px-3 text-[12px] text-slate-500">Trước</button>
-          <span className="font-medium text-slate-700">Trang 1 / 40</span>
-          <button className="h-8 rounded-lg border border-slate-300 bg-white px-3 text-[12px] font-medium text-slate-700">Sau</button>
+          <button
+            type="button"
+            disabled={currentPage === 1}
+            onClick={() => setPage((value) => Math.max(1, value - 1))}
+            className={`h-8 rounded-lg border border-slate-300 bg-white px-3 text-[12px] ${currentPage === 1 ? "cursor-not-allowed text-slate-400" : "font-medium text-slate-700 hover:bg-slate-50"}`}
+          >
+            Trước
+          </button>
+          <span className="font-medium text-slate-700">Trang {currentPage} / {totalPages}</span>
+          <button
+            type="button"
+            disabled={currentPage >= totalPages}
+            onClick={() => setPage((value) => Math.min(totalPages, value + 1))}
+            className={`h-8 rounded-lg border border-slate-300 bg-white px-3 text-[12px] ${currentPage >= totalPages ? "cursor-not-allowed text-slate-400" : "font-medium text-slate-700 hover:bg-slate-50"}`}
+          >
+            Sau
+          </button>
         </div>
       </div>
     </div>
@@ -1066,8 +6020,9 @@ function AddPersonnelButton({
   onExcelImport?: () => void;
 }) {
   return (
-    <div className="flex flex-col items-end">
+    <div className="relative flex items-center justify-end">
       <button
+        type="button"
         onClick={withMenu ? onToggleMenu : onManualAdd}
         className="flex h-9 items-center gap-2 rounded-lg bg-blue-700 px-3.5 text-[12px] font-semibold text-white shadow-sm hover:bg-blue-800"
       >
@@ -1077,8 +6032,9 @@ function AddPersonnelButton({
       </button>
 
       {withMenu && menuOpen ? (
-        <div className="relative z-30 mt-1 mb-[-98px] w-[218px] overflow-hidden rounded-xl border border-slate-200 bg-white py-1.5 text-left shadow-xl">
+        <div className="absolute right-0 top-10 z-30 w-[218px] overflow-hidden rounded-xl border border-slate-200 bg-white py-1.5 text-left shadow-xl">
           <button
+            type="button"
             onClick={onManualAdd}
             className="flex w-full items-start gap-3 px-3.5 py-2.5 text-left hover:bg-blue-50"
           >
@@ -1091,6 +6047,7 @@ function AddPersonnelButton({
             </span>
           </button>
           <button
+            type="button"
             onClick={onExcelImport}
             className="flex w-full items-start gap-3 px-3.5 py-2.5 text-left hover:bg-blue-50"
           >
@@ -1167,12 +6124,71 @@ function PersonnelListBackground({
   onToggleAddMenu,
   onManualAdd,
   onExcelImport,
+  onEditPersonnel,
 }: {
   addMenuOpen?: boolean;
   onToggleAddMenu?: () => void;
   onManualAdd?: () => void;
   onExcelImport?: () => void;
+  onEditPersonnel?: (personnel: PersonnelRecord) => void;
 }) {
+  const [keyword, setKeyword] = useState("");
+  const [unit, setUnit] = useState("");
+  const [degree, setDegree] = useState("");
+  const [contract, setContract] = useState("");
+  const [status, setStatus] = useState("");
+  const [page, setPage] = useState(1);
+  const filteredRows = personnelRows.filter((row) => {
+    const record = toPersonnelRecord(row);
+    const keywordValue = normalizeSearch(keyword);
+
+    if (keywordValue) {
+      const haystack = normalizeSearch(`${record.code} ${record.name} ${record.unit} ${record.degree} ${record.role} ${record.contract} ${record.status}`);
+      if (!haystack.includes(keywordValue)) return false;
+    }
+    if (unit && record.unit !== unit) return false;
+    if (degree && record.degree !== degree) return false;
+    if (contract && record.contract !== contract) return false;
+    if (status && record.status !== status) return false;
+
+    return true;
+  });
+  const totalPages = Math.max(1, Math.ceil(filteredRows.length / PERSONNEL_PAGE_SIZE));
+  const currentPage = Math.min(page, totalPages);
+  const pageStart = (currentPage - 1) * PERSONNEL_PAGE_SIZE;
+  const paginatedRows = filteredRows.slice(pageStart, pageStart + PERSONNEL_PAGE_SIZE);
+  const visibleStart = filteredRows.length === 0 ? 0 : pageStart + 1;
+  const visibleEnd = pageStart + paginatedRows.length;
+  const hasActiveFilters = [keyword, unit, degree, contract, status].some((item) => item.trim().length > 0);
+  const updateKeyword = (value: string) => {
+    setKeyword(value);
+    setPage(1);
+  };
+  const updateUnit = (value: string) => {
+    setUnit(value);
+    setPage(1);
+  };
+  const updateDegree = (value: string) => {
+    setDegree(value);
+    setPage(1);
+  };
+  const updateContract = (value: string) => {
+    setContract(value);
+    setPage(1);
+  };
+  const updateStatus = (value: string) => {
+    setStatus(value);
+    setPage(1);
+  };
+  const clearFilters = () => {
+    setKeyword("");
+    setUnit("");
+    setDegree("");
+    setContract("");
+    setStatus("");
+    setPage(1);
+  };
+
   return (
     <div className="select-none px-6 py-5">
       <div className="mb-5 flex items-start justify-between gap-4">
@@ -1180,14 +6196,25 @@ function PersonnelListBackground({
           <div className="flex h-9 w-[170px] items-center gap-2 rounded-lg border border-slate-300 bg-white px-3 shadow-sm">
             <Search size={14} className="text-slate-400" />
             <input
+              value={keyword}
+              onChange={(event) => updateKeyword(event.target.value)}
               className="min-w-0 flex-1 bg-transparent text-[12px] text-slate-900 placeholder:text-slate-400 focus:outline-none"
               placeholder="Tìm kiếm"
             />
           </div>
-          <SelectFilter label="Đơn vị công tác" />
-          <SelectFilter label="Học hàm/học vị" />
-          <SelectFilter label="Hợp đồng" />
-          <SelectFilter label="Trạng thái" />
+          <SelectFilter label="Đơn vị công tác" value={unit} options={personnelUnitOptions} onChange={updateUnit} />
+          <SelectFilter label="Học hàm/học vị" value={degree} options={personnelDegreeOptions} onChange={updateDegree} />
+          <SelectFilter label="Hợp đồng" value={contract} options={personnelContractOptions} onChange={updateContract} />
+          <SelectFilter label="Trạng thái" value={status} options={personnelStatusOptions} onChange={updateStatus} />
+          {hasActiveFilters ? (
+            <button
+              type="button"
+              onClick={clearFilters}
+              className="inline-flex h-9 items-center gap-2 rounded-lg border border-slate-300 bg-white px-3 text-[12px] font-semibold text-slate-600 shadow-sm hover:bg-slate-50"
+            >
+              <RotateCcw size={13} /> Xóa lọc
+            </button>
+          ) : null}
         </div>
         <AddPersonnelButton
           withMenu={!!onToggleAddMenu}
@@ -1210,37 +6237,55 @@ function PersonnelListBackground({
           <span />
         </div>
 
-        {personnelRows.map(([code, name, unit, degree, role, contract, status]) => (
+        {paginatedRows.map(([code, name, rowUnit, rowDegree, role, rowContract, rowStatus]) => (
           <div
             key={code}
             className="grid h-[58px] grid-cols-[0.7fr_1.2fr_1.35fr_1fr_1fr_1fr_1fr_44px] items-center border-b border-slate-100 px-4 text-[12px] text-slate-800 last:border-0"
           >
             <span className="font-mono text-[11px] font-semibold text-slate-700">{code}</span>
             <span className="font-medium">{name}</span>
-            <span>{unit}</span>
-            <span>{degree}</span>
+            <span>{rowUnit}</span>
+            <span>{rowDegree}</span>
             <span>{role}</span>
             <span>
-              <StatusBadge value={contract} />
+              <StatusBadge value={rowContract} />
             </span>
             <span>
-              <StatusBadge value={status} />
+              <StatusBadge value={rowStatus} />
             </span>
-            <button className="grid size-8 place-items-center rounded-lg text-slate-500 hover:bg-slate-50">
+            <button
+              type="button"
+              onClick={() => onEditPersonnel?.({ code, name, unit: rowUnit, degree: rowDegree, role, contract: rowContract, status: rowStatus })}
+              className="grid size-8 place-items-center rounded-lg text-slate-500 hover:bg-slate-50"
+              aria-label={`Sửa hồ sơ ${name}`}
+            >
               <Edit3 size={14} />
             </button>
           </div>
         ))}
+        {filteredRows.length === 0 ? (
+          <div className="px-4 py-8 text-center text-[13px] text-slate-500">Không có hồ sơ nhân sự phù hợp với bộ lọc hiện tại.</div>
+        ) : null}
       </section>
 
       <div className="mt-4 flex items-center justify-between text-[12px] text-slate-500">
-        <span>Hiển thị 10 / 20 hồ sơ nhân sự</span>
+        <span>Hiển thị {visibleStart}-{visibleEnd} / {filteredRows.length} hồ sơ nhân sự</span>
         <div className="flex items-center gap-3">
-          <button className="h-8 rounded-lg border border-slate-300 bg-white px-3 text-[12px] text-slate-500">
+          <button
+            type="button"
+            disabled={currentPage === 1}
+            onClick={() => setPage((value) => Math.max(1, value - 1))}
+            className={`h-8 rounded-lg border border-slate-300 bg-white px-3 text-[12px] ${currentPage === 1 ? "cursor-not-allowed text-slate-400" : "font-medium text-slate-700 hover:bg-slate-50"}`}
+          >
             Trước
           </button>
-          <span className="font-medium text-slate-700">Trang 1 / 2</span>
-          <button className="h-8 rounded-lg border border-slate-300 bg-white px-3 text-[12px] font-medium text-slate-700">
+          <span className="font-medium text-slate-700">Trang {currentPage} / {totalPages}</span>
+          <button
+            type="button"
+            disabled={currentPage >= totalPages}
+            onClick={() => setPage((value) => Math.min(totalPages, value + 1))}
+            className={`h-8 rounded-lg border border-slate-300 bg-white px-3 text-[12px] ${currentPage >= totalPages ? "cursor-not-allowed text-slate-400" : "font-medium text-slate-700 hover:bg-slate-50"}`}
+          >
             Sau
           </button>
         </div>
@@ -1646,6 +6691,7 @@ function ExcelImportDialog({ onClose }: { onClose: () => void }) {
 }
 
 function LargePersonnelForm({
+  title = "Thêm hồ sơ nhân sự",
   foreigner,
   setForeigner,
   duplicateId,
@@ -1665,6 +6711,7 @@ function LargePersonnelForm({
   onClose,
   onSave,
 }: {
+  title?: string;
   foreigner: boolean;
   setForeigner: (value: boolean | ((value: boolean) => boolean)) => void;
   duplicateId: boolean;
@@ -1748,7 +6795,7 @@ function LargePersonnelForm({
             <ArrowLeft size={17} />
           </button>
           <div>
-            <h1 className="text-[17px] font-semibold text-slate-900">Thêm hồ sơ nhân sự</h1>
+            <h1 className="text-[17px] font-semibold text-slate-900">{title}</h1>
             <p className="text-[12px] text-slate-500">Form nhập liệu một trang · chia nhóm theo nghiệp vụ hồ sơ</p>
           </div>
         </div>
@@ -2312,9 +7359,12 @@ function AppSidebar({ activeView, onViewChange }: { activeView: View; onViewChan
         {sidebarItems.map((item) => (
           <button
             key={item.id}
-            onClick={() => onViewChange(item.id)}
+            type="button"
+            onClick={() => {
+              if (item.view) onViewChange(item.view);
+            }}
             className={`mb-1 flex h-9 w-full items-center gap-2 rounded-lg px-3 text-left text-[13px] transition ${
-              item.id === activeView ? "bg-blue-50 font-semibold text-blue-700" : "text-slate-700 hover:bg-slate-50"
+              item.view === activeView ? "bg-blue-50 font-semibold text-blue-700" : "text-slate-700 hover:bg-slate-50"
             }`}
           >
             {item.icon}
@@ -2326,7 +7376,17 @@ function AppSidebar({ activeView, onViewChange }: { activeView: View; onViewChan
   );
 }
 
-function AppHeader({ label }: { label: string }) {
+function AppHeader({
+  label,
+  notifications,
+  notificationOpen,
+  onToggleNotifications,
+}: {
+  label: string;
+  notifications: ContractRow[];
+  notificationOpen: boolean;
+  onToggleNotifications: () => void;
+}) {
   return (
     <header className="flex h-[58px] items-center justify-between border-b border-slate-200 bg-white px-6">
       <div className="flex items-center gap-3 text-[13px] font-medium text-slate-800">
@@ -2334,6 +7394,33 @@ function AppHeader({ label }: { label: string }) {
         <span>{label}</span>
       </div>
       <div className="flex items-center gap-3">
+        <div className="relative">
+          <button
+            type="button"
+            onClick={onToggleNotifications}
+            className="relative grid size-9 place-items-center rounded-lg border border-slate-200 text-slate-600 hover:bg-slate-50"
+            aria-label="Thông báo hợp đồng"
+          >
+            <Bell size={17} />
+            {notifications.length > 0 ? <span className="absolute right-2 top-2 size-1.5 rounded-full bg-rose-500" /> : null}
+          </button>
+          {notificationOpen ? (
+            <div className="absolute right-0 top-11 z-50 w-80 rounded-xl border border-slate-200 bg-white p-2 text-left shadow-xl ring-1 ring-slate-100">
+              <div className="px-2.5 py-2">
+                <div className="text-[12px] font-bold uppercase tracking-wide text-slate-500">Thông báo</div>
+                <div className="mt-0.5 text-[13px] font-semibold text-slate-950">{notifications.length} hợp đồng cần xử lý</div>
+              </div>
+              <div className="space-y-1">
+                {notifications.map((contract) => (
+                  <div key={contract.number} className="rounded-lg px-2.5 py-2 hover:bg-blue-50">
+                    <div className="text-[12px] font-semibold text-slate-900">{contract.name}</div>
+                    <div className="mt-0.5 text-[11px] text-slate-500">{contract.number} · {contract.status} · hết hạn {contract.end}</div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          ) : null}
+        </div>
         <div className="h-8 w-px bg-slate-200" />
         <div className="grid size-9 place-items-center rounded-lg border border-slate-300 bg-white text-slate-700">
           <CircleUserRound size={19} />
@@ -2370,14 +7457,16 @@ export default function App() {
   const [duplicateId, setDuplicateId] = useState(false);
   const [validationAttempted, setValidationAttempted] = useState<Record<number, boolean>>({});
   const [saved, setSaved] = useState(false);
-  const [modalOpen, setModalOpen] = useState(true);
-  const [addMenuOpen, setAddMenuOpen] = useState(true);
+  const [modalOpen, setModalOpen] = useState(false);
+  const [addMenuOpen, setAddMenuOpen] = useState(false);
   const [excelImportOpen, setExcelImportOpen] = useState(false);
   const [figmaCopyMode, setFigmaCopyMode] = useState(false);
   const [formValidationStarted, setFormValidationStarted] = useState(false);
   const [captureSection, setCaptureSection] = useState<string | null>(null);
   const [currentContractFrame, setCurrentContractFrame] = useState<ContractFrame>("list");
   const [viewedContract, setViewedContract] = useState<ContractRow | null>(null);
+  const [editingPersonnel, setEditingPersonnel] = useState<PersonnelRecord | null>(null);
+  const [notificationOpen, setNotificationOpen] = useState(false);
   const [degrees, setDegrees] = useState([
     { name: "Bằng Cử nhân chuyên ngành Kỹ thuật phần mềm", place: "Trường Đại học Thủy lợi" },
     { name: "Bằng Kỹ sư Khoa học máy tính", place: "Trường Đại học Thủy lợi" },
@@ -2438,21 +7527,32 @@ export default function App() {
     return () => window.removeEventListener("keydown", handlePrototypeShortcut);
   }, []);
 
-  const activeLabel = sidebarItems.find((item) => item.id === activeView)?.label ?? "Hồ sơ nhân sự";
+  const activeLabel = sidebarItems.find((item) => item.view === activeView)?.label ?? "Hồ sơ nhân sự";
   const showContractOverlay = currentContractFrame !== "list" || viewedContract !== null;
+  const expiringContracts = contractRows.filter((contract) => contract.status === "Sắp hết hạn" || contract.status === "Chờ gia hạn");
 
   const handleViewChange = (view: View) => {
     setActiveView(view);
     setCurrentContractFrame("list");
     setViewedContract(null);
-    if (view !== "ho-so") {
-      setSaved(false);
-      setExcelImportOpen(false);
+    setEditingPersonnel(null);
+    setNotificationOpen(false);
+    setAddMenuOpen(false);
+    setExcelImportOpen(false);
+    setFigmaCopyMode(false);
+    setCaptureSection(null);
+    if (view === "ho-so") {
+      setModalOpen(false);
+      return;
     }
+
+    setSaved(false);
   };
 
   const openManualAdd = () => {
     setActiveView("ho-so");
+    setEditingPersonnel(null);
+    setNotificationOpen(false);
     setModalOpen(true);
     setAddMenuOpen(false);
     setExcelImportOpen(false);
@@ -2463,13 +7563,42 @@ export default function App() {
   };
   const closeModal = () => {
     setModalOpen(false);
-    setAddMenuOpen(true);
+    setEditingPersonnel(null);
+    setAddMenuOpen(false);
     setExcelImportOpen(false);
     setFigmaCopyMode(false);
     setCaptureSection(null);
   };
+
+  const closePersonnelForm = () => {
+    if (!editingPersonnel) {
+      closeModal();
+      return;
+    }
+
+    setEditingPersonnel(null);
+    setAddMenuOpen(false);
+    setExcelImportOpen(false);
+    setFigmaCopyMode(false);
+    setFormValidationStarted(false);
+    setDuplicateId(false);
+    setValidationAttempted({});
+    setCaptureSection(null);
+  };
+
+  const savePersonnelForm = () => {
+    if (editingPersonnel) {
+      closePersonnelForm();
+      return;
+    }
+
+    setActiveView("ho-so");
+    setSaved(true);
+  };
   const openExcelImport = () => {
     setActiveView("ho-so");
+    setEditingPersonnel(null);
+    setNotificationOpen(false);
     setModalOpen(false);
     setAddMenuOpen(false);
     setExcelImportOpen(true);
@@ -2478,11 +7607,12 @@ export default function App() {
   };
   const closeExcelImport = () => {
     setExcelImportOpen(false);
-    setAddMenuOpen(true);
+    setAddMenuOpen(false);
   };
 
   const resetForAnotherProfile = () => {
     setSaved(false);
+    setEditingPersonnel(null);
     setDuplicateId(false);
     setValidationAttempted({});
     setFormValidationStarted(false);
@@ -2492,13 +7622,16 @@ export default function App() {
     setExcelImportOpen(false);
   };
 
+  const showPersonnelForm = modalOpen || editingPersonnel !== null;
+  const personnelFormTitle = editingPersonnel ? "Sửa hồ sơ nhân sự" : "Thêm hồ sơ nhân sự";
+
   if (saved && activeView === "ho-so") {
     return (
       <div className="min-h-screen bg-white font-['Be_Vietnam_Pro'] text-slate-900">
         <div className="flex min-h-screen overflow-hidden bg-white">
           <AppSidebar activeView={activeView} onViewChange={handleViewChange} />
           <div className="min-w-0 flex-1 bg-slate-50">
-            <AppHeader label="Hồ sơ nhân sự" />
+            <AppHeader label="Hồ sơ nhân sự" notifications={expiringContracts} notificationOpen={notificationOpen} onToggleNotifications={() => setNotificationOpen((open) => !open)} />
             <div className="relative min-h-[calc(100vh-58px)] overflow-hidden bg-white">
               <div className="opacity-25">
                 <PersonnelListBackground />
@@ -2535,13 +7668,14 @@ export default function App() {
 
   const personnelContent = (
     <div className={`relative min-h-[calc(100vh-58px)] bg-white ${figmaCopyMode ? "overflow-visible" : "overflow-hidden"}`}>
-      {modalOpen ? (
+      {showPersonnelForm ? (
         <>
           <div className={`opacity-25 ${figmaCopyMode ? "pointer-events-none absolute inset-0" : ""}`}>
             <PersonnelListBackground />
           </div>
           <div className={`flex items-start justify-center p-6 pt-7 ${figmaCopyMode ? "relative" : "absolute inset-0"}`}>
             <LargePersonnelForm
+              title={personnelFormTitle}
               foreigner={foreigner}
               setForeigner={setForeigner}
               duplicateId={duplicateId}
@@ -2561,11 +7695,8 @@ export default function App() {
               setValidationStarted={setFormValidationStarted}
               captureSection={captureSection}
               setCaptureSection={setCaptureSection}
-              onClose={closeModal}
-              onSave={() => {
-                setActiveView("ho-so");
-                setSaved(true);
-              }}
+              onClose={closePersonnelForm}
+              onSave={savePersonnelForm}
             />
           </div>
         </>
@@ -2575,6 +7706,18 @@ export default function App() {
           onToggleAddMenu={() => setAddMenuOpen((open) => !open)}
           onManualAdd={openManualAdd}
           onExcelImport={openExcelImport}
+          onEditPersonnel={(personnel) => {
+            setAddMenuOpen(false);
+            setNotificationOpen(false);
+            setModalOpen(false);
+            setExcelImportOpen(false);
+            setFigmaCopyMode(false);
+            setFormValidationStarted(false);
+            setDuplicateId(false);
+            setValidationAttempted({});
+            setCaptureSection(null);
+            setEditingPersonnel(personnel);
+          }}
         />
       )}
       {excelImportOpen ? (
@@ -2601,12 +7744,10 @@ export default function App() {
       <div className={`flex min-h-screen bg-white ${figmaCopyMode ? "overflow-visible" : "overflow-hidden"}`}>
         <AppSidebar activeView={activeView} onViewChange={handleViewChange} />
         <div className="min-w-0 flex-1 bg-slate-50">
-          <AppHeader label={activeLabel} />
+          <AppHeader label={activeLabel} notifications={expiringContracts} notificationOpen={notificationOpen} onToggleNotifications={() => setNotificationOpen((open) => !open)} />
           {activeView === "ho-so"
             ? personnelContent
-            : activeView === "hop-dong"
-            ? contractContent
-            : <PlaceholderView title={activeLabel} />}
+            : contractContent}
         </div>
       </div>
     </div>
