@@ -101,12 +101,14 @@ function Input({
   icon,
   state = "default",
   readOnly,
+  onChange,
 }: {
   value?: string;
   placeholder?: string;
   icon?: ReactNode;
   state?: FieldState;
   readOnly?: boolean;
+  onChange?: (value: string) => void;
 }) {
   const ring =
     state === "error"
@@ -120,9 +122,11 @@ function Input({
     >
       {icon ? <span className="text-slate-400">{icon}</span> : null}
       <input
-        defaultValue={value}
+        defaultValue={onChange ? undefined : value}
+        value={onChange ? value ?? "" : undefined}
         placeholder={placeholder}
         readOnly={readOnly}
+        onChange={(event) => onChange?.(event.target.value)}
         className="min-w-0 flex-1 bg-transparent text-[13px] text-slate-900 placeholder:text-slate-400 focus:outline-none"
       />
       {state === "success" ? <CheckCircle2 size={16} className="text-emerald-500" /> : null}
@@ -131,9 +135,42 @@ function Input({
   );
 }
 
-function Select({ value, state = "default" }: { value: string; state?: FieldState }) {
+function Select({
+  value,
+  state = "default",
+  options,
+  onChange,
+}: {
+  value: string;
+  state?: FieldState;
+  options?: string[];
+  onChange?: (value: string) => void;
+}) {
   const ring =
     state === "error" ? "border-red-300" : state === "success" ? "border-emerald-300" : "border-slate-200";
+  const selectableOptions = options
+    ? Array.from(new Set(value ? [value, ...options] : options))
+    : [];
+
+  if (onChange) {
+    return (
+      <div className={`flex h-9 items-center gap-2 rounded-lg border bg-white px-2.5 ${ring}`}>
+        <select
+          value={value}
+          onChange={(event) => onChange(event.target.value)}
+          className="min-w-0 flex-1 appearance-none bg-transparent text-[13px] text-slate-900 focus:outline-none"
+        >
+          {selectableOptions.map((option) => (
+            <option key={option} value={option}>
+              {option}
+            </option>
+          ))}
+        </select>
+        <ChevronRight size={16} className="rotate-90 text-slate-400" />
+      </div>
+    );
+  }
+
   return (
     <button
       type="button"
@@ -700,6 +737,7 @@ function derivePersonnelOptions(rows: string[][]) {
   return {
     unitOptions: Array.from(new Set(rows.map((row) => row[2]))),
     degreeOptions: Array.from(new Set(rows.map((row) => row[3]))),
+    roleOptions: Array.from(new Set(rows.map((row) => row[4]))),
     contractOptions: Array.from(new Set(rows.map((row) => row[5]))),
     statusOptions: Array.from(new Set(rows.map((row) => row[6]))),
   };
@@ -7071,6 +7109,7 @@ function ExcelImportDialog({
 
 function LargePersonnelForm({
   title = "Thêm hồ sơ nhân sự",
+  initialPersonnel,
   foreigner,
   setForeigner,
   duplicateId,
@@ -7079,6 +7118,11 @@ function LargePersonnelForm({
   setShowErrors,
   degrees,
   setDegrees,
+  unitOptions,
+  degreeOptions,
+  roleOptions,
+  contractOptions,
+  statusOptions,
   certs,
   setCerts,
   figmaCopyMode,
@@ -7091,6 +7135,7 @@ function LargePersonnelForm({
   onSave,
 }: {
   title?: string;
+  initialPersonnel?: PersonnelRecord | null;
   foreigner: boolean;
   setForeigner: (value: boolean | ((value: boolean) => boolean)) => void;
   duplicateId: boolean;
@@ -7099,6 +7144,11 @@ function LargePersonnelForm({
   setShowErrors: (value: boolean) => void;
   degrees: { name: string; place: string }[];
   setDegrees: (value: { name: string; place: string }[] | ((value: { name: string; place: string }[]) => { name: string; place: string }[])) => void;
+  unitOptions: string[];
+  degreeOptions: string[];
+  roleOptions: string[];
+  contractOptions: string[];
+  statusOptions: string[];
   certs: { name: string; place: string }[];
   setCerts: (value: { name: string; place: string }[] | ((value: { name: string; place: string }[]) => { name: string; place: string }[])) => void;
   figmaCopyMode: boolean;
@@ -7108,9 +7158,21 @@ function LargePersonnelForm({
   captureSection: string | null;
   setCaptureSection: (value: string | null) => void;
   onClose: () => void;
-  onSave: () => void;
+  onSave: (record: PersonnelRecord) => void;
 }) {
+  const [draft, setDraft] = useState<PersonnelRecord>(() =>
+    initialPersonnel ?? {
+      code: "CB2026-0048",
+      name: "Nguyễn Văn A",
+      unit: "Khoa Công nghệ thông tin",
+      degree: "Tiến sĩ",
+      role: "Giảng viên",
+      contract: "Còn hiệu lực",
+      status: "Đang hoàn thiện",
+    },
+  );
   const hasErrors = showErrors || duplicateId;
+  const isEditing = initialPersonnel !== null && initialPersonnel !== undefined;
   const formScrollRef = useRef<HTMLElement>(null);
   const [activeSection, setActiveSection] = useState("identity");
   const [captureOffset, setCaptureOffset] = useState(0);
@@ -7123,6 +7185,9 @@ function LargePersonnelForm({
     showErrors ? "Công tác & lương" : null,
     showErrors ? "Tài liệu" : null,
   ].filter(Boolean);
+  const updateDraft = (field: keyof PersonnelRecord, value: string) => {
+    setDraft((current) => ({ ...current, [field]: value }));
+  };
   const sections = [
     { id: "identity", label: "Thông tin cá nhân", icon: <CircleUserRound size={15} />, state: validationState === "idle" ? "idle" : hasErrors ? "error" : "done" },
     { id: "contact", label: "Liên hệ & quốc tịch", icon: <Mail size={15} />, state: validationState === "idle" ? "idle" : showErrors ? "error" : "done" },
@@ -7304,7 +7369,14 @@ function LargePersonnelForm({
                   </div>
                   <div className="grid min-w-0 grid-cols-2 gap-3">
                     <Field label="Họ và tên" required error={showErrors ? "Họ và tên là trường bắt buộc." : undefined}>
-                      <Input value={showErrors ? "" : "Nguyễn Văn A"} state={showErrors ? "error" : "default"} />
+                      <Input
+                        value={!isEditing && showErrors ? "" : draft.name}
+                        state={showErrors ? "error" : "default"}
+                        onChange={(value) => updateDraft("name", value)}
+                      />
+                    </Field>
+                    <Field label="Mã cán bộ" required>
+                      <Input value={draft.code} readOnly />
                     </Field>
                     <Field label="Giới tính" required>
                       <Select value="Nam" />
@@ -7424,13 +7496,18 @@ function LargePersonnelForm({
                 >
                   <div className="grid min-w-0 grid-cols-3 gap-3">
                       <Field label="Đơn vị công tác" required>
-                        <Select value="Khoa Công nghệ thông tin" />
+                        <Select value={draft.unit} options={unitOptions} onChange={(value) => updateDraft("unit", value)} />
                       </Field>
                       <Field label="Bộ môn / phòng ban trực thuộc">
                         <Select value="Bộ môn Công nghệ phần mềm" />
                       </Field>
                       <Field label="Chức vụ hiện tại" required error={showErrors ? "Vui lòng chọn chức vụ hiện tại." : undefined}>
-                        <Select value={showErrors ? "Chưa chọn" : "Giảng viên"} state={showErrors ? "error" : "default"} />
+                        <Select
+                          value={!isEditing && showErrors ? "Chưa chọn" : draft.role}
+                          options={roleOptions}
+                          state={showErrors ? "error" : "default"}
+                          onChange={(value) => updateDraft("role", value)}
+                        />
                       </Field>
                       <Field label="Loại nhân sự" required>
                         <Select value="Giảng viên cơ hữu" />
@@ -7438,11 +7515,14 @@ function LargePersonnelForm({
                       <Field label="Ngày bắt đầu công tác" required>
                         <Input value="01/06/2026" icon={<Calendar size={15} />} />
                       </Field>
+                      <Field label="Hợp đồng" required>
+                        <Select value={draft.contract} options={contractOptions} onChange={(value) => updateDraft("contract", value)} />
+                      </Field>
                       <Field label="Trạng thái hồ sơ" required>
-                        <Select value="Đang hoàn thiện" />
+                        <Select value={draft.status} options={statusOptions} onChange={(value) => updateDraft("status", value)} />
                       </Field>
                       <div className="col-span-3 rounded-lg border border-blue-100 bg-blue-50 px-3 py-2 text-[12px] text-blue-800">
-                        Đường dẫn đơn vị: Trường Đại học Thủy Lợi / Khoa Công nghệ thông tin / Bộ môn Công nghệ phần mềm
+                        Đường dẫn đơn vị: Trường Đại học Thủy Lợi / {draft.unit} / Bộ môn Công nghệ phần mềm
                       </div>
                     </div>
                 </SectionCard>
@@ -7479,13 +7559,13 @@ function LargePersonnelForm({
                     <Select value="12/12" />
                   </Field>
                   <Field label="Trình độ đào tạo" required>
-                    <Select value="Tiến sĩ" />
+                    <Select value={draft.degree} options={degreeOptions} onChange={(value) => updateDraft("degree", value)} />
                   </Field>
                   <Field label="Chức danh nghề nghiệp" required>
                     <Input value="Tiến sĩ" />
                   </Field>
                   <Field label="Học hàm / Học vị" required>
-                    <Input value="Tiến sĩ" />
+                    <Input value={draft.degree} onChange={(value) => updateDraft("degree", value)} />
                   </Field>
                 </div>
               </SectionCard>
@@ -7657,7 +7737,7 @@ function LargePersonnelForm({
           <button
             onClick={() => {
               setValidationStarted(true);
-              if (!validationStarted || hasErrors) {
+              if (!isEditing && (!validationStarted || hasErrors)) {
                 setShowErrors(true);
                 setDuplicateId(true);
                 setCaptureSection(null);
@@ -7665,7 +7745,7 @@ function LargePersonnelForm({
                 formScrollRef.current?.scrollTo({ top: 0, behavior: "smooth" });
                 return;
               }
-              onSave();
+              onSave(draft);
             }}
             className="inline-flex items-center gap-1.5 rounded-lg bg-blue-700 px-4 py-2 text-[13px] font-semibold text-white hover:bg-blue-800"
           >
@@ -7967,8 +8047,23 @@ export default function App() {
     setCaptureSection(null);
   };
 
-  const savePersonnelForm = () => {
+  const savePersonnelForm = (updated: PersonnelRecord) => {
     if (editingPersonnel) {
+      setPersonnelRows((current) =>
+        current.map((row) =>
+          row[0] === editingPersonnel.code
+            ? [
+                editingPersonnel.code,
+                updated.name,
+                updated.unit,
+                updated.degree,
+                updated.role,
+                updated.contract,
+                updated.status,
+              ]
+            : row,
+        ),
+      );
       closePersonnelForm();
       return;
     }
@@ -8068,7 +8163,9 @@ export default function App() {
           </div>
           <div className={`flex items-start justify-center p-6 pt-7 ${figmaCopyMode ? "relative" : "absolute inset-0"}`}>
             <LargePersonnelForm
+              key={editingPersonnel?.code ?? "add"}
               title={personnelFormTitle}
+              initialPersonnel={editingPersonnel}
               foreigner={foreigner}
               setForeigner={setForeigner}
               duplicateId={duplicateId}
@@ -8080,6 +8177,11 @@ export default function App() {
               }}
               degrees={degrees}
               setDegrees={setDegrees}
+              unitOptions={personnelOptions.unitOptions}
+              degreeOptions={personnelOptions.degreeOptions}
+              roleOptions={personnelOptions.roleOptions}
+              contractOptions={personnelOptions.contractOptions}
+              statusOptions={personnelOptions.statusOptions}
               certs={certs}
               setCerts={setCerts}
               figmaCopyMode={figmaCopyMode}
