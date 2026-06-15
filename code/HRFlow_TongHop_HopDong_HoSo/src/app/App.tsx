@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useRef, useState, type ReactNode } from "react";
+import { useEffect, useMemo, useRef, useState, type ChangeEvent, type ReactNode } from "react";
 import {
   AlertCircle,
   ArrowLeft,
@@ -36,6 +36,7 @@ import {
   UserPlus,
   X,
 } from "lucide-react";
+import * as XLSX from "xlsx";
 import tluLogoIcon from "./tlu-logo-icon.png";
 
 type View = "ho-so" | "hop-dong";
@@ -198,7 +199,7 @@ function SectionCard({
   );
 }
 
-const personnelRows = [
+const initialPersonnelRows: string[][] = [
   ["NS001", "Nguyễn Văn An", "Ban Giám hiệu", "Giáo sư", "Hiệu trưởng", "Đang hoạt động", "Đang hoạt động"],
   ["NS002", "Trần Thị Bình", "Khoa CNTT", "Thạc sĩ", "Trưởng khoa", "Đang hoạt động", "Đang hoạt động"],
   ["NS003", "Lê Văn Cường", "Phòng Tổ chức cán bộ", "Phó Giáo sư", "Trợ lý", "Đã thôi việc", "Đã thôi việc"],
@@ -604,6 +605,27 @@ type PersonnelRecord = {
   status: string;
 };
 
+type PersonnelRow = [string, string, string, string, string, string, string];
+
+type PersonnelImportInvalidRow = {
+  row: string;
+  name: string;
+  field: string;
+  issue: string;
+  type: string;
+};
+
+type PersonnelImportAnalysis = {
+  fileName: string;
+  totalRows: number;
+  validRows: PersonnelRow[];
+  invalidRows: PersonnelImportInvalidRow[];
+  validCount: number;
+  invalidCount: number;
+  errorCount: number;
+  allValid: boolean;
+};
+
 type ContractFiltersState = {
   keyword: string;
   contractType: string;
@@ -662,10 +684,258 @@ function toPersonnelRecord([code, name, unit, degree, role, contract, status]: s
   return { code, name, unit, degree, role, contract, status };
 }
 
-const personnelUnitOptions = Array.from(new Set(personnelRows.map((row) => row[2])));
-const personnelDegreeOptions = Array.from(new Set(personnelRows.map((row) => row[3])));
-const personnelContractOptions = Array.from(new Set(personnelRows.map((row) => row[5])));
-const personnelStatusOptions = Array.from(new Set(personnelRows.map((row) => row[6])));
+const PERSONNEL_IMPORT_HEADERS = [
+  "Mã cán bộ",
+  "Họ và tên",
+  "Đơn vị",
+  "Trình độ",
+  "Chức danh",
+  "Hợp đồng",
+  "Trạng thái",
+] as const;
+const PERSONNEL_IMPORT_TEMPLATE_PATH = "/templates/personnel-import-template.xlsx";
+const PERSONNEL_IMPORT_MAX_ROWS = 200;
+
+function derivePersonnelOptions(rows: string[][]) {
+  return {
+    unitOptions: Array.from(new Set(rows.map((row) => row[2]))),
+    degreeOptions: Array.from(new Set(rows.map((row) => row[3]))),
+    contractOptions: Array.from(new Set(rows.map((row) => row[5]))),
+    statusOptions: Array.from(new Set(rows.map((row) => row[6]))),
+  };
+}
+
+function normalizeExcelCell(value: unknown) {
+  if (value === null || value === undefined) return "";
+  return String(value).trim();
+}
+
+function buildPersonnelImportAnalysis({
+  fileName,
+  totalRows,
+  validRows,
+  invalidRows,
+}: {
+  fileName: string;
+  totalRows: number;
+  validRows: PersonnelRow[];
+  invalidRows: PersonnelImportInvalidRow[];
+}): PersonnelImportAnalysis {
+  const distinctInvalidRows = new Set(invalidRows.map((row) => row.row));
+  return {
+    fileName,
+    totalRows,
+    validRows,
+    invalidRows,
+    validCount: validRows.length,
+    invalidCount: distinctInvalidRows.size,
+    errorCount: invalidRows.length,
+    allValid: invalidRows.length === 0 && validRows.length > 0,
+  };
+}
+
+function analyzePersonnelWorkbook(
+  workbook: XLSX.WorkBook,
+  fileName: string,
+  existingRows: string[][],
+  options: {
+    unitOptions: string[];
+    degreeOptions: string[];
+    contractOptions: string[];
+    statusOptions: string[];
+  },
+): PersonnelImportAnalysis {
+  const firstSheetName = workbook.SheetNames[0];
+  const worksheet = firstSheetName ? workbook.Sheets[firstSheetName] : undefined;
+
+  if (!worksheet) {
+    return buildPersonnelImportAnalysis({
+      fileName,
+      totalRows: 0,
+      validRows: [],
+      invalidRows: [
+        {
+          row: "Toàn file",
+          name: fileName,
+          field: "Worksheet",
+          issue: "Không tìm thấy sheet dữ liệu trong file Excel.",
+          type: "Sai cấu trúc",
+        },
+      ],
+    });
+  }
+
+  const sheetRows = XLSX.utils.sheet_to_json<(string | number | boolean | null)[]>(worksheet, {
+    header: 1,
+    raw: false,
+    defval: "",
+    blankrows: false,
+  });
+  const headerRow = (sheetRows[0] ?? []).slice(0, PERSONNEL_IMPORT_HEADERS.length).map(normalizeExcelCell);
+  const headersValid =
+    headerRow.length === PERSONNEL_IMPORT_HEADERS.length &&
+    PERSONNEL_IMPORT_HEADERS.every((header, index) => headerRow[index] === header);
+  const dataRows = sheetRows.slice(1);
+
+  if (!headersValid) {
+    return buildPersonnelImportAnalysis({
+      fileName,
+      totalRows: dataRows.length,
+      validRows: [],
+      invalidRows: [
+        {
+          row: "Dòng 1",
+          name: fileName,
+          field: "Tiêu đề cột",
+          issue: `Tiêu đề phải đúng thứ tự: ${PERSONNEL_IMPORT_HEADERS.join(", ")}.`,
+          type: "Sai cấu trúc",
+        },
+      ],
+    });
+  }
+
+  if (dataRows.length === 0) {
+    return buildPersonnelImportAnalysis({
+      fileName,
+      totalRows: 0,
+      validRows: [],
+      invalidRows: [
+        {
+          row: "Toàn file",
+          name: fileName,
+          field: "Dữ liệu",
+          issue: "File chưa có dòng hồ sơ nhân sự nào để nhập.",
+          type: "Thiếu dữ liệu",
+        },
+      ],
+    });
+  }
+
+  if (dataRows.length > PERSONNEL_IMPORT_MAX_ROWS) {
+    return buildPersonnelImportAnalysis({
+      fileName,
+      totalRows: dataRows.length,
+      validRows: [],
+      invalidRows: [
+        {
+          row: "Toàn file",
+          name: fileName,
+          field: "Số lượng hồ sơ",
+          issue: `Mỗi lần chỉ nhập tối đa ${PERSONNEL_IMPORT_MAX_ROWS} hồ sơ. File hiện có ${dataRows.length} dòng dữ liệu.`,
+          type: "Vượt giới hạn",
+        },
+      ],
+    });
+  }
+
+  const existingCodes = new Set(existingRows.map((row) => normalizeExcelCell(row[0])));
+  const allowedUnits = new Set(options.unitOptions.map(normalizeExcelCell));
+  const allowedDegrees = new Set(options.degreeOptions.map(normalizeExcelCell));
+  const allowedContracts = new Set(options.contractOptions.map(normalizeExcelCell));
+  const allowedStatuses = new Set(options.statusOptions.map(normalizeExcelCell));
+  const firstSeenCodeRow = new Map<string, number>();
+  const invalidRows: PersonnelImportInvalidRow[] = [];
+  const validRows: PersonnelRow[] = [];
+
+  dataRows.forEach((rawRow, rowIndex) => {
+    const excelRowNumber = rowIndex + 2;
+    const normalizedRow = PERSONNEL_IMPORT_HEADERS.map((_, columnIndex) => normalizeExcelCell(rawRow[columnIndex])) as PersonnelRow;
+    const [code, name, unit, degree, role, contract, status] = normalizedRow;
+    const rowErrors: PersonnelImportInvalidRow[] = [];
+    const rowLabel = `Dòng ${excelRowNumber}`;
+    const displayName = name || code || "Chưa có họ tên";
+
+    normalizedRow.forEach((value, columnIndex) => {
+      if (value) return;
+      rowErrors.push({
+        row: rowLabel,
+        name: displayName,
+        field: PERSONNEL_IMPORT_HEADERS[columnIndex],
+        issue: "Để trống trường bắt buộc.",
+        type: "Thiếu bắt buộc",
+      });
+    });
+
+    if (code) {
+      if (existingCodes.has(code)) {
+        rowErrors.push({
+          row: rowLabel,
+          name: displayName,
+          field: "Mã cán bộ",
+          issue: `Mã cán bộ ${code} đã tồn tại trong danh sách hiện có.`,
+          type: "Trùng dữ liệu",
+        });
+      }
+
+      const firstSeenRow = firstSeenCodeRow.get(code);
+      if (firstSeenRow) {
+        rowErrors.push({
+          row: rowLabel,
+          name: displayName,
+          field: "Mã cán bộ",
+          issue: `Mã cán bộ ${code} bị lặp trong file, trùng với dòng ${firstSeenRow}.`,
+          type: "Trùng dữ liệu",
+        });
+      } else {
+        firstSeenCodeRow.set(code, excelRowNumber);
+      }
+    }
+
+    if (unit && !allowedUnits.has(unit)) {
+      rowErrors.push({
+        row: rowLabel,
+        name: displayName,
+        field: "Đơn vị",
+        issue: `Đơn vị ${unit} chưa có trong danh mục hiện tại.`,
+        type: "Sai danh mục",
+      });
+    }
+
+    if (degree && !allowedDegrees.has(degree)) {
+      rowErrors.push({
+        row: rowLabel,
+        name: displayName,
+        field: "Trình độ",
+        issue: `Trình độ ${degree} chưa có trong danh mục hiện tại.`,
+        type: "Sai danh mục",
+      });
+    }
+
+    if (contract && !allowedContracts.has(contract)) {
+      rowErrors.push({
+        row: rowLabel,
+        name: displayName,
+        field: "Hợp đồng",
+        issue: `Giá trị ${contract} không khớp các trạng thái hợp đồng đang dùng.`,
+        type: "Sai danh mục",
+      });
+    }
+
+    if (status && !allowedStatuses.has(status)) {
+      rowErrors.push({
+        row: rowLabel,
+        name: displayName,
+        field: "Trạng thái",
+        issue: `Giá trị ${status} không khớp các trạng thái hồ sơ đang dùng.`,
+        type: "Sai danh mục",
+      });
+    }
+
+    if (rowErrors.length > 0) {
+      invalidRows.push(...rowErrors);
+      return;
+    }
+
+    validRows.push(normalizedRow);
+  });
+
+  return buildPersonnelImportAnalysis({
+    fileName,
+    totalRows: dataRows.length,
+    validRows,
+    invalidRows,
+  });
+}
 
 function SelectFilter({
   label,
@@ -6120,12 +6390,22 @@ function OrgTree() {
 }
 
 function PersonnelListBackground({
+  rows,
+  unitOptions,
+  degreeOptions,
+  contractOptions,
+  statusOptions,
   addMenuOpen,
   onToggleAddMenu,
   onManualAdd,
   onExcelImport,
   onEditPersonnel,
 }: {
+  rows: string[][];
+  unitOptions: string[];
+  degreeOptions: string[];
+  contractOptions: string[];
+  statusOptions: string[];
   addMenuOpen?: boolean;
   onToggleAddMenu?: () => void;
   onManualAdd?: () => void;
@@ -6138,7 +6418,7 @@ function PersonnelListBackground({
   const [contract, setContract] = useState("");
   const [status, setStatus] = useState("");
   const [page, setPage] = useState(1);
-  const filteredRows = personnelRows.filter((row) => {
+  const filteredRows = rows.filter((row) => {
     const record = toPersonnelRecord(row);
     const keywordValue = normalizeSearch(keyword);
 
@@ -6202,10 +6482,10 @@ function PersonnelListBackground({
               placeholder="Tìm kiếm"
             />
           </div>
-          <SelectFilter label="Đơn vị công tác" value={unit} options={personnelUnitOptions} onChange={updateUnit} />
-          <SelectFilter label="Học hàm/học vị" value={degree} options={personnelDegreeOptions} onChange={updateDegree} />
-          <SelectFilter label="Hợp đồng" value={contract} options={personnelContractOptions} onChange={updateContract} />
-          <SelectFilter label="Trạng thái" value={status} options={personnelStatusOptions} onChange={updateStatus} />
+          <SelectFilter label="Đơn vị công tác" value={unit} options={unitOptions} onChange={updateUnit} />
+          <SelectFilter label="Học hàm/học vị" value={degree} options={degreeOptions} onChange={updateDegree} />
+          <SelectFilter label="Hợp đồng" value={contract} options={contractOptions} onChange={updateContract} />
+          <SelectFilter label="Trạng thái" value={status} options={statusOptions} onChange={updateStatus} />
           {hasActiveFilters ? (
             <button
               type="button"
@@ -6294,52 +6574,139 @@ function PersonnelListBackground({
   );
 }
 
-function ExcelImportDialog({ onClose }: { onClose: () => void }) {
-  const [imported, setImported] = useState(false);
-  const [fileUploaded, setFileUploaded] = useState(false);
-  const [allValid, setAllValid] = useState(false);
-  const invalidRows = [
-    {
-      row: "Dòng 18",
-      name: "Phạm Đức Long",
-      field: "Số CCCD",
-      issue: "Để trống trường bắt buộc",
-      type: "Thiếu bắt buộc",
-    },
-    {
-      row: "Dòng 18",
-      name: "Phạm Đức Long",
-      field: "Ngày sinh",
-      issue: "Sai định dạng ngày",
-      type: "Sai định dạng",
-    },
-    {
-      row: "Dòng 24",
-      name: "Đỗ Mai Anh",
-      field: "Email",
-      issue: "Email không đúng định dạng",
-      type: "Sai định dạng",
-    },
-    {
-      row: "Dòng 24",
-      name: "Đỗ Mai Anh",
-      field: "Đơn vị công tác",
-      issue: "Không khớp danh mục đơn vị",
-      type: "Sai danh mục",
-    },
-    {
-      row: "Dòng 31",
-      name: "Lê Quốc Bảo",
-      field: "Số CCCD",
-      issue: "Trùng với hồ sơ NS009",
-      type: "Trùng dữ liệu",
-    },
-  ];
-  const validCount = allValid ? 38 : 35;
-  const invalidCount = allValid ? 0 : 3;
-  const errorCount = allValid ? 0 : 5;
+function ExcelImportDialog({
+  onClose,
+  existingRows,
+  unitOptions,
+  degreeOptions,
+  contractOptions,
+  statusOptions,
+  onImport,
+}: {
+  onClose: () => void;
+  existingRows: string[][];
+  unitOptions: string[];
+  degreeOptions: string[];
+  contractOptions: string[];
+  statusOptions: string[];
+  onImport: (rows: PersonnelRow[]) => void;
+}) {
+  const fileInputRef = useRef<HTMLInputElement>(null);
+  const [analysis, setAnalysis] = useState<PersonnelImportAnalysis | null>(null);
+  const [isParsing, setIsParsing] = useState(false);
+  const [importSummary, setImportSummary] = useState<{ fileName: string; importedCount: number } | null>(null);
+  const fileUploaded = analysis !== null;
+  const allValid = analysis?.allValid ?? false;
+  const validCount = analysis?.validCount ?? 0;
+  const invalidCount = analysis?.invalidCount ?? 0;
+  const errorCount = analysis?.errorCount ?? 0;
+  const invalidRows = analysis?.invalidRows ?? [];
+  const totalRows = analysis?.totalRows ?? 0;
 
-  if (imported) {
+  const resetSelection = () => {
+    setAnalysis(null);
+    setImportSummary(null);
+    setIsParsing(false);
+    if (fileInputRef.current) {
+      fileInputRef.current.value = "";
+    }
+  };
+
+  const openFileChooser = () => {
+    if (isParsing) return;
+    if (fileInputRef.current) {
+      fileInputRef.current.value = "";
+      fileInputRef.current.click();
+    }
+  };
+
+  const downloadTemplate = () => {
+    const link = document.createElement("a");
+    link.href = PERSONNEL_IMPORT_TEMPLATE_PATH;
+    link.download = "personnel-import-template.xlsx";
+    document.body.append(link);
+    link.click();
+    link.remove();
+  };
+
+  const loadFile = (file: File) => {
+    setIsParsing(true);
+    const reader = new FileReader();
+
+    reader.onload = () => {
+      try {
+        const result = reader.result;
+        if (!(result instanceof ArrayBuffer)) {
+          throw new Error("Không đọc được dữ liệu nhị phân từ file Excel.");
+        }
+
+        const workbook = XLSX.read(result, { type: "array" });
+        const nextAnalysis = analyzePersonnelWorkbook(workbook, file.name, existingRows, {
+          unitOptions,
+          degreeOptions,
+          contractOptions,
+          statusOptions,
+        });
+        setAnalysis(nextAnalysis);
+      } catch (error) {
+        const message = error instanceof Error ? error.message : "Không thể phân tích file Excel đã chọn.";
+        setAnalysis(
+          buildPersonnelImportAnalysis({
+            fileName: file.name,
+            totalRows: 0,
+            validRows: [],
+            invalidRows: [
+              {
+                row: "Toàn file",
+                name: file.name,
+                field: "Tệp Excel",
+                issue: message,
+                type: "Sai cấu trúc",
+              },
+            ],
+          }),
+        );
+      } finally {
+        setIsParsing(false);
+      }
+    };
+
+    reader.onerror = () => {
+      setAnalysis(
+        buildPersonnelImportAnalysis({
+          fileName: file.name,
+          totalRows: 0,
+          validRows: [],
+          invalidRows: [
+            {
+              row: "Toàn file",
+              name: file.name,
+              field: "Tệp Excel",
+              issue: "Không thể đọc file đã chọn. Vui lòng chọn lại file Excel hợp lệ.",
+              type: "Sai cấu trúc",
+            },
+          ],
+        }),
+      );
+      setIsParsing(false);
+    };
+
+    reader.readAsArrayBuffer(file);
+  };
+
+  const handleFileChange = (event: ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (!file) return;
+    loadFile(file);
+  };
+
+  const handleImport = () => {
+    if (!analysis || !analysis.allValid) return;
+    onImport(analysis.validRows);
+    setImportSummary({ fileName: analysis.fileName, importedCount: analysis.validRows.length });
+  };
+
+  if (importSummary) {
     return (
       <section className="w-full max-w-[620px] overflow-hidden rounded-2xl border border-blue-200 bg-white shadow-2xl">
         <header className="flex justify-end px-5 pt-5">
@@ -6358,24 +6725,23 @@ function ExcelImportDialog({ onClose }: { onClose: () => void }) {
             Nhập hồ sơ từ Excel thành công
           </h1>
           <p className="mx-auto mt-2 max-w-[460px] text-[13px] leading-6 text-slate-500">
-            Hệ thống đã tạo {validCount} hồ sơ hợp lệ từ file Danh_sach_nhan_su_moi.xlsx.
-            {invalidCount > 0 ? ` ${invalidCount} dòng chưa được nhập do còn ${errorCount} lỗi dữ liệu.` : " Toàn bộ dữ liệu đã được nhập."}
+            Hệ thống đã tạo {importSummary.importedCount} hồ sơ hợp lệ từ file {importSummary.fileName}. Toàn bộ dữ liệu đã được nhập.
           </p>
 
           <div className="mt-6 grid grid-cols-3 gap-3 text-left">
             <div className="rounded-xl border border-blue-200 bg-blue-50 p-4">
-              <div className="text-[11px] font-semibold uppercase tracking-wide text-blue-700">Đã nhập</div>
-              <div className="mt-1 text-[24px] font-bold text-blue-900">{validCount}</div>
+                <div className="text-[11px] font-semibold uppercase tracking-wide text-blue-700">Đã nhập</div>
+                <div className="mt-1 text-[24px] font-bold text-blue-900">{importSummary.importedCount}</div>
+              </div>
+              <div className="rounded-xl border border-amber-200 bg-amber-50 p-4">
+                <div className="text-[11px] font-semibold uppercase tracking-wide text-amber-700">Chưa nhập</div>
+                <div className="mt-1 text-[24px] font-bold text-amber-900">0</div>
+              </div>
+              <div className="rounded-xl border border-blue-200 bg-blue-50 p-4">
+                <div className="text-[11px] font-semibold uppercase tracking-wide text-blue-700">Tổng dòng</div>
+                <div className="mt-1 text-[24px] font-bold text-blue-900">{importSummary.importedCount}</div>
+              </div>
             </div>
-            <div className="rounded-xl border border-amber-200 bg-amber-50 p-4">
-              <div className="text-[11px] font-semibold uppercase tracking-wide text-amber-700">Chưa nhập</div>
-              <div className="mt-1 text-[24px] font-bold text-amber-900">{invalidCount}</div>
-            </div>
-            <div className="rounded-xl border border-blue-200 bg-blue-50 p-4">
-              <div className="text-[11px] font-semibold uppercase tracking-wide text-blue-700">Tổng dòng</div>
-              <div className="mt-1 text-[24px] font-bold text-blue-900">38</div>
-            </div>
-          </div>
 
           <div className="mt-6 flex justify-center gap-3">
             <button
@@ -6384,14 +6750,12 @@ function ExcelImportDialog({ onClose }: { onClose: () => void }) {
             >
               Về danh sách
             </button>
-            <button
-              onClick={() => {
-                setImported(false);
-                setFileUploaded(false);
-                setAllValid(false);
-              }}
-              className="rounded-lg bg-blue-700 px-4 py-2 text-[13px] font-semibold text-white hover:bg-blue-800"
-            >
+              <button
+                onClick={() => {
+                  resetSelection();
+                }}
+                className="rounded-lg bg-blue-700 px-4 py-2 text-[13px] font-semibold text-white hover:bg-blue-800"
+              >
               Nhập file khác
             </button>
           </div>
@@ -6403,6 +6767,7 @@ function ExcelImportDialog({ onClose }: { onClose: () => void }) {
   if (!fileUploaded) {
     return (
       <section className="w-full max-w-[680px] overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-2xl">
+        <input ref={fileInputRef} type="file" accept=".xlsx,.xls" onChange={handleFileChange} className="hidden" />
         <header className="flex items-start justify-between border-b border-slate-200 px-6 py-5">
           <div className="flex gap-3">
             <div className="grid size-10 shrink-0 place-items-center rounded-xl bg-blue-50 text-blue-700">
@@ -6429,20 +6794,20 @@ function ExcelImportDialog({ onClose }: { onClose: () => void }) {
               <div>
                 <div className="text-[13px] font-semibold text-blue-900">File mẫu nhập hồ sơ</div>
                 <p className="mt-1 text-[12px] leading-5 text-blue-800">
-                  File mẫu giúp thống nhất các cột bắt buộc như họ tên, CCCD, ngày sinh, đơn vị công tác và chức vụ.
+                  File mẫu giúp thống nhất 7 cột bắt buộc cho hồ sơ nhân sự: mã cán bộ, họ tên, đơn vị, trình độ, chức danh, hợp đồng và trạng thái.
                 </p>
               </div>
-              <button className="inline-flex h-9 shrink-0 items-center gap-2 rounded-lg border border-blue-200 bg-white px-3 text-[12.5px] font-semibold text-blue-700 hover:bg-blue-50">
+              <button
+                onClick={downloadTemplate}
+                className="inline-flex h-9 shrink-0 items-center gap-2 rounded-lg border border-blue-200 bg-white px-3 text-[12.5px] font-semibold text-blue-700 hover:bg-blue-50"
+              >
                 <FileText size={15} /> Tải file mẫu
               </button>
             </div>
           </div>
 
           <button
-            onClick={() => {
-              setFileUploaded(true);
-              setAllValid(false);
-            }}
+            onClick={openFileChooser}
             className="flex min-h-[220px] w-full flex-col items-center justify-center rounded-2xl border-2 border-dashed border-slate-300 bg-slate-50 px-6 text-center hover:border-blue-300 hover:bg-blue-50/40"
           >
             <div className="grid size-14 place-items-center rounded-full bg-white text-blue-700 shadow-sm">
@@ -6453,13 +6818,15 @@ function ExcelImportDialog({ onClose }: { onClose: () => void }) {
               Hỗ trợ .xlsx, tối đa 200 hồ sơ/lần. Dữ liệu sẽ được kiểm tra trước khi nhập.
             </div>
             <span className="mt-4 rounded-lg bg-blue-700 px-4 py-2 text-[13px] font-semibold text-white">
-              Chọn file Excel
+              {isParsing ? "Đang kiểm tra file..." : "Chọn file Excel"}
             </span>
           </button>
         </div>
 
         <footer className="flex items-center justify-between border-t border-slate-200 bg-slate-50 px-6 py-4">
-          <div className="text-[12px] text-slate-500">Chưa có file nào được chọn.</div>
+          <div className="text-[12px] text-slate-500">
+            {isParsing ? "Đang đọc file Excel và kiểm tra dữ liệu." : "Chưa có file nào được chọn."}
+          </div>
           <div className="flex gap-2">
             <button
               onClick={onClose}
@@ -6478,6 +6845,7 @@ function ExcelImportDialog({ onClose }: { onClose: () => void }) {
 
   return (
     <section className="flex h-[calc(100vh-96px)] w-full max-w-[760px] flex-col overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-2xl">
+      <input ref={fileInputRef} type="file" accept=".xlsx,.xls" onChange={handleFileChange} className="hidden" />
       <header className="shrink-0 flex items-start justify-between border-b border-slate-200 px-6 py-5">
         <div className="flex gap-3">
           <div className="grid size-10 shrink-0 place-items-center rounded-xl bg-slate-100 text-slate-600">
@@ -6506,11 +6874,14 @@ function ExcelImportDialog({ onClose }: { onClose: () => void }) {
                 <div className="text-[11px] font-semibold uppercase tracking-wide text-slate-500">File mẫu</div>
                 <div className="mt-0.5 text-[13.5px] font-semibold text-slate-950">Mẫu nhập hồ sơ nhân sự</div>
                 <p className="mt-1 text-[12px] leading-5 text-slate-600">
-                  Mẫu gồm định danh, đơn vị công tác, học vị, hợp đồng và tài liệu cần bổ sung.
+                  Mẫu gồm 7 cột chuẩn cho danh sách hồ sơ nhân sự để hệ thống kiểm tra và nhập đồng bộ.
                 </p>
               </div>
               <div className="flex justify-end">
-                <button className="inline-flex h-9 shrink-0 items-center gap-2 rounded-lg border border-slate-200 bg-white px-3 text-[12.5px] font-semibold text-slate-700 hover:bg-slate-50">
+                <button
+                  onClick={downloadTemplate}
+                  className="inline-flex h-9 shrink-0 items-center gap-2 rounded-lg border border-slate-200 bg-white px-3 text-[12.5px] font-semibold text-slate-700 hover:bg-slate-50"
+                >
                   <FileText size={15} /> Tải mẫu
                 </button>
               </div>
@@ -6522,18 +6893,20 @@ function ExcelImportDialog({ onClose }: { onClose: () => void }) {
               <div className="min-w-0">
                 <div className="text-[11px] font-semibold uppercase tracking-wide text-slate-500">File đã chọn</div>
                 <div className="mt-0.5 truncate text-[13.5px] font-semibold text-slate-950">
-                  Danh_sach_nhan_su_moi.xlsx
+                  {analysis?.fileName}
                 </div>
                 <p className="mt-1 text-[12px] leading-5 text-slate-600">
-                  Đã chọn file Excel gồm 38 dòng dữ liệu để kiểm tra trước khi nhập.
+                  {isParsing
+                    ? "Hệ thống đang đọc dữ liệu và kiểm tra tính hợp lệ của file Excel."
+                    : `Đã chọn file Excel gồm ${totalRows} dòng dữ liệu để kiểm tra trước khi nhập.`}
                 </p>
               </div>
               <div className="flex items-center justify-between gap-3">
                 <span className="inline-flex items-center gap-1.5 text-[11.5px] font-medium text-slate-500">
-                  <Upload size={13} /> .xlsx
+                  <Upload size={13} /> {analysis?.fileName.toLowerCase().endsWith(".xls") ? ".xls" : ".xlsx"}
                 </span>
                 <button
-                  onClick={() => setAllValid(true)}
+                  onClick={openFileChooser}
                   className="rounded-lg border border-slate-200 bg-white px-3 py-1.5 text-[12px] font-medium text-slate-700 hover:bg-slate-50"
                 >
                   Chọn file Excel
@@ -6554,7 +6927,7 @@ function ExcelImportDialog({ onClose }: { onClose: () => void }) {
               <div className="text-[11.5px] text-slate-500">
                 {allValid
                   ? "File đạt điều kiện nhập toàn bộ hồ sơ."
-                  : "File có thể nhập phần hợp lệ; các dòng lỗi cần sửa trong Excel."}
+                  : "File đang có lỗi dữ liệu; cần sửa toàn bộ lỗi trước khi nhập."}
               </div>
             </div>
             <span
@@ -6563,7 +6936,7 @@ function ExcelImportDialog({ onClose }: { onClose: () => void }) {
               }`}
             >
               {allValid ? <CheckCircle2 size={13} /> : <AlertCircle size={13} />}
-              {allValid ? "Sẵn sàng nhập" : "5 lỗi cần xử lý"}
+              {allValid ? "Sẵn sàng nhập" : `${errorCount} lỗi cần xử lý`}
             </span>
           </div>
 
@@ -6572,19 +6945,19 @@ function ExcelImportDialog({ onClose }: { onClose: () => void }) {
               <div>
                 <div className="flex items-baseline gap-2">
                   <span className="text-[26px] font-bold text-slate-950">
-                    {validCount}/38
+                    {validCount}/{totalRows}
                   </span>
                   <span className="text-[12.5px] font-medium text-slate-600">dòng hợp lệ</span>
                 </div>
                 <div className="mt-3 h-2 overflow-hidden rounded-full bg-slate-100">
                   <div
                     className={`h-full rounded-full ${allValid ? "bg-blue-700" : "bg-amber-500"}`}
-                    style={{ width: allValid ? "100%" : "92%" }}
+                    style={{ width: `${totalRows > 0 ? Math.max(0, Math.min(100, (validCount / totalRows) * 100)) : 0}%` }}
                   />
                 </div>
                 <div className="mt-2 flex items-center gap-4 text-[11.5px] text-slate-500">
-                  <span>Tổng 38 dòng dữ liệu</span>
-                  {!allValid ? <span>3 dòng cần sửa</span> : <span>Không phát hiện dòng lỗi</span>}
+                  <span>Tổng {totalRows} dòng dữ liệu</span>
+                  {!allValid ? <span>{invalidCount} dòng cần sửa</span> : <span>Không phát hiện dòng lỗi</span>}
                 </div>
               </div>
 
@@ -6617,10 +6990,10 @@ function ExcelImportDialog({ onClose }: { onClose: () => void }) {
             </div>
             <div className="grid grid-cols-2 gap-3 p-4">
               {[
-                "Đủ trường bắt buộc",
-                "Định dạng ngày, email, số điện thoại hợp lệ",
-                "Đơn vị công tác khớp danh mục",
-                "Không phát hiện CCCD trùng",
+                "Đủ 7 trường bắt buộc",
+                "Không vượt quá 200 hồ sơ trong một file",
+                "Đơn vị và Trình độ khớp danh mục hiện có",
+                "Mã cán bộ, Hợp đồng và Trạng thái hợp lệ",
               ].map((item) => (
                 <div key={item} className="flex items-center gap-2 rounded-lg border border-blue-100 bg-blue-50/70 px-3 py-2.5 text-[12.5px] font-medium text-blue-800">
                   <CheckCircle2 size={15} className="shrink-0" />
@@ -6636,8 +7009,11 @@ function ExcelImportDialog({ onClose }: { onClose: () => void }) {
                 <div className="text-[13px] font-semibold text-slate-900">Thông tin không hợp lệ</div>
                 <div className="text-[11.5px] text-slate-600">Cần sửa trước khi nhập toàn bộ file.</div>
               </div>
-              <button className="rounded-lg border border-slate-200 bg-white px-3 py-1.5 text-[12px] font-semibold text-slate-700 hover:bg-slate-50">
-                Xuất danh sách lỗi
+              <button
+                onClick={openFileChooser}
+                className="rounded-lg border border-slate-200 bg-white px-3 py-1.5 text-[12px] font-semibold text-slate-700 hover:bg-slate-50"
+              >
+                Chọn lại file
               </button>
             </div>
             <div className="grid grid-cols-[0.68fr_1.05fr_1fr_1fr_1.45fr] bg-white px-4 py-2 text-[11px] font-bold uppercase tracking-wide text-slate-500">
@@ -6669,7 +7045,7 @@ function ExcelImportDialog({ onClose }: { onClose: () => void }) {
         <div className="text-[12px] text-slate-500">
           {allValid
             ? "Hệ thống sẽ tạo hồ sơ sau khi xác nhận nhập file."
-            : "Dòng hợp lệ được nhập trước; dòng lỗi được giữ lại để xuất và sửa."}
+            : "File chỉ được nhập khi toàn bộ dòng dữ liệu đều hợp lệ."}
         </div>
         <div className="flex gap-2">
           <button
@@ -6679,10 +7055,13 @@ function ExcelImportDialog({ onClose }: { onClose: () => void }) {
             Hủy
           </button>
           <button
-            onClick={() => setImported(true)}
-            className="inline-flex items-center gap-1.5 rounded-lg bg-blue-700 px-4 py-2 text-[13px] font-semibold text-white hover:bg-blue-800"
+            onClick={handleImport}
+            disabled={!allValid || isParsing}
+            className={`inline-flex items-center gap-1.5 rounded-lg px-4 py-2 text-[13px] font-semibold text-white ${
+              allValid && !isParsing ? "bg-blue-700 hover:bg-blue-800" : "cursor-not-allowed bg-slate-300"
+            }`}
           >
-            <CheckCircle2 size={15} /> {allValid ? "Nhập toàn bộ hồ sơ" : "Nhập phần hợp lệ"}
+            <CheckCircle2 size={15} /> {allValid ? "Nhập toàn bộ hồ sơ" : "Cần sửa file trước khi nhập"}
           </button>
         </div>
       </footer>
@@ -7452,6 +7831,7 @@ function PlaceholderView({ title }: { title: string }) {
 }
 
 export default function App() {
+  const [personnelRows, setPersonnelRows] = useState<string[][]>(initialPersonnelRows);
   const [activeView, setActiveView] = useState<View>("ho-so");
   const [foreigner, setForeigner] = useState(false);
   const [duplicateId, setDuplicateId] = useState(false);
@@ -7472,6 +7852,7 @@ export default function App() {
     { name: "Bằng Kỹ sư Khoa học máy tính", place: "Trường Đại học Thủy lợi" },
   ]);
   const [certs, setCerts] = useState([{ name: "IELTS 7.5", place: "British Council" }]);
+  const personnelOptions = useMemo(() => derivePersonnelOptions(personnelRows), [personnelRows]);
 
   useEffect(() => {
     const handlePrototypeShortcut = (event: KeyboardEvent) => {
@@ -7634,7 +8015,13 @@ export default function App() {
             <AppHeader label="Hồ sơ nhân sự" notifications={expiringContracts} notificationOpen={notificationOpen} onToggleNotifications={() => setNotificationOpen((open) => !open)} />
             <div className="relative min-h-[calc(100vh-58px)] overflow-hidden bg-white">
               <div className="opacity-25">
-                <PersonnelListBackground />
+                <PersonnelListBackground
+                  rows={personnelRows}
+                  unitOptions={personnelOptions.unitOptions}
+                  degreeOptions={personnelOptions.degreeOptions}
+                  contractOptions={personnelOptions.contractOptions}
+                  statusOptions={personnelOptions.statusOptions}
+                />
               </div>
               <div className="absolute inset-0 grid place-items-center p-6">
                 <section className="w-full max-w-[620px] rounded-2xl border border-emerald-200 bg-white p-8 text-center shadow-2xl">
@@ -7671,7 +8058,13 @@ export default function App() {
       {showPersonnelForm ? (
         <>
           <div className={`opacity-25 ${figmaCopyMode ? "pointer-events-none absolute inset-0" : ""}`}>
-            <PersonnelListBackground />
+            <PersonnelListBackground
+              rows={personnelRows}
+              unitOptions={personnelOptions.unitOptions}
+              degreeOptions={personnelOptions.degreeOptions}
+              contractOptions={personnelOptions.contractOptions}
+              statusOptions={personnelOptions.statusOptions}
+            />
           </div>
           <div className={`flex items-start justify-center p-6 pt-7 ${figmaCopyMode ? "relative" : "absolute inset-0"}`}>
             <LargePersonnelForm
@@ -7702,6 +8095,11 @@ export default function App() {
         </>
       ) : (
         <PersonnelListBackground
+          rows={personnelRows}
+          unitOptions={personnelOptions.unitOptions}
+          degreeOptions={personnelOptions.degreeOptions}
+          contractOptions={personnelOptions.contractOptions}
+          statusOptions={personnelOptions.statusOptions}
           addMenuOpen={addMenuOpen}
           onToggleAddMenu={() => setAddMenuOpen((open) => !open)}
           onManualAdd={openManualAdd}
@@ -7724,7 +8122,17 @@ export default function App() {
         <>
           <div className="absolute inset-0 bg-white/70" />
           <div className="absolute inset-0 grid place-items-center p-6">
-            <ExcelImportDialog onClose={closeExcelImport} />
+            <ExcelImportDialog
+              onClose={closeExcelImport}
+              existingRows={personnelRows}
+              unitOptions={personnelOptions.unitOptions}
+              degreeOptions={personnelOptions.degreeOptions}
+              contractOptions={personnelOptions.contractOptions}
+              statusOptions={personnelOptions.statusOptions}
+              onImport={(rows) => {
+                setPersonnelRows((current) => [...current, ...rows]);
+              }}
+            />
           </div>
         </>
       ) : null}
