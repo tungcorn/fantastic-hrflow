@@ -1,0 +1,56 @@
+{
+  "version": "1.0.0",
+  "lastScanned": 1781615797066,
+  "projectRoot": "D:\\BTAP\\fantastic-hrflow",
+  "techStack": {
+    "languages": [],
+    "frameworks": [],
+    "packageManager": "npm",
+    "runtime": null
+  },
+  "build": {
+    "buildCommand": null,
+    "testCommand": null,
+    "lintCommand": null,
+    "devCommand": null,
+    "scripts": {}
+  },
+  "conventions": {
+    "namingStyle": null,
+    "importStyle": null,
+    "testPattern": null,
+    "fileOrganization": null
+  },
+  "structure": {
+    "isMonorepo": false,
+    "workspaces": [],
+    "mainDirectories": [],
+    "gitBranches": {
+      "defaultBranch": "main",
+      "branchingStrategy": null
+    }
+  },
+  "customNotes": [],
+  "directoryMap": {
+    "code": {
+      "path": "code",
+      "purpose": null,
+      "fileCount": 0,
+      "lastAccessed": 1781615797022,
+      "keyFiles": []
+    },
+    "master-document": {
+      "path": "master-document",
+      "purpose": null,
+      "fileCount": 3,
+      "lastAccessed": 1781615797022,
+      "keyFiles": [
+        "requirement-modeling.md",
+        "stakeholder-interviews.md",
+        "use-case-document.md"
+      ]
+    }
+  },
+  "hotPaths": [],
+  "userDirectives": []
+}
