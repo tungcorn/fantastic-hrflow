@@ -54,6 +54,7 @@ const wizardSteps: { id: StepId; label: string; desc: string; icon: ReactNode }[
 ];
 
 type FieldState = "default" | "error" | "success";
+type CredentialItem = { name: string; place: string };
 
 const generalEducationOptions = [
   "12/12",
@@ -133,12 +134,14 @@ function Input({
   icon,
   state = "default",
   readOnly,
+  onChange,
 }: {
   value?: string;
   placeholder?: string;
   icon?: ReactNode;
   state?: FieldState;
   readOnly?: boolean;
+  onChange?: (value: string) => void;
 }) {
   const ring =
     state === "error"
@@ -152,7 +155,12 @@ function Input({
     >
       {icon ? <span className="text-slate-400">{icon}</span> : null}
       <input
-        defaultValue={value}
+        {...(onChange
+          ? {
+              value: value ?? "",
+              onChange: (event: React.ChangeEvent<HTMLInputElement>) => onChange(event.target.value),
+            }
+          : { defaultValue: value })}
         placeholder={placeholder}
         readOnly={readOnly}
         className="min-w-0 flex-1 bg-transparent text-[13px] text-slate-900 placeholder:text-slate-400 focus:outline-none"
@@ -284,6 +292,154 @@ function SectionCard({
       </header>
       <div className="px-4 py-4">{children}</div>
     </section>
+  );
+}
+
+function CredentialSection({
+  title,
+  description,
+  icon,
+  optional,
+  items,
+  setItems,
+  itemLabel,
+  namePlaceholder,
+  requiredMinimum,
+}: {
+  title: string;
+  description: string;
+  icon: ReactNode;
+  optional?: boolean;
+  items: CredentialItem[];
+  setItems: (value: CredentialItem[] | ((items: CredentialItem[]) => CredentialItem[])) => void;
+  itemLabel: string;
+  namePlaceholder: string;
+  requiredMinimum?: boolean;
+}) {
+  const [adding, setAdding] = useState(false);
+  const [draft, setDraft] = useState<CredentialItem>({ name: "", place: "" });
+  const canSave = draft.name.trim().length > 0 && draft.place.trim().length > 0;
+  const resetDraft = () => {
+    setDraft({ name: "", place: "" });
+    setAdding(false);
+  };
+  const saveDraft = () => {
+    if (!canSave) return;
+    setItems((current) => [...current, { name: draft.name.trim(), place: draft.place.trim() }]);
+    resetDraft();
+  };
+
+  return (
+    <SectionCard
+      title={title}
+      description={description}
+      icon={icon}
+      optional={optional}
+      action={
+        <button
+          type="button"
+          onClick={() => setAdding(true)}
+          disabled={adding}
+          className={`inline-flex items-center gap-1.5 rounded-lg border px-2.5 py-1.5 text-[12px] font-medium transition ${
+            adding
+              ? "cursor-not-allowed border-slate-200 bg-slate-50 text-slate-400"
+              : "border-blue-200 bg-white text-blue-700 hover:bg-blue-50"
+          }`}
+        >
+          <Plus size={13} /> Thêm
+        </button>
+      }
+    >
+      <div className="space-y-3">
+        <div className="space-y-2.5">
+          {items.length ? (
+            items.map((item, index) => {
+              const locked = !!requiredMinimum && items.length <= 1;
+              return (
+                <div
+                  key={`${item.name}-${index}`}
+                  className="flex items-start justify-between gap-3 rounded-lg border border-slate-200 bg-white px-3 py-3"
+                >
+                  <div className="min-w-0 flex-1">
+                    <div className="font-medium leading-5 text-slate-900">{item.name}</div>
+                    <div className="mt-1 text-[12px] text-slate-500">Nơi cấp: {item.place}</div>
+                    <div className="mt-2 flex items-center gap-2">
+                      <span className="rounded-md bg-blue-50 px-2.5 py-1 text-[11px] font-semibold text-blue-700">
+                        PDF
+                      </span>
+                      <span className="text-[11.5px] text-slate-500">Đã đính kèm file</span>
+                    </div>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={() => setItems((current) => current.filter((_, itemIndex) => itemIndex !== index))}
+                    disabled={locked}
+                    className={`grid size-8 shrink-0 place-items-center rounded-md ${
+                      locked ? "cursor-not-allowed text-slate-300" : "text-red-500 hover:bg-red-50"
+                    }`}
+                    aria-label={`Xóa ${itemLabel}`}
+                  >
+                    <Trash2 size={14} />
+                  </button>
+                </div>
+              );
+            })
+          ) : (
+            <div className="rounded-lg border border-dashed border-slate-200 bg-slate-50/60 px-3 py-4 text-[12.5px] text-slate-500">
+              Chưa có {itemLabel}. Nhấn Thêm để bổ sung thông tin.
+            </div>
+          )}
+        </div>
+
+        {adding ? (
+          <div className="rounded-lg border border-blue-100 bg-blue-50/40 p-3">
+            <div className="mb-3 text-[12.5px] font-semibold text-slate-900">Thêm {itemLabel}</div>
+            <div className="space-y-3">
+              <Field label={`Tên ${itemLabel}`} required>
+                <Input
+                  value={draft.name}
+                  placeholder={namePlaceholder}
+                  onChange={(value) => setDraft((current) => ({ ...current, name: value }))}
+                />
+              </Field>
+              <Field label="Nơi cấp" required>
+                <Input
+                  value={draft.place}
+                  placeholder="Nhập nơi cấp"
+                  onChange={(value) => setDraft((current) => ({ ...current, place: value }))}
+                />
+              </Field>
+              <div className="flex flex-wrap items-center justify-between gap-2 rounded-lg border border-dashed border-slate-200 bg-white px-3 py-2.5">
+                <div>
+                  <div className="text-[12px] font-medium text-slate-800">File đính kèm</div>
+                  <div className="text-[11.5px] text-slate-500">PDF {itemLabel}, có thể thay đổi sau.</div>
+                </div>
+                <FileButton label="Chọn PDF" />
+              </div>
+            </div>
+            <div className="mt-3 flex justify-end gap-2">
+              <button
+                type="button"
+                onClick={resetDraft}
+                className="inline-flex items-center gap-1.5 rounded-lg border border-slate-200 bg-white px-3 py-1.5 text-[12px] font-medium text-slate-700 hover:bg-slate-50"
+              >
+                <X size={13} /> Hủy
+              </button>
+              <button
+                type="button"
+                onClick={saveDraft}
+                disabled={!canSave}
+                className={`inline-flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-[12px] font-medium text-white ${
+                  canSave ? "bg-blue-700 hover:bg-blue-800" : "cursor-not-allowed bg-slate-300"
+                }`}
+              >
+                <Save size={13} /> Lưu
+              </button>
+            </div>
+          </div>
+        ) : null}
+      </div>
+    </SectionCard>
   );
 }
 
@@ -1381,89 +1537,27 @@ function LargePersonnelForm({
                 </SectionCard>
 
                   <div className="grid grid-cols-2 gap-4">
-                  <SectionCard
+                  <CredentialSection
                     title="Bằng cấp"
                     description="Bắt buộc đính kèm tối thiểu 1 bằng cấp."
                     icon={<Award size={18} />}
-                    action={
-                      <button
-                        type="button"
-                        onClick={() => setDegrees((items) => [...items, { name: "", place: "" }])}
-                        className="inline-flex items-center gap-1.5 rounded-lg border border-blue-200 bg-white px-2.5 py-1.5 text-[12px] font-medium text-blue-700 hover:bg-blue-50"
-                      >
-                        <Plus size={13} /> Thêm
-                      </button>
-                    }
-                  >
-                    <div className="overflow-hidden rounded-lg border border-slate-200">
-                      <div className="grid grid-cols-[1.1fr_1fr_64px_72px] bg-slate-50 px-3 py-2 text-[11px] font-bold uppercase tracking-wide text-slate-500">
-                        <span>Tên bằng</span>
-                        <span>Nơi cấp</span>
-                        <span className="text-center">File</span>
-                        <span className="text-center whitespace-nowrap"></span>
-                      </div>
-                      {degrees.map((d, i) => (
-                        <div key={`${d.name}-${i}`} className="grid grid-cols-[1.1fr_1fr_64px_72px] items-center border-t border-slate-100 px-3 py-2.5 text-[12px]">
-                          <span className="font-medium text-slate-900">{d.name || "Bằng mới"}</span>
-                          <span className="text-slate-600">{d.place || "Chưa nhập"}</span>
-                          <button className="inline-flex h-8 w-11 items-center justify-center justify-self-center rounded-md bg-blue-50 px-2 text-[11px] font-semibold text-blue-700">
-                            PDF
-                          </button>
-                          {degrees.length > 1 ? (
-                            <button
-                              onClick={() => setDegrees((items) => items.filter((_, idx) => idx !== i))}
-                              className="grid size-8 place-items-center justify-self-center rounded-md text-red-500 hover:bg-red-50"
-                              aria-label="Xóa bằng cấp"
-                            >
-                              <Trash2 size={14} />
-                            </button>
-                          ) : (
-                            <span className="size-8 justify-self-center" />
-                          )}
-                        </div>
-                      ))}
-                    </div>
-                  </SectionCard>
+                    items={degrees}
+                    setItems={setDegrees}
+                    itemLabel="bằng cấp"
+                    namePlaceholder="Ví dụ: Bằng Thạc sĩ Công nghệ thông tin"
+                    requiredMinimum
+                  />
 
-                  <SectionCard
+                  <CredentialSection
                     title="Chứng chỉ"
+                    description="Không bắt buộc, dùng để bổ sung chứng chỉ chuyên môn hoặc ngoại ngữ."
                     icon={<FileBadge size={18} />}
                     optional
-                    action={
-                      <button
-                        type="button"
-                        onClick={() => setCerts((items) => [...items, { name: "", place: "" }])}
-                        className="inline-flex items-center gap-1.5 rounded-lg border border-blue-200 bg-white px-2.5 py-1.5 text-[12px] font-medium text-blue-700 hover:bg-blue-50"
-                      >
-                        <Plus size={13} /> Thêm
-                      </button>
-                    }
-                  >
-                    <div className="overflow-hidden rounded-lg border border-slate-200">
-                      <div className="grid grid-cols-[1.1fr_1fr_64px_72px] bg-slate-50 px-3 py-2 text-[11px] font-bold uppercase tracking-wide text-slate-500">
-                        <span>Tên chứng chỉ</span>
-                        <span>Nơi cấp</span>
-                        <span className="text-center">File</span>
-                        <span className="text-center whitespace-nowrap"></span>
-                      </div>
-                      {certs.map((c, i) => (
-                        <div key={`${c.name}-${i}`} className="grid grid-cols-[1.1fr_1fr_64px_72px] items-center border-t border-slate-100 px-3 py-2.5 text-[12px]">
-                          <span className="font-medium text-slate-900">{c.name || "Chứng chỉ mới"}</span>
-                          <span className="text-slate-600">{c.place || "Chưa nhập"}</span>
-                          <button className="inline-flex h-8 w-11 items-center justify-center justify-self-center rounded-md bg-blue-50 px-2 text-[11px] font-semibold text-blue-700">
-                            PDF
-                          </button>
-                          <button
-                            onClick={() => setCerts((items) => items.filter((_, idx) => idx !== i))}
-                            className="grid size-8 place-items-center justify-self-center rounded-md text-red-500 hover:bg-red-50"
-                            aria-label="Xóa chứng chỉ"
-                          >
-                            <Trash2 size={14} />
-                          </button>
-                        </div>
-                      ))}
-                    </div>
-                  </SectionCard>
+                    items={certs}
+                    setItems={setCerts}
+                    itemLabel="chứng chỉ"
+                    namePlaceholder="Ví dụ: IELTS 7.5"
+                  />
                 </div>
               </div>
             </section>
@@ -2354,100 +2448,27 @@ export default function App() {
                       </SectionCard>
 
                       <div className="grid grid-cols-2 gap-5">
-                        <SectionCard
+                        <CredentialSection
                           title="Thông tin bằng cấp"
                           description="Bắt buộc đính kèm tối thiểu 1 bằng cấp."
                           icon={<Award size={18} />}
-                          action={
-                            <button
-                              type="button"
-                              onClick={() => setDegrees((d) => [...d, { name: "", place: "" }])}
-                              className="inline-flex items-center gap-1.5 rounded-lg border border-blue-200 bg-white px-2.5 py-1.5 text-[12px] font-medium text-blue-700 hover:bg-blue-50"
-                            >
-                              <Plus size={13} /> Thêm
-                            </button>
-                          }
-                        >
-                          <div className="overflow-hidden rounded-lg border border-slate-200">
-                            <div className="grid grid-cols-[1.1fr_1fr_64px_72px] bg-slate-50 px-3 py-2 text-[11px] font-bold uppercase tracking-wide text-slate-500">
-                              <span>Tên bằng</span>
-                              <span>Nơi cấp</span>
-                              <span className="text-center">File</span>
-                              <span className="text-center whitespace-nowrap"></span>
-                            </div>
-                            {degrees.map((d, i) => (
-                              <div
-                                key={`${d.name}-${i}`}
-                                className="grid grid-cols-[1.1fr_1fr_64px_72px] items-center border-t border-slate-100 px-3 py-2.5 text-[12px]"
-                              >
-                                <span className="font-medium text-slate-900">{d.name || "Bằng mới"}</span>
-                                <span className="text-slate-600">{d.place || "Chưa nhập"}</span>
-                                <button className="inline-flex h-8 w-11 items-center justify-center justify-self-center rounded-md border border-slate-200 bg-white px-2 text-[11px] font-semibold text-slate-700">
-                                  PDF
-                                </button>
-                                {degrees.length > 1 ? (
-                                  <button
-                                    onClick={() => setDegrees((arr) => arr.filter((_, idx) => idx !== i))}
-                                    className="grid size-8 place-items-center justify-self-center rounded-md text-red-500 hover:bg-red-50"
-                                    aria-label="Xóa bằng cấp"
-                                  >
-                                    <Trash2 size={14} />
-                                  </button>
-                                ) : (
-                                  <span className="size-8 justify-self-center" />
-                                )}
-                              </div>
-                            ))}
-                          </div>
-                        </SectionCard>
+                          items={degrees}
+                          setItems={setDegrees}
+                          itemLabel="bằng cấp"
+                          namePlaceholder="Ví dụ: Bằng Thạc sĩ Công nghệ thông tin"
+                          requiredMinimum
+                        />
 
-                        <SectionCard
+                        <CredentialSection
                           title="Thông tin chứng chỉ"
-                          description="Các chứng chỉ chuyên môn hoặc ngoại ngữ."
+                          description="Không bắt buộc, dùng để bổ sung chứng chỉ chuyên môn hoặc ngoại ngữ."
                           icon={<FileBadge size={18} />}
                           optional
-                          action={
-                            <button
-                              type="button"
-                              onClick={() => setCerts((c) => [...c, { name: "", place: "" }])}
-                              className="inline-flex items-center gap-1.5 rounded-lg border border-blue-200 bg-white px-2.5 py-1.5 text-[12px] font-medium text-blue-700 hover:bg-blue-50"
-                            >
-                              <Plus size={13} /> Thêm
-                            </button>
-                          }
-                        >
-                          <div className="overflow-hidden rounded-lg border border-slate-200">
-                            <div className="grid grid-cols-[1.1fr_1fr_64px_72px] bg-slate-50 px-3 py-2 text-[11px] font-bold uppercase tracking-wide text-slate-500">
-                              <span>Tên chứng chỉ</span>
-                              <span>Nơi cấp</span>
-                              <span className="text-center">File</span>
-                              <span className="text-center whitespace-nowrap"></span>
-                            </div>
-                            {certs.map((c, i) => (
-                              <div
-                                key={`${c.name}-${i}`}
-                                className="grid grid-cols-[1.1fr_1fr_64px_72px] items-center border-t border-slate-100 px-3 py-2.5 text-[12px]"
-                              >
-                                <span className="font-medium text-slate-900">{c.name || "Chứng chỉ mới"}</span>
-                                <span className="text-slate-600">{c.place || "Chưa nhập"}</span>
-                                <button className="inline-flex h-8 w-11 items-center justify-center justify-self-center rounded-md border border-slate-200 bg-white px-2 text-[11px] font-semibold text-slate-700">
-                                  PDF
-                                </button>
-                                {certs.length > 1 ? (
-                                  <button
-                                    onClick={() => setCerts((arr) => arr.filter((_, idx) => idx !== i))}
-                                    className="grid size-8 place-items-center justify-self-center rounded-md text-red-500 hover:bg-red-50"
-                                    aria-label="Xóa chứng chỉ"
-                                  >
-                                    <Trash2 size={14} />
-                                  </button>
-                                ) : (
-                                  <span className="size-8 justify-self-center" />
-                                )}
-                              </div>
-                            ))}
-                          </div>
-                        </SectionCard>
+                          items={certs}
+                          setItems={setCerts}
+                          itemLabel="chứng chỉ"
+                          namePlaceholder="Ví dụ: IELTS 7.5"
+                        />
                       </div>
                     </>
                   ) : null}
