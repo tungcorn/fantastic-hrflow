@@ -1375,6 +1375,7 @@ function LargePersonnelForm({
                   <div className="grid grid-cols-2 gap-4">
                   <SectionCard
                     title="Bằng cấp"
+                    description="Bắt buộc đính kèm tối thiểu 1 bằng cấp."
                     icon={<Award size={18} />}
                     action={
                       <button
@@ -1400,13 +1401,17 @@ function LargePersonnelForm({
                           <button className="inline-flex h-8 w-11 items-center justify-center justify-self-center rounded-md bg-blue-50 px-2 text-[11px] font-semibold text-blue-700">
                             PDF
                           </button>
-                          <button
-                            onClick={() => setDegrees((items) => items.filter((_, idx) => idx !== i))}
-                            className="grid size-8 place-items-center justify-self-center rounded-md text-red-500 hover:bg-red-50"
-                            aria-label="Xóa bằng cấp"
-                          >
-                            <Trash2 size={14} />
-                          </button>
+                          {degrees.length > 1 ? (
+                            <button
+                              onClick={() => setDegrees((items) => items.filter((_, idx) => idx !== i))}
+                              className="grid size-8 place-items-center justify-self-center rounded-md text-red-500 hover:bg-red-50"
+                              aria-label="Xóa bằng cấp"
+                            >
+                              <Trash2 size={14} />
+                            </button>
+                          ) : (
+                            <span className="size-8 justify-self-center" />
+                          )}
                         </div>
                       ))}
                     </div>
@@ -2301,7 +2306,7 @@ export default function App() {
                       <div className="grid grid-cols-2 gap-5">
                         <SectionCard
                           title="Thông tin bằng cấp"
-                          description="Danh sách bằng cấp đã đính kèm."
+                          description="Bắt buộc đính kèm tối thiểu 1 bằng cấp."
                           icon={<Award size={18} />}
                           action={
                             <button
