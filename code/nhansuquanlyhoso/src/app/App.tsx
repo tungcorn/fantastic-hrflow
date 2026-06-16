@@ -55,6 +55,46 @@ const wizardSteps: { id: StepId; label: string; desc: string; icon: ReactNode }[
 
 type FieldState = "default" | "error" | "success";
 
+const generalEducationOptions = [
+  "12/12",
+  "11/12",
+  "10/12",
+  "9/12",
+  "8/12",
+  "7/12",
+  "6/12",
+  "5/12",
+  "4/12",
+  "3/12",
+  "2/12",
+  "1/12",
+  "10/10",
+  "9/10",
+  "Khác",
+];
+
+const trainingLevelOptions = ["Sơ cấp", "Trung cấp", "Cao đẳng", "Đại học", "Thạc sĩ", "Tiến sĩ"];
+
+const professionalTitleOptions = [
+  "Trợ giảng",
+  "Giảng viên hạng III",
+  "Giảng viên chính hạng II",
+  "Giảng viên cao cấp hạng I",
+  "Chuyên viên",
+  "Chuyên viên chính",
+  "Chuyên viên cao cấp",
+  "Kế toán viên",
+  "Kế toán viên chính",
+  "Thư viện viên",
+  "Thư viện viên chính",
+  "Nghiên cứu viên",
+  "Nghiên cứu viên chính",
+  "Nghiên cứu viên cao cấp",
+  "Khác",
+];
+
+const academicRankDegreeOptions = ["Không có", "Cử nhân", "Kỹ sư", "Thạc sĩ", "Tiến sĩ", "Phó Giáo sư", "Giáo sư"];
+
 function Field({
   label,
   required,
@@ -123,17 +163,33 @@ function Input({
   );
 }
 
-function Select({ value, state = "default" }: { value: string; state?: FieldState }) {
+function Select({
+  value,
+  state = "default",
+  options,
+}: {
+  value: string;
+  state?: FieldState;
+  options?: string[];
+}) {
   const ring =
     state === "error" ? "border-red-300" : state === "success" ? "border-emerald-300" : "border-slate-200";
+  const optionValues = options?.includes(value) ? options : [value, ...(options ?? [])];
+
   return (
-    <button
-      type="button"
-      className={`flex h-9 w-full items-center justify-between rounded-lg border bg-white px-2.5 text-[13px] text-slate-900 ${ring}`}
-    >
-      <span>{value}</span>
-      <ChevronRight size={16} className="rotate-90 text-slate-400" />
-    </button>
+    <div className={`relative h-9 w-full rounded-lg border bg-white ${ring}`}>
+      <select
+        defaultValue={value}
+        className="h-full w-full appearance-none rounded-lg bg-transparent py-0 pl-2.5 pr-8 text-[13px] text-slate-900 outline-none"
+      >
+        {optionValues.map((option) => (
+          <option key={option} value={option}>
+            {option}
+          </option>
+        ))}
+      </select>
+      <ChevronDown size={16} className="pointer-events-none absolute right-2.5 top-1/2 -translate-y-1/2 text-slate-400" />
+    </div>
   );
 }
 
@@ -1227,16 +1283,16 @@ function LargePersonnelForm({
               <SectionCard title="Trình độ học vấn" icon={<GraduationCap size={18} />}>
                 <div className="grid grid-cols-4 gap-3">
                   <Field label="Trình độ văn hóa" required>
-                    <Select value="12/12" />
+                    <Select value="12/12" options={generalEducationOptions} />
                   </Field>
                   <Field label="Trình độ đào tạo" required>
-                    <Select value="Tiến sĩ" />
+                    <Select value="Tiến sĩ" options={trainingLevelOptions} />
                   </Field>
                   <Field label="Chức danh nghề nghiệp" required>
-                    <Input value="Tiến sĩ" />
+                    <Select value="Giảng viên hạng III" options={professionalTitleOptions} />
                   </Field>
                   <Field label="Học hàm / Học vị" required>
-                    <Input value="Tiến sĩ" />
+                    <Select value="Tiến sĩ" options={academicRankDegreeOptions} />
                   </Field>
                 </div>
               </SectionCard>
@@ -2139,20 +2195,24 @@ export default function App() {
                     <SectionCard title="Trình độ học vấn" icon={<GraduationCap size={18} />}>
                       <div className="grid grid-cols-2 gap-4">
                         <Field label="Trình độ văn hóa" required>
-                          <Select value="12/12" />
+                          <Select value="12/12" options={generalEducationOptions} />
                         </Field>
                         <Field
                           label="Trình độ đào tạo"
                           required
                           error={showStepError ? "Vui lòng chọn trình độ đào tạo." : undefined}
                         >
-                          <Select value={showStepError ? "Chưa chọn" : "Tiến sĩ"} state={showStepError ? "error" : "default"} />
+                          <Select
+                            value={showStepError ? "Chưa chọn" : "Tiến sĩ"}
+                            state={showStepError ? "error" : "default"}
+                            options={trainingLevelOptions}
+                          />
                         </Field>
                         <Field label="Chức danh nghề nghiệp" required>
-                          <Input value="Tiến sĩ" />
+                          <Select value="Giảng viên hạng III" options={professionalTitleOptions} />
                         </Field>
                         <Field label="Học hàm / Học vị" required>
-                          <Input value="Tiến sĩ" />
+                          <Select value="Tiến sĩ" options={academicRankDegreeOptions} />
                         </Field>
                       </div>
                     </SectionCard>
@@ -2368,7 +2428,7 @@ export default function App() {
                         rows={[
                           { label: "Trình độ văn hóa", value: "12/12" },
                           { label: "Trình độ đào tạo", value: "Tiến sĩ" },
-                          { label: "Chức danh nghề nghiệp", value: "Tiến sĩ" },
+                          { label: "Chức danh nghề nghiệp", value: "Giảng viên hạng III" },
                           { label: "Học hàm / Học vị", value: "Tiến sĩ" },
                         ]}
                       />
