@@ -1118,6 +1118,7 @@ function LargePersonnelForm({
   captureSection,
   setCaptureSection,
   credentialDraftTarget,
+  prefilledData,
   onClose,
   onSave,
 }: {
@@ -1138,6 +1139,7 @@ function LargePersonnelForm({
   captureSection: string | null;
   setCaptureSection: (value: string | null) => void;
   credentialDraftTarget: "degree" | null;
+  prefilledData: boolean;
   onClose: () => void;
   onSave: () => void;
 }) {
@@ -1161,6 +1163,50 @@ function LargePersonnelForm({
     { id: "education", label: "Học vấn", icon: <GraduationCap size={15} />, state: validationState === "idle" ? "idle" : "done" },
     { id: "documents", label: "Tài liệu", icon: <FileText size={15} />, state: validationState === "idle" ? "idle" : showErrors ? "error" : "done" },
   ];
+  const hasSeedData = prefilledData;
+  const identityData = {
+    fullName: showErrors ? "" : hasSeedData ? "Nguyễn Văn A" : "",
+    gender: hasSeedData ? "Nam" : "Chọn giới tính",
+    birthDate: showErrors ? "32/13/2000" : hasSeedData ? "01/01/2000" : "",
+    hometown: hasSeedData ? "Hà Nội" : "",
+    citizenId: hasErrors ? "001200001900" : hasSeedData ? "001200001901" : "",
+    taxCode: hasSeedData ? "1200001900" : "",
+    socialInsurance: hasSeedData ? "00120019" : "",
+    healthInsurance: hasSeedData ? "00120019" : "",
+  };
+  const contactData = {
+    email: showErrors ? "nguyenvana@" : hasSeedData ? "nguyenvana@tlu.edu.vn" : "",
+    phone: showErrors ? "" : hasSeedData ? "0987654321" : "",
+    address: showErrors ? "" : hasSeedData ? "Thanh Trì, Hà Nội" : "",
+  };
+  const workData = {
+    department: hasSeedData ? "Khoa Công nghệ thông tin" : "Chọn đơn vị công tác",
+    division: hasSeedData ? "Bộ môn Công nghệ phần mềm" : "Chọn bộ môn / phòng ban",
+    position: showErrors ? "Chưa chọn" : hasSeedData ? "Giảng viên" : "Chọn chức vụ hiện tại",
+    employmentType: hasSeedData ? "Giảng viên cơ hữu" : "Chọn loại nhân sự",
+    startDate: hasSeedData ? "01/06/2026" : "",
+    status: hasSeedData ? "Đang hoàn thiện" : "Chọn trạng thái hồ sơ",
+    salaryRank: hasSeedData ? "Giảng viên hạng III" : "Chọn ngạch / hạng",
+    salaryStep: hasSeedData ? "Bậc 1" : "Chọn bậc lương",
+    salaryCoefficient: showErrors ? "abc" : hasSeedData ? "2.34" : "",
+    positionAllowance: hasSeedData ? "0.00" : "",
+    seniorityAllowance: hasSeedData ? "0%" : "",
+    paymentSource: hasSeedData ? "Ngân sách nhà trường" : "Chọn nguồn chi trả",
+    educationLevel: hasSeedData ? "12/12" : "Chọn trình độ văn hóa",
+    trainingLevel: hasSeedData ? "Tiến sĩ" : "Chọn trình độ đào tạo",
+    professionalTitle: hasSeedData ? "Giảng viên hạng III" : "Chọn chức danh nghề nghiệp",
+    academicRank: hasSeedData ? "Tiến sĩ" : "Chọn học hàm / học vị",
+  };
+  const requiredDocuments = [
+    ["CCCD/CMND bản scan", hasSeedData ? "Đã tải lên" : "Chưa tải lên", hasSeedData ? "default" : "empty"],
+    [
+      "Quyết định tuyển dụng",
+      showErrors ? "Thiếu tài liệu" : hasSeedData ? "Đã tải lên" : "Chưa tải lên",
+      showErrors ? "error" : hasSeedData ? "default" : "empty",
+    ],
+    ["Sơ yếu lý lịch", hasSeedData ? "Đã tải lên" : "Chưa tải lên", hasSeedData ? "default" : "empty"],
+    ["Ảnh thẻ 3x4", hasSeedData ? "Đã tải lên" : "Chưa tải lên", hasSeedData ? "default" : "empty"],
+  ] as const;
   const scrollToSection = (id: string) => {
     setCaptureSection(null);
     const container = formScrollRef.current;
@@ -1184,14 +1230,25 @@ function LargePersonnelForm({
       return;
     }
 
+    const container = formScrollRef.current;
     const element =
       credentialDraftTarget === "degree"
-        ? formScrollRef.current?.querySelector<HTMLElement>("#degree-card")
-        : formScrollRef.current?.querySelector<HTMLElement>(`#${captureSection}`);
-    if (!element) return;
+        ? container?.querySelector<HTMLElement>("#degree-card")
+        : container?.querySelector<HTMLElement>(`#${captureSection}`);
+    if (!container || !element) return;
     setActiveSection(captureSection);
-    const topInset = credentialDraftTarget === "degree" ? 116 : 8;
-    setCaptureOffset(Math.max(0, element.offsetTop - topInset));
+
+    if (credentialDraftTarget === "degree") {
+      const topGap = 18;
+      const bottomGap = 16;
+      const maxOffset = Math.max(0, element.offsetTop - topGap);
+      const minOffset = Math.max(0, element.offsetTop + element.offsetHeight + bottomGap - container.clientHeight);
+
+      setCaptureOffset(Math.min(maxOffset, minOffset));
+      return;
+    }
+
+    setCaptureOffset(Math.max(0, element.offsetTop - 8));
   }, [captureViewport, captureSection, credentialDraftTarget, showErrors, duplicateId, foreigner, degrees.length, certs.length]);
 
   return (
@@ -1339,16 +1396,25 @@ function LargePersonnelForm({
                   </div>
                   <div className="grid min-w-0 grid-cols-2 gap-3">
                     <Field label="Họ và tên" required error={showErrors ? "Họ và tên là trường bắt buộc." : undefined}>
-                      <Input value={showErrors ? "" : "Nguyễn Văn A"} state={showErrors ? "error" : "default"} />
+                      <Input
+                        value={identityData.fullName}
+                        placeholder="Nhập họ và tên"
+                        state={showErrors ? "error" : "default"}
+                      />
                     </Field>
                     <Field label="Giới tính" required>
-                      <Select value="Nam" />
+                      <Select value={identityData.gender} />
                     </Field>
                     <Field label="Ngày sinh" required error={showErrors ? "Ngày sinh không hợp lệ." : undefined}>
-                      <Input value={showErrors ? "32/13/2000" : "01/01/2000"} icon={<Calendar size={15} />} state={showErrors ? "error" : "default"} />
+                      <Input
+                        value={identityData.birthDate}
+                        placeholder="dd/mm/yyyy"
+                        icon={<Calendar size={15} />}
+                        state={showErrors ? "error" : "default"}
+                      />
                     </Field>
                     <Field label="Quê quán" required>
-                      <Input value="Hà Nội" icon={<MapPin size={15} />} />
+                      <Input value={identityData.hometown} placeholder="Nhập quê quán" icon={<MapPin size={15} />} />
                     </Field>
                     <div className="col-span-2">
                       <Field
@@ -1358,7 +1424,11 @@ function LargePersonnelForm({
                       >
                         <div className="flex gap-2">
                           <div className="min-w-0 flex-1">
-                            <Input value={hasErrors ? "001200001900" : "001200001901"} state={hasErrors ? "error" : "default"} />
+                            <Input
+                              value={identityData.citizenId}
+                              placeholder="Nhập số CCCD"
+                              state={hasErrors ? "error" : "default"}
+                            />
                           </div>
                           <button
                             type="button"
@@ -1380,13 +1450,13 @@ function LargePersonnelForm({
                       </Field>
                     </div>
                     <Field label="Mã số thuế" required>
-                      <Input value="1200001900" />
+                      <Input value={identityData.taxCode} placeholder="Nhập mã số thuế" />
                     </Field>
                     <Field label="Số BHXH" required>
-                      <Input value="00120019" />
+                      <Input value={identityData.socialInsurance} placeholder="Nhập số BHXH" />
                     </Field>
                     <Field label="Số BHYT" required>
-                      <Input value="00120019" />
+                      <Input value={identityData.healthInsurance} placeholder="Nhập số BHYT" />
                     </Field>
                   </div>
                 </div>
@@ -1416,14 +1486,29 @@ function LargePersonnelForm({
               >
                 <div className="grid grid-cols-2 gap-3">
                   <Field label="Email" required error={showErrors ? "Email không đúng định dạng." : undefined}>
-                    <Input value={showErrors ? "nguyenvana@" : "nguyenvana@tlu.edu.vn"} icon={<Mail size={15} />} state={showErrors ? "error" : "default"} />
+                    <Input
+                      value={contactData.email}
+                      placeholder="ten@donvi.edu.vn"
+                      icon={<Mail size={15} />}
+                      state={showErrors ? "error" : "default"}
+                    />
                   </Field>
                   <Field label="Số điện thoại" required error={showErrors ? "Số điện thoại là trường bắt buộc." : undefined}>
-                    <Input value={showErrors ? "" : "0987654321"} icon={<Phone size={15} />} state={showErrors ? "error" : "default"} />
+                    <Input
+                      value={contactData.phone}
+                      placeholder="Nhập số điện thoại"
+                      icon={<Phone size={15} />}
+                      state={showErrors ? "error" : "default"}
+                    />
                   </Field>
                   <div className="col-span-2">
                     <Field label="Địa chỉ thường trú" required error={showErrors ? "Vui lòng nhập địa chỉ thường trú." : undefined}>
-                      <Input value={showErrors ? "" : "Thanh Trì, Hà Nội"} icon={<MapPin size={15} />} state={showErrors ? "error" : "default"} />
+                      <Input
+                        value={contactData.address}
+                        placeholder="Nhập địa chỉ thường trú"
+                        icon={<MapPin size={15} />}
+                        state={showErrors ? "error" : "default"}
+                      />
                     </Field>
                   </div>
                   {foreigner ? (
@@ -1467,25 +1552,27 @@ function LargePersonnelForm({
                 >
                   <div className="grid min-w-0 grid-cols-3 gap-3">
                       <Field label="Đơn vị công tác" required>
-                        <Select value="Khoa Công nghệ thông tin" />
+                        <Select value={workData.department} />
                       </Field>
                       <Field label="Bộ môn / phòng ban trực thuộc">
-                        <Select value="Bộ môn Công nghệ phần mềm" />
+                        <Select value={workData.division} />
                       </Field>
                       <Field label="Chức vụ hiện tại" required error={showErrors ? "Vui lòng chọn chức vụ hiện tại." : undefined}>
-                        <Select value={showErrors ? "Chưa chọn" : "Giảng viên"} state={showErrors ? "error" : "default"} />
+                        <Select value={workData.position} state={showErrors ? "error" : "default"} />
                       </Field>
                       <Field label="Loại nhân sự" required>
-                        <Select value="Giảng viên cơ hữu" />
+                        <Select value={workData.employmentType} />
                       </Field>
                       <Field label="Ngày bắt đầu công tác" required>
-                        <Input value="01/06/2026" icon={<Calendar size={15} />} />
+                        <Input value={workData.startDate} placeholder="dd/mm/yyyy" icon={<Calendar size={15} />} />
                       </Field>
                       <Field label="Trạng thái hồ sơ" required>
-                        <Select value="Đang hoàn thiện" />
+                        <Select value={workData.status} />
                       </Field>
                       <div className="col-span-3 rounded-lg border border-blue-100 bg-blue-50 px-3 py-2 text-[12px] text-blue-800">
-                        Đường dẫn đơn vị: Trường Đại học Thủy Lợi / Khoa Công nghệ thông tin / Bộ môn Công nghệ phần mềm
+                        {hasSeedData
+                          ? "Đường dẫn đơn vị: Trường Đại học Thủy Lợi / Khoa Công nghệ thông tin / Bộ môn Công nghệ phần mềm"
+                          : "Sau khi chọn đơn vị và bộ môn, hệ thống sẽ hiển thị đường dẫn tổ chức tại đây."}
                       </div>
                     </div>
                 </SectionCard>
@@ -1493,22 +1580,26 @@ function LargePersonnelForm({
                 <SectionCard title="Lương và phụ cấp dự kiến" icon={<Banknote size={18} />}>
                   <div className="grid grid-cols-3 gap-3">
                     <Field label="Ngạch / hạng chức danh" required>
-                      <Select value="Giảng viên hạng III" />
+                      <Select value={workData.salaryRank} />
                     </Field>
                     <Field label="Bậc lương" required>
-                      <Select value="Bậc 1" />
+                      <Select value={workData.salaryStep} />
                     </Field>
                     <Field label="Hệ số lương" required error={showErrors ? "Hệ số lương phải là số lớn hơn 0." : undefined}>
-                      <Input value={showErrors ? "abc" : "2.34"} state={showErrors ? "error" : "default"} />
+                      <Input
+                        value={workData.salaryCoefficient}
+                        placeholder="Nhập hệ số lương"
+                        state={showErrors ? "error" : "default"}
+                      />
                     </Field>
                     <Field label="Phụ cấp chức vụ">
-                      <Input value="0.00" />
+                      <Input value={workData.positionAllowance} placeholder="Nhập phụ cấp chức vụ" />
                     </Field>
                     <Field label="Phụ cấp thâm niên">
-                      <Input value="0%" />
+                      <Input value={workData.seniorityAllowance} placeholder="Nhập phụ cấp thâm niên" />
                     </Field>
                     <Field label="Nguồn chi trả" required>
-                      <Select value="Ngân sách nhà trường" />
+                      <Select value={workData.paymentSource} />
                     </Field>
                   </div>
                 </SectionCard>
@@ -1519,16 +1610,16 @@ function LargePersonnelForm({
               <SectionCard title="Trình độ học vấn" icon={<GraduationCap size={18} />}>
                 <div className="grid grid-cols-4 gap-3">
                   <Field label="Trình độ văn hóa" required>
-                    <Select value="12/12" options={generalEducationOptions} />
+                    <Select value={workData.educationLevel} options={generalEducationOptions} />
                   </Field>
                   <Field label="Trình độ đào tạo" required>
-                    <Select value="Tiến sĩ" options={trainingLevelOptions} />
+                    <Select value={workData.trainingLevel} options={trainingLevelOptions} />
                   </Field>
                   <Field label="Chức danh nghề nghiệp" required>
-                    <Select value="Giảng viên hạng III" options={professionalTitleOptions} />
+                    <Select value={workData.professionalTitle} options={professionalTitleOptions} />
                   </Field>
                   <Field label="Học hàm / Học vị" required>
-                    <Select value="Tiến sĩ" options={academicRankDegreeOptions} />
+                    <Select value={workData.academicRank} options={academicRankDegreeOptions} />
                   </Field>
                 </div>
               </SectionCard>
@@ -1542,24 +1633,27 @@ function LargePersonnelForm({
                   icon={<FileText size={18} />}
                 >
                   <div className="grid grid-cols-4 gap-2.5">
-                    {[
-                      ["CCCD/CMND bản scan", "Đã tải lên", "default"],
-                      ["Quyết định tuyển dụng", showErrors ? "Thiếu tài liệu" : "Đã tải lên", showErrors ? "error" : "default"],
-                      ["Sơ yếu lý lịch", "Đã tải lên", "default"],
-                      ["Ảnh thẻ 3x4", "Đã tải lên", "default"],
-                    ].map(([name, status, tone]) => (
+                    {requiredDocuments.map(([name, status, tone]) => (
                       <div
                         key={name}
                         className={`rounded-lg border px-3 py-2.5 ${
-                          tone === "error" ? "border-red-200 bg-red-50" : "border-slate-200 bg-white"
+                          tone === "error"
+                            ? "border-red-200 bg-red-50"
+                            : tone === "empty"
+                            ? "border-slate-200 bg-slate-50/50"
+                            : "border-slate-200 bg-white"
                         }`}
                       >
                         <div className="text-[12.5px] font-semibold text-slate-900">{name}</div>
-                        <div className={`mt-0.5 text-[12px] ${tone === "error" ? "text-red-700" : "text-slate-500"}`}>
+                        <div
+                          className={`mt-0.5 text-[12px] ${
+                            tone === "error" ? "text-red-700" : tone === "empty" ? "text-slate-400" : "text-slate-500"
+                          }`}
+                        >
                           {status}
                         </div>
                         <div className="mt-2">
-                          <FileButton label={tone === "error" ? "Tải lên" : "Thay file"} />
+                          <FileButton label={tone === "error" || tone === "empty" ? "Tải lên" : "Thay file"} />
                         </div>
                       </div>
                     ))}
@@ -1724,8 +1818,9 @@ export default function App() {
   const [formValidationStarted, setFormValidationStarted] = useState(false);
   const [captureSection, setCaptureSection] = useState<string | null>(null);
   const [credentialDraftTarget, setCredentialDraftTarget] = useState<"degree" | null>(null);
-  const [degrees, setDegrees] = useState(defaultDegrees);
-  const [certs, setCerts] = useState(defaultCerts);
+  const [prefilledData, setPrefilledData] = useState(false);
+  const [degrees, setDegrees] = useState<CredentialItem[]>([]);
+  const [certs, setCerts] = useState<CredentialItem[]>([]);
 
   useEffect(() => {
     const handlePrototypeShortcut = (event: KeyboardEvent) => {
@@ -1740,6 +1835,9 @@ export default function App() {
       if (event.key.toLowerCase() === "c") {
         setCaptureSection(null);
         setFigmaCopyMode(true);
+        setPrefilledData(false);
+        setDegrees([]);
+        setCerts([]);
         return;
       }
 
@@ -1755,6 +1853,7 @@ export default function App() {
         setCaptureSection(section);
         setForeigner(false);
         setCredentialDraftTarget(null);
+        setPrefilledData(true);
         setDegrees(defaultDegrees);
         setCerts(defaultCerts);
       };
@@ -1771,6 +1870,7 @@ export default function App() {
         setCaptureSection("contact");
         setForeigner(true);
         setCredentialDraftTarget(null);
+        setPrefilledData(true);
         setDegrees(defaultDegrees);
         setCerts(defaultCerts);
       };
@@ -1787,6 +1887,7 @@ export default function App() {
         setCaptureSection("documents");
         setForeigner(false);
         setCredentialDraftTarget("degree");
+        setPrefilledData(true);
         setDegrees([defaultDegrees[0]]);
         setCerts(defaultCerts);
       };
@@ -1803,6 +1904,7 @@ export default function App() {
         setCaptureSection("contact");
         setForeigner(true);
         setCredentialDraftTarget(null);
+        setPrefilledData(true);
         setDegrees(defaultDegrees);
         setCerts(defaultCerts);
       }
@@ -1818,8 +1920,9 @@ export default function App() {
         setCaptureSection(null);
         setForeigner(false);
         setCredentialDraftTarget(null);
-        setDegrees(defaultDegrees);
-        setCerts(defaultCerts);
+        setPrefilledData(false);
+        setDegrees([]);
+        setCerts([]);
       }
       if (event.key === "2") showErrorFrame(null);
       if (event.key === "3") showErrorFrame("work");
@@ -1838,6 +1941,7 @@ export default function App() {
         setCaptureSection(null);
         setForeigner(false);
         setCredentialDraftTarget(null);
+        setPrefilledData(true);
         setDegrees(defaultDegrees);
         setCerts(defaultCerts);
       }
@@ -1866,6 +1970,11 @@ export default function App() {
     setDuplicateId(false);
     setValidationAttempted({});
     setCaptureSection(null);
+    setForeigner(false);
+    setCredentialDraftTarget(null);
+    setPrefilledData(false);
+    setDegrees([]);
+    setCerts([]);
   };
   const closeModal = () => {
     setModalOpen(false);
@@ -1874,6 +1983,9 @@ export default function App() {
     setFigmaCopyMode(false);
     setCaptureSection(null);
     setCredentialDraftTarget(null);
+    setPrefilledData(false);
+    setDegrees([]);
+    setCerts([]);
   };
   const openExcelImport = () => {
     setModalOpen(false);
@@ -1988,6 +2100,11 @@ export default function App() {
                         setValidationAttempted({});
                         setFormValidationStarted(false);
                         setCaptureSection(null);
+                        setForeigner(false);
+                        setCredentialDraftTarget(null);
+                        setPrefilledData(false);
+                        setDegrees([]);
+                        setCerts([]);
                         setModalOpen(true);
                         setAddMenuOpen(false);
                         setExcelImportOpen(false);
@@ -2104,6 +2221,7 @@ export default function App() {
                     captureSection={captureSection}
                     setCaptureSection={setCaptureSection}
                     credentialDraftTarget={credentialDraftTarget}
+                    prefilledData={prefilledData}
                     onClose={closeModal}
                     onSave={() => setSaved(true)}
                   />
