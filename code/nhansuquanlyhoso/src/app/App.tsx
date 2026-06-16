@@ -1170,6 +1170,7 @@ function LargePersonnelForm({
   setCaptureSection,
   credentialDraftTarget,
   prefilledData,
+  stagedErrorData,
   onClose,
   onRequestOfficialSave,
 }: {
@@ -1191,6 +1192,7 @@ function LargePersonnelForm({
   setCaptureSection: (value: string | null) => void;
   credentialDraftTarget: "degree" | null;
   prefilledData: boolean;
+  stagedErrorData: boolean;
   onClose: () => void;
   onRequestOfficialSave: () => void;
 }) {
@@ -1215,31 +1217,33 @@ function LargePersonnelForm({
     { id: "documents", label: "Tài liệu", icon: <FileText size={15} />, state: validationState === "idle" ? "idle" : showErrors ? "error" : "done" },
   ];
   const hasSeedData = prefilledData;
+  const useErrorValues = showErrors || stagedErrorData;
+  const useDuplicateValue = hasErrors || stagedErrorData;
   const identityData = {
-    fullName: showErrors ? "" : hasSeedData ? "Nguyễn Văn A" : "",
+    fullName: useErrorValues ? "" : hasSeedData ? "Nguyễn Văn A" : "",
     gender: hasSeedData ? "Nam" : "Chọn giới tính",
-    birthDate: showErrors ? "32/13/2000" : hasSeedData ? "01/01/2000" : "",
+    birthDate: useErrorValues ? "32/13/2000" : hasSeedData ? "01/01/2000" : "",
     hometown: hasSeedData ? "Hà Nội" : "",
-    citizenId: hasErrors ? "001200001900" : hasSeedData ? "001200001901" : "",
+    citizenId: useDuplicateValue ? "001200001900" : hasSeedData ? "001200001901" : "",
     taxCode: hasSeedData ? "1200001900" : "",
     socialInsurance: hasSeedData ? "00120019" : "",
     healthInsurance: hasSeedData ? "00120019" : "",
   };
   const contactData = {
-    email: showErrors ? "nguyenvana@" : hasSeedData ? "nguyenvana@tlu.edu.vn" : "",
-    phone: showErrors ? "" : hasSeedData ? "0987654321" : "",
-    address: showErrors ? "" : hasSeedData ? "Thanh Trì, Hà Nội" : "",
+    email: useErrorValues ? "nguyenvana@" : hasSeedData ? "nguyenvana@tlu.edu.vn" : "",
+    phone: useErrorValues ? "" : hasSeedData ? "0987654321" : "",
+    address: useErrorValues ? "" : hasSeedData ? "Thanh Trì, Hà Nội" : "",
   };
   const workData = {
     department: hasSeedData ? "Khoa Công nghệ thông tin" : "Chọn đơn vị công tác",
     division: hasSeedData ? "Bộ môn Công nghệ phần mềm" : "Chọn bộ môn / phòng ban",
-    position: showErrors ? "Chưa chọn" : hasSeedData ? "Giảng viên" : "Chọn chức vụ hiện tại",
+    position: useErrorValues ? "Chưa chọn" : hasSeedData ? "Giảng viên" : "Chọn chức vụ hiện tại",
     employmentType: hasSeedData ? "Giảng viên cơ hữu" : "Chọn loại nhân sự",
     startDate: hasSeedData ? "01/06/2026" : "",
     status: hasSeedData ? "Đang hoàn thiện" : "Chọn trạng thái hồ sơ",
     salaryRank: hasSeedData ? "Giảng viên hạng III" : "Chọn ngạch / hạng",
     salaryStep: hasSeedData ? "Bậc 1" : "Chọn bậc lương",
-    salaryCoefficient: showErrors ? "abc" : hasSeedData ? "2.34" : "",
+    salaryCoefficient: useErrorValues ? "abc" : hasSeedData ? "2.34" : "",
     positionAllowance: hasSeedData ? "0.00" : "",
     seniorityAllowance: hasSeedData ? "0%" : "",
     paymentSource: hasSeedData ? "Ngân sách nhà trường" : "Chọn nguồn chi trả",
@@ -1252,8 +1256,8 @@ function LargePersonnelForm({
     ["CCCD/CMND bản scan", hasSeedData ? "Đã tải lên" : "Chưa tải lên", hasSeedData ? "default" : "empty"],
     [
       "Quyết định tuyển dụng",
-      showErrors ? "Thiếu tài liệu" : hasSeedData ? "Đã tải lên" : "Chưa tải lên",
-      showErrors ? "error" : hasSeedData ? "default" : "empty",
+      showErrors ? "Thiếu tài liệu" : stagedErrorData || !hasSeedData ? "Chưa tải lên" : "Đã tải lên",
+      showErrors ? "error" : stagedErrorData || !hasSeedData ? "empty" : "default",
     ],
     ["Sơ yếu lý lịch", hasSeedData ? "Đã tải lên" : "Chưa tải lên", hasSeedData ? "default" : "empty"],
     ["Ảnh thẻ 3x4", hasSeedData ? "Đã tải lên" : "Chưa tải lên", hasSeedData ? "default" : "empty"],
@@ -1871,6 +1875,7 @@ export default function App() {
   const [credentialDraftTarget, setCredentialDraftTarget] = useState<"degree" | null>(null);
   const [confirmOfficialSaveOpen, setConfirmOfficialSaveOpen] = useState<null | "large" | "wizard">(null);
   const [prefilledData, setPrefilledData] = useState(false);
+  const [stagedErrorData, setStagedErrorData] = useState(false);
   const [degrees, setDegrees] = useState<CredentialItem[]>([]);
   const [certs, setCerts] = useState<CredentialItem[]>([]);
 
@@ -1881,6 +1886,7 @@ export default function App() {
         setCaptureSection(null);
         setCredentialDraftTarget(null);
         setConfirmOfficialSaveOpen(null);
+        setStagedErrorData(false);
         return;
       }
       if (!event.altKey) return;
@@ -1890,6 +1896,7 @@ export default function App() {
         setFigmaCopyMode(true);
         setConfirmOfficialSaveOpen(null);
         setPrefilledData(false);
+        setStagedErrorData(false);
         setDegrees([]);
         setCerts([]);
         return;
@@ -1909,6 +1916,7 @@ export default function App() {
         setForeigner(false);
         setCredentialDraftTarget(null);
         setPrefilledData(true);
+        setStagedErrorData(false);
         setDegrees(defaultDegrees);
         setCerts(defaultCerts);
       };
@@ -1927,6 +1935,7 @@ export default function App() {
         setForeigner(true);
         setCredentialDraftTarget(null);
         setPrefilledData(true);
+        setStagedErrorData(false);
         setDegrees(defaultDegrees);
         setCerts(defaultCerts);
       };
@@ -1945,7 +1954,27 @@ export default function App() {
         setForeigner(false);
         setCredentialDraftTarget("degree");
         setPrefilledData(true);
+        setStagedErrorData(false);
         setDegrees([defaultDegrees[0]]);
+        setCerts(defaultCerts);
+      };
+
+      const showPrefilledCaptureFrame = () => {
+        setSaved(false);
+        setModalOpen(true);
+        setAddMenuOpen(false);
+        setExcelImportOpen(false);
+        setFigmaCopyMode(true);
+        setFormValidationStarted(false);
+        setDuplicateId(false);
+        setValidationAttempted({});
+        setCaptureSection(null);
+        setConfirmOfficialSaveOpen(null);
+        setForeigner(true);
+        setCredentialDraftTarget(null);
+        setPrefilledData(true);
+        setStagedErrorData(true);
+        setDegrees(defaultDegrees);
         setCerts(defaultCerts);
       };
 
@@ -1963,6 +1992,7 @@ export default function App() {
         setForeigner(true);
         setCredentialDraftTarget(null);
         setPrefilledData(true);
+        setStagedErrorData(false);
         setDegrees(defaultDegrees);
         setCerts(defaultCerts);
       }
@@ -1980,6 +2010,7 @@ export default function App() {
         setForeigner(false);
         setCredentialDraftTarget(null);
         setPrefilledData(false);
+        setStagedErrorData(false);
         setDegrees([]);
         setCerts([]);
       }
@@ -1988,6 +2019,7 @@ export default function App() {
       if (event.key === "4") showErrorFrame("documents");
       if (event.key === "6") showContactForeignerErrorFrame();
       if (event.key === "7") showDegreeComposerFrame();
+      if (event.key === "8") showPrefilledCaptureFrame();
       if (event.key === "5") {
         setSaved(false);
         setModalOpen(true);
@@ -2002,6 +2034,7 @@ export default function App() {
         setForeigner(false);
         setCredentialDraftTarget(null);
         setPrefilledData(true);
+        setStagedErrorData(false);
         setDegrees(defaultDegrees);
         setCerts(defaultCerts);
       }
@@ -2034,6 +2067,7 @@ export default function App() {
     setForeigner(false);
     setCredentialDraftTarget(null);
     setPrefilledData(false);
+    setStagedErrorData(false);
     setDegrees([]);
     setCerts([]);
   };
@@ -2046,6 +2080,7 @@ export default function App() {
     setCredentialDraftTarget(null);
     setConfirmOfficialSaveOpen(null);
     setPrefilledData(false);
+    setStagedErrorData(false);
     setDegrees([]);
     setCerts([]);
   };
@@ -2167,6 +2202,7 @@ export default function App() {
                         setForeigner(false);
                         setCredentialDraftTarget(null);
                         setPrefilledData(false);
+                        setStagedErrorData(false);
                         setDegrees([]);
                         setCerts([]);
                         setModalOpen(true);
@@ -2286,6 +2322,7 @@ export default function App() {
                     setCaptureSection={setCaptureSection}
                     credentialDraftTarget={credentialDraftTarget}
                     prefilledData={prefilledData}
+                    stagedErrorData={stagedErrorData}
                     onClose={closeModal}
                     onRequestOfficialSave={() => setConfirmOfficialSaveOpen("large")}
                   />
