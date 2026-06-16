@@ -1242,17 +1242,25 @@ function LargePersonnelForm({
                   </div>
                   {foreigner ? (
                     <>
-                      <Field label="Số Visa" required>
-                        <Input placeholder="00-120-019" />
+                      <Field label="Số Visa" required error={showErrors ? "Số Visa là trường bắt buộc." : undefined}>
+                        <Input placeholder="00-120-019" state={showErrors ? "error" : "default"} />
                       </Field>
-                      <Field label="Ngày hết hạn Visa" required>
-                        <Input placeholder="01/01/2030" icon={<Calendar size={15} />} />
+                      <Field
+                        label="Ngày hết hạn Visa"
+                        required
+                        error={showErrors ? "Vui lòng nhập ngày hết hạn Visa." : undefined}
+                      >
+                        <Input placeholder="01/01/2030" icon={<Calendar size={15} />} state={showErrors ? "error" : "default"} />
                       </Field>
-                      <Field label="Số Hộ chiếu" required>
-                        <Input placeholder="00-120-019" />
+                      <Field label="Số Hộ chiếu" required error={showErrors ? "Số Hộ chiếu là trường bắt buộc." : undefined}>
+                        <Input placeholder="00-120-019" state={showErrors ? "error" : "default"} />
                       </Field>
-                      <Field label="Ngày hết hạn Hộ chiếu" required>
-                        <Input placeholder="01/01/2030" icon={<Calendar size={15} />} />
+                      <Field
+                        label="Ngày hết hạn Hộ chiếu"
+                        required
+                        error={showErrors ? "Vui lòng nhập ngày hết hạn Hộ chiếu." : undefined}
+                      >
+                        <Input placeholder="01/01/2030" icon={<Calendar size={15} />} state={showErrors ? "error" : "default"} />
                       </Field>
                     </>
                   ) : (
@@ -1622,6 +1630,19 @@ export default function App() {
         setForeigner(false);
       };
 
+      const showContactForeignerErrorFrame = () => {
+        setSaved(false);
+        setModalOpen(true);
+        setAddMenuOpen(false);
+        setExcelImportOpen(false);
+        setFigmaCopyMode(false);
+        setFormValidationStarted(true);
+        setDuplicateId(true);
+        setValidationAttempted({ 0: true, 1: true, 2: true, 3: true, 4: true });
+        setCaptureSection("contact");
+        setForeigner(true);
+      };
+
       if (event.key === "0") {
         setSaved(false);
         setModalOpen(true);
@@ -1649,6 +1670,7 @@ export default function App() {
       if (event.key === "2") showErrorFrame(null);
       if (event.key === "3") showErrorFrame("work");
       if (event.key === "4") showErrorFrame("documents");
+      if (event.key === "6") showContactForeignerErrorFrame();
       if (event.key === "5") {
         setSaved(false);
         setModalOpen(true);
@@ -2157,14 +2179,22 @@ export default function App() {
                             <Field label="Số Visa" required error={showStepError ? "Số Visa là trường bắt buộc." : undefined}>
                               <Input placeholder="00-120-019" state={showStepError ? "error" : "default"} />
                             </Field>
-                            <Field label="Ngày hết hạn Visa" required>
-                              <Input placeholder="01/01/2030" icon={<Calendar size={15} />} />
+                            <Field
+                              label="Ngày hết hạn Visa"
+                              required
+                              error={showStepError ? "Vui lòng nhập ngày hết hạn Visa." : undefined}
+                            >
+                              <Input placeholder="01/01/2030" icon={<Calendar size={15} />} state={showStepError ? "error" : "default"} />
                             </Field>
-                            <Field label="Số Hộ chiếu" required>
-                              <Input placeholder="00-120-019" />
+                            <Field label="Số Hộ chiếu" required error={showStepError ? "Số Hộ chiếu là trường bắt buộc." : undefined}>
+                              <Input placeholder="00-120-019" state={showStepError ? "error" : "default"} />
                             </Field>
-                            <Field label="Ngày hết hạn Hộ chiếu" required>
-                              <Input placeholder="01/01/2030" icon={<Calendar size={15} />} />
+                            <Field
+                              label="Ngày hết hạn Hộ chiếu"
+                              required
+                              error={showStepError ? "Vui lòng nhập ngày hết hạn Hộ chiếu." : undefined}
+                            >
+                              <Input placeholder="01/01/2030" icon={<Calendar size={15} />} state={showStepError ? "error" : "default"} />
                             </Field>
                             <div className="col-span-2 flex items-end gap-3">
                               <div className="flex-1">
