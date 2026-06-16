@@ -1,0 +1,11 @@
+{
+  "active": true,
+  "started_at": "2026-06-16T15:13:06.906Z",
+  "original_prompt": "/oh-my-claudecode:autopilot i want you to check if my current web design fit the design in https://www.figma.com/design/VDMSZDGXKgKbTXGlOrxaCx/nhom-8?node-id=86-350&t=9FcsfuW9IkH0kcO1-0 and after that use agent browser to check if my current code design fit the figma design",
+  "session_id": "ee8fd40e-beb4-484a-b807-d943ccc5f3db",
+  "project_path": "D:\\BTAP\\fantastic-hrflow\\code\\hrflow-app",
+  "reinforcement_count": 0,
+  "awaiting_confirmation": true,
+  "awaiting_confirmation_set_at": "2026-06-16T15:13:06.906Z",
+  "last_checked_at": "2026-06-16T15:13:06.906Z"
+}
