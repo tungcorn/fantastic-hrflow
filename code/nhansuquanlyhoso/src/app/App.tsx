@@ -173,14 +173,20 @@ function Select({
   options?: string[];
 }) {
   const ring =
-    state === "error" ? "border-red-300" : state === "success" ? "border-emerald-300" : "border-slate-200";
+    state === "error"
+      ? "border-red-300 focus-within:ring-red-100"
+      : state === "success"
+      ? "border-emerald-300 focus-within:ring-emerald-100"
+      : "border-slate-200 focus-within:border-blue-300 focus-within:ring-blue-100";
   const optionValues = options?.includes(value) ? options : [value, ...(options ?? [])];
 
   return (
-    <div className={`relative h-9 w-full rounded-lg border bg-white ${ring}`}>
+    <div
+      className={`relative h-10 w-full rounded-[18px] border bg-white shadow-sm shadow-slate-200/70 transition hover:border-blue-200 focus-within:ring-4 ${ring}`}
+    >
       <select
         defaultValue={value}
-        className="h-full w-full appearance-none rounded-lg bg-transparent py-0 pl-2.5 pr-8 text-[13px] text-slate-900 outline-none"
+        className="h-full w-full appearance-none rounded-[18px] bg-transparent py-0 pl-3 pr-11 text-[13px] text-slate-900 outline-none"
       >
         {optionValues.map((option) => (
           <option key={option} value={option}>
@@ -188,7 +194,9 @@ function Select({
           </option>
         ))}
       </select>
-      <ChevronDown size={16} className="pointer-events-none absolute right-2.5 top-1/2 -translate-y-1/2 text-slate-400" />
+      <span className="pointer-events-none absolute right-2.5 top-1/2 grid size-6 -translate-y-1/2 place-items-center rounded-full bg-blue-50 text-blue-600">
+        <ChevronDown size={14} />
+      </span>
     </div>
   );
 }
@@ -262,9 +270,11 @@ const personnelRows = [
 
 function SelectFilter({ label }: { label: string }) {
   return (
-    <button className="flex h-9 min-w-[142px] items-center justify-between rounded-lg border border-slate-300 bg-white px-3 text-[12px] text-slate-500 shadow-sm">
+    <button className="flex h-10 min-w-[142px] items-center justify-between gap-2 rounded-[18px] border border-slate-200 bg-white px-3 text-[12px] text-slate-500 shadow-sm shadow-slate-200/70 transition hover:border-blue-200">
       <span>{label}</span>
-      <ChevronDown size={14} className="text-slate-400" />
+      <span className="grid size-6 place-items-center rounded-full bg-blue-50 text-blue-600">
+        <ChevronDown size={13} />
+      </span>
     </button>
   );
 }
