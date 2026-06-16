@@ -306,6 +306,57 @@ function SectionCard({
   );
 }
 
+function ConfirmOfficialSaveModal({
+  onCancel,
+  onConfirm,
+}: {
+  onCancel: () => void;
+  onConfirm: () => void;
+}) {
+  return (
+    <div className="absolute inset-0 z-[120] flex items-center justify-center bg-slate-950/22 p-6 backdrop-blur-[2px]">
+      <section className="w-full max-w-[460px] rounded-2xl border border-slate-200 bg-white shadow-2xl">
+        <div className="border-b border-slate-100 px-5 py-4">
+          <div className="flex items-start gap-3">
+            <div className="grid size-10 shrink-0 place-items-center rounded-xl bg-blue-50 text-blue-700">
+              <Info size={19} />
+            </div>
+            <div>
+              <h3 className="text-[17px] font-semibold text-slate-950">Xác nhận lưu hồ sơ chính thức</h3>
+              <p className="mt-1 text-[12.5px] leading-5 text-slate-500">
+                Hồ sơ sẽ được tạo chính thức và chuyển sang trạng thái quản lý. Bạn vẫn có
+                thể cập nhật bổ sung sau nếu quy trình cho phép.
+              </p>
+            </div>
+          </div>
+        </div>
+        <div className="px-5 py-4">
+          <div className="rounded-xl border border-blue-100 bg-blue-50/70 px-4 py-3 text-[12.5px] leading-5 text-blue-900">
+            Hãy kiểm tra lại thông tin quan trọng như họ tên, CCCD, đơn vị công tác và tài
+            liệu bắt buộc trước khi xác nhận.
+          </div>
+        </div>
+        <div className="flex items-center justify-end gap-2 border-t border-slate-100 px-5 py-4">
+          <button
+            type="button"
+            onClick={onCancel}
+            className="rounded-lg border border-slate-200 bg-white px-4 py-2 text-[13px] font-medium text-slate-700 hover:bg-slate-50"
+          >
+            Quay lại kiểm tra
+          </button>
+          <button
+            type="button"
+            onClick={onConfirm}
+            className="inline-flex items-center gap-1.5 rounded-lg bg-blue-700 px-4 py-2 text-[13px] font-semibold text-white hover:bg-blue-800"
+          >
+            <UserPlus size={15} /> Xác nhận lưu
+          </button>
+        </div>
+      </section>
+    </div>
+  );
+}
+
 function CredentialSection({
   title,
   description,
@@ -1120,7 +1171,7 @@ function LargePersonnelForm({
   credentialDraftTarget,
   prefilledData,
   onClose,
-  onSave,
+  onRequestOfficialSave,
 }: {
   foreigner: boolean;
   setForeigner: (value: boolean | ((value: boolean) => boolean)) => void;
@@ -1141,7 +1192,7 @@ function LargePersonnelForm({
   credentialDraftTarget: "degree" | null;
   prefilledData: boolean;
   onClose: () => void;
-  onSave: () => void;
+  onRequestOfficialSave: () => void;
 }) {
   const hasErrors = showErrors || duplicateId;
   const formScrollRef = useRef<HTMLElement>(null);
@@ -1748,7 +1799,7 @@ function LargePersonnelForm({
                 formScrollRef.current?.scrollTo({ top: 0, behavior: "smooth" });
                 return;
               }
-              onSave();
+              onRequestOfficialSave();
             }}
             className="inline-flex items-center gap-1.5 rounded-lg bg-blue-700 px-4 py-2 text-[13px] font-semibold text-white hover:bg-blue-800"
           >
@@ -1818,6 +1869,7 @@ export default function App() {
   const [formValidationStarted, setFormValidationStarted] = useState(false);
   const [captureSection, setCaptureSection] = useState<string | null>(null);
   const [credentialDraftTarget, setCredentialDraftTarget] = useState<"degree" | null>(null);
+  const [confirmOfficialSaveOpen, setConfirmOfficialSaveOpen] = useState<null | "large" | "wizard">(null);
   const [prefilledData, setPrefilledData] = useState(false);
   const [degrees, setDegrees] = useState<CredentialItem[]>([]);
   const [certs, setCerts] = useState<CredentialItem[]>([]);
@@ -1828,6 +1880,7 @@ export default function App() {
         setFigmaCopyMode(false);
         setCaptureSection(null);
         setCredentialDraftTarget(null);
+        setConfirmOfficialSaveOpen(null);
         return;
       }
       if (!event.altKey) return;
@@ -1835,6 +1888,7 @@ export default function App() {
       if (event.key.toLowerCase() === "c") {
         setCaptureSection(null);
         setFigmaCopyMode(true);
+        setConfirmOfficialSaveOpen(null);
         setPrefilledData(false);
         setDegrees([]);
         setCerts([]);
@@ -1851,6 +1905,7 @@ export default function App() {
         setDuplicateId(true);
         setValidationAttempted({ 0: true, 1: true, 2: true, 3: true, 4: true });
         setCaptureSection(section);
+        setConfirmOfficialSaveOpen(null);
         setForeigner(false);
         setCredentialDraftTarget(null);
         setPrefilledData(true);
@@ -1868,6 +1923,7 @@ export default function App() {
         setDuplicateId(true);
         setValidationAttempted({ 0: true, 1: true, 2: true, 3: true, 4: true });
         setCaptureSection("contact");
+        setConfirmOfficialSaveOpen(null);
         setForeigner(true);
         setCredentialDraftTarget(null);
         setPrefilledData(true);
@@ -1885,6 +1941,7 @@ export default function App() {
         setDuplicateId(true);
         setValidationAttempted({ 0: true, 1: true, 2: true, 3: true, 4: true });
         setCaptureSection("documents");
+        setConfirmOfficialSaveOpen(null);
         setForeigner(false);
         setCredentialDraftTarget("degree");
         setPrefilledData(true);
@@ -1902,6 +1959,7 @@ export default function App() {
         setDuplicateId(false);
         setValidationAttempted({});
         setCaptureSection("contact");
+        setConfirmOfficialSaveOpen(null);
         setForeigner(true);
         setCredentialDraftTarget(null);
         setPrefilledData(true);
@@ -1918,6 +1976,7 @@ export default function App() {
         setDuplicateId(false);
         setValidationAttempted({});
         setCaptureSection(null);
+        setConfirmOfficialSaveOpen(null);
         setForeigner(false);
         setCredentialDraftTarget(null);
         setPrefilledData(false);
@@ -1939,6 +1998,7 @@ export default function App() {
         setDuplicateId(false);
         setValidationAttempted({});
         setCaptureSection(null);
+        setConfirmOfficialSaveOpen(null);
         setForeigner(false);
         setCredentialDraftTarget(null);
         setPrefilledData(true);
@@ -1970,6 +2030,7 @@ export default function App() {
     setDuplicateId(false);
     setValidationAttempted({});
     setCaptureSection(null);
+    setConfirmOfficialSaveOpen(null);
     setForeigner(false);
     setCredentialDraftTarget(null);
     setPrefilledData(false);
@@ -1983,6 +2044,7 @@ export default function App() {
     setFigmaCopyMode(false);
     setCaptureSection(null);
     setCredentialDraftTarget(null);
+    setConfirmOfficialSaveOpen(null);
     setPrefilledData(false);
     setDegrees([]);
     setCerts([]);
@@ -1993,6 +2055,7 @@ export default function App() {
     setExcelImportOpen(true);
     setFigmaCopyMode(false);
     setCaptureSection(null);
+    setConfirmOfficialSaveOpen(null);
   };
   const closeExcelImport = () => {
     setExcelImportOpen(false);
@@ -2100,6 +2163,7 @@ export default function App() {
                         setValidationAttempted({});
                         setFormValidationStarted(false);
                         setCaptureSection(null);
+                        setConfirmOfficialSaveOpen(null);
                         setForeigner(false);
                         setCredentialDraftTarget(null);
                         setPrefilledData(false);
@@ -2223,7 +2287,7 @@ export default function App() {
                     credentialDraftTarget={credentialDraftTarget}
                     prefilledData={prefilledData}
                     onClose={closeModal}
-                    onSave={() => setSaved(true)}
+                    onRequestOfficialSave={() => setConfirmOfficialSaveOpen("large")}
                   />
                   {false ? (
               <div className="flex h-[calc(100vh-112px)] w-full max-w-[1180px] flex-col overflow-hidden rounded-2xl bg-white shadow-2xl ring-1 ring-slate-200">
@@ -2791,7 +2855,7 @@ export default function App() {
                     {isLast ? (
                       <button
                         onClick={() => {
-                          if (!duplicateId) setSaved(true);
+                          if (!duplicateId) setConfirmOfficialSaveOpen("wizard");
                         }}
                         disabled={duplicateId}
                         className={`inline-flex items-center gap-1.5 rounded-lg px-4 py-2 text-[13px] font-medium text-white ${
@@ -2831,6 +2895,15 @@ export default function App() {
                   <ExcelImportDialog onClose={closeExcelImport} />
                 </div>
               </>
+            ) : null}
+            {confirmOfficialSaveOpen ? (
+              <ConfirmOfficialSaveModal
+                onCancel={() => setConfirmOfficialSaveOpen(null)}
+                onConfirm={() => {
+                  setConfirmOfficialSaveOpen(null);
+                  setSaved(true);
+                }}
+              />
             ) : null}
           </div>
         </div>
