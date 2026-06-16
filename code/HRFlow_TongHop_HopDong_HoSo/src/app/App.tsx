@@ -63,6 +63,46 @@ const wizardSteps: { id: StepId; label: string; desc: string; icon: ReactNode }[
 
 type FieldState = "default" | "error" | "success";
 
+const generalEducationOptions = [
+  "12/12",
+  "11/12",
+  "10/12",
+  "9/12",
+  "8/12",
+  "7/12",
+  "6/12",
+  "5/12",
+  "4/12",
+  "3/12",
+  "2/12",
+  "1/12",
+  "10/10",
+  "9/10",
+  "Khác",
+];
+
+const trainingLevelOptions = ["Sơ cấp", "Trung cấp", "Cao đẳng", "Đại học", "Thạc sĩ", "Tiến sĩ"];
+
+const professionalTitleOptions = [
+  "Trợ giảng",
+  "Giảng viên hạng III",
+  "Giảng viên chính hạng II",
+  "Giảng viên cao cấp hạng I",
+  "Chuyên viên",
+  "Chuyên viên chính",
+  "Chuyên viên cao cấp",
+  "Kế toán viên",
+  "Kế toán viên chính",
+  "Thư viện viên",
+  "Thư viện viên chính",
+  "Nghiên cứu viên",
+  "Nghiên cứu viên chính",
+  "Nghiên cứu viên cao cấp",
+  "Khác",
+];
+
+const academicRankDegreeOptions = ["Không có", "Cử nhân", "Kỹ sư", "Thạc sĩ", "Tiến sĩ", "Phó Giáo sư", "Giáo sư"];
+
 function Field({
   label,
   required,
@@ -139,46 +179,104 @@ function Select({
   value,
   state = "default",
   options,
+  placeholder,
   onChange,
 }: {
   value: string;
   state?: FieldState;
   options?: string[];
+  placeholder?: string;
   onChange?: (value: string) => void;
 }) {
-  const ring =
-    state === "error" ? "border-red-300" : state === "success" ? "border-emerald-300" : "border-slate-200";
-  const selectableOptions = options
-    ? Array.from(new Set(value ? [value, ...options] : options))
-    : [];
+  const [open, setOpen] = useState(false);
+  const [localValue, setLocalValue] = useState(value);
+  const rootRef = useRef<HTMLDivElement>(null);
+  const selectable = !!options?.length;
+  const baseRing =
+    state === "error"
+      ? "border-red-300"
+      : state === "success"
+      ? "border-emerald-300"
+      : "border-slate-200";
+  const openRing =
+    state === "error"
+      ? "border-red-300 ring-4 ring-red-100"
+      : state === "success"
+      ? "border-emerald-300 ring-4 ring-emerald-100"
+      : "border-blue-300 ring-4 ring-blue-100";
+  const currentValue = onChange ? value : localValue;
+  const selectableOptions = options ? Array.from(new Set(currentValue ? [currentValue, ...options] : options)) : [];
+  const displayValue = currentValue || placeholder || "";
+  const mutedText = !currentValue;
 
-  if (onChange) {
-    return (
-      <div className={`flex h-9 items-center gap-2 rounded-lg border bg-white px-2.5 ${ring}`}>
-        <select
-          value={value}
-          onChange={(event) => onChange(event.target.value)}
-          className="min-w-0 flex-1 appearance-none bg-transparent text-[13px] text-slate-900 focus:outline-none"
-        >
-          {selectableOptions.map((option) => (
-            <option key={option} value={option}>
-              {option}
-            </option>
-          ))}
-        </select>
-        <ChevronRight size={16} className="rotate-90 text-slate-400" />
-      </div>
-    );
-  }
+  useEffect(() => {
+    setLocalValue(value);
+  }, [value]);
+
+  useEffect(() => {
+    if (!open) return;
+
+    const handlePointerDown = (event: MouseEvent) => {
+      if (event.target instanceof Node && !rootRef.current?.contains(event.target)) {
+        setOpen(false);
+      }
+    };
+    const handleKeyDown = (event: KeyboardEvent) => {
+      if (event.key === "Escape") {
+        setOpen(false);
+      }
+    };
+
+    document.addEventListener("mousedown", handlePointerDown);
+    document.addEventListener("keydown", handleKeyDown);
+    return () => {
+      document.removeEventListener("mousedown", handlePointerDown);
+      document.removeEventListener("keydown", handleKeyDown);
+    };
+  }, [open]);
 
   return (
-    <button
-      type="button"
-      className={`flex h-9 w-full items-center justify-between rounded-lg border bg-white px-2.5 text-[13px] text-slate-900 ${ring}`}
-    >
-      <span>{value}</span>
-      <ChevronRight size={16} className="rotate-90 text-slate-400" />
-    </button>
+    <div ref={rootRef} className={`relative ${open ? "z-50" : "z-0"}`}>
+      <button
+        type="button"
+        onClick={selectable ? () => setOpen((current) => !current) : undefined}
+        className={`relative flex h-10 w-full items-center justify-between gap-2 rounded-[18px] border bg-white py-0 pl-3 pr-2.5 text-left text-[13px] font-normal leading-5 shadow-sm shadow-slate-200/70 transition hover:border-blue-200 focus:outline-none focus:ring-4 ${
+          open ? openRing : baseRing
+        } ${mutedText ? "text-slate-400" : "text-slate-900"} ${selectable ? "cursor-pointer" : "cursor-default"}`}
+      >
+        <span className="min-w-0 flex-1 truncate">{displayValue}</span>
+        <span className="grid size-6 shrink-0 place-items-center rounded-full bg-blue-50 text-blue-600">
+          <ChevronDown size={14} className={`transition ${open ? "rotate-180" : ""}`} />
+        </span>
+      </button>
+
+      {selectable && open ? (
+        <div className="absolute left-0 right-0 top-[calc(100%+6px)] z-[80] max-h-64 overflow-y-auto rounded-[18px] border border-slate-200 bg-white p-1.5 shadow-xl shadow-slate-300/40">
+          {selectableOptions.map((option) => {
+            const selected = option === currentValue;
+            return (
+              <button
+                key={option}
+                type="button"
+                onClick={() => {
+                  if (onChange) {
+                    onChange(option);
+                  } else {
+                    setLocalValue(option);
+                  }
+                  setOpen(false);
+                }}
+                className={`flex min-h-8 w-full items-center rounded-[14px] px-3 text-left text-[13px] font-normal leading-5 transition ${
+                  selected ? "bg-slate-100 text-slate-900" : "text-slate-700 hover:bg-slate-50"
+                }`}
+              >
+                <span className="truncate">{option}</span>
+              </button>
+            );
+          })}
+        </div>
+      ) : null}
+    </div>
   );
 }
 
@@ -7162,15 +7260,17 @@ function LargePersonnelForm({
 }) {
   const [draft, setDraft] = useState<PersonnelRecord>(() =>
     initialPersonnel ?? {
-      code: "CB2026-0048",
-      name: "Nguyễn Văn A",
-      unit: "Khoa Công nghệ thông tin",
-      degree: "Tiến sĩ",
-      role: "Giảng viên",
-      contract: "Còn hiệu lực",
-      status: "Đang hoàn thiện",
+      code: "",
+      name: "",
+      unit: "",
+      degree: "",
+      role: "",
+      contract: "",
+      status: "",
     },
   );
+  const [gender, setGender] = useState(() => (initialPersonnel ? "Nam" : ""));
+  const [governmentId, setGovernmentId] = useState(() => (initialPersonnel ? "001200001901" : ""));
   const hasErrors = showErrors || duplicateId;
   const isEditing = initialPersonnel !== null && initialPersonnel !== undefined;
   const formScrollRef = useRef<HTMLElement>(null);
@@ -7179,6 +7279,7 @@ function LargePersonnelForm({
   const captureViewport = !!captureSection && !figmaCopyMode;
   const validationState = !validationStarted ? "idle" : hasErrors ? "error" : "valid";
   const errorCount = showErrors ? 9 : duplicateId ? 1 : 0;
+  const knownConflictingGovernmentIds = new Set(["001200001900"]);
   const errorGroups = [
     hasErrors ? "Thông tin cá nhân" : null,
     showErrors ? "Liên hệ & quốc tịch" : null,
@@ -7188,6 +7289,13 @@ function LargePersonnelForm({
   const updateDraft = (field: keyof PersonnelRecord, value: string) => {
     setDraft((current) => ({ ...current, [field]: value }));
   };
+  const missingRequiredDraftFields =
+    !draft.name.trim() ||
+    !draft.unit.trim() ||
+    !draft.degree.trim() ||
+    !draft.role.trim() ||
+    !draft.contract.trim() ||
+    !draft.status.trim();
   const sections = [
     { id: "identity", label: "Thông tin cá nhân", icon: <CircleUserRound size={15} />, state: validationState === "idle" ? "idle" : hasErrors ? "error" : "done" },
     { id: "contact", label: "Liên hệ & quốc tịch", icon: <Mail size={15} />, state: validationState === "idle" ? "idle" : showErrors ? "error" : "done" },
@@ -7264,9 +7372,6 @@ function LargePersonnelForm({
                 <AlertCircle size={17} />
               </div>
               <div className="min-w-0">
-                <div className="text-[13px] font-semibold text-slate-950">
-                  Chưa thể lưu hồ sơ chính thức
-                </div>
                 <p className="mt-0.5 text-[12px] leading-5 text-slate-600">
                   Có {errorCount} trường cần kiểm tra lại trước khi lưu hồ sơ chính thức.
                 </p>
@@ -7370,60 +7475,64 @@ function LargePersonnelForm({
                   <div className="grid min-w-0 grid-cols-2 gap-3">
                     <Field label="Họ và tên" required error={showErrors ? "Họ và tên là trường bắt buộc." : undefined}>
                       <Input
-                        value={!isEditing && showErrors ? "" : draft.name}
+                        value={draft.name}
+                        placeholder="Nguyễn Văn A"
                         state={showErrors ? "error" : "default"}
                         onChange={(value) => updateDraft("name", value)}
                       />
                     </Field>
                     <Field label="Mã cán bộ" required>
-                      <Input value={draft.code} readOnly />
+                      <Input value={draft.code} placeholder="CB2026-0048" readOnly />
                     </Field>
                     <Field label="Giới tính" required>
-                      <Select value="Nam" />
+                      <Select value={gender} options={["Nam", "Nữ", "Khác"]} placeholder="Chọn giới tính" onChange={setGender} />
                     </Field>
                     <Field label="Ngày sinh" required error={showErrors ? "Ngày sinh không hợp lệ." : undefined}>
-                      <Input value={showErrors ? "32/13/2000" : "01/01/2000"} icon={<Calendar size={15} />} state={showErrors ? "error" : "default"} />
+                      <Input value={showErrors ? "32/13/2000" : isEditing ? "01/01/2000" : ""} placeholder="01/01/2000" icon={<Calendar size={15} />} state={showErrors ? "error" : "default"} />
                     </Field>
                     <Field label="Quê quán" required>
-                      <Input value="Hà Nội" icon={<MapPin size={15} />} />
+                      <Input value={isEditing ? "Hà Nội" : ""} placeholder="Hà Nội" icon={<MapPin size={15} />} />
                     </Field>
                     <div className="col-span-2">
                       <Field
                         label="Số CCCD"
                         required
-                        error={hasErrors ? "Đã tồn tại hồ sơ với CCCD này hoặc dữ liệu chưa hợp lệ." : undefined}
+                        error={duplicateId ? "Đã tồn tại hồ sơ với CCCD này." : undefined}
                       >
                         <div className="flex gap-2">
                           <div className="min-w-0 flex-1">
-                            <Input value={hasErrors ? "001200001900" : "001200001901"} state={hasErrors ? "error" : "default"} />
+                            <Input
+                              value={governmentId}
+                              placeholder="001200001901"
+                              state={duplicateId ? "error" : "default"}
+                              onChange={(value) => {
+                                setGovernmentId(value);
+                                setDuplicateId(false);
+                              }}
+                            />
                           </div>
                           <button
                             type="button"
                             onClick={() => {
-                              if (hasErrors) {
-                                setDuplicateId(false);
-                                setShowErrors(false);
-                                setValidationStarted(true);
-                              } else {
-                                setDuplicateId(true);
-                                setValidationStarted(true);
-                              }
+                              const normalizedGovernmentId = governmentId.trim();
+                              setValidationStarted(true);
+                              setDuplicateId(knownConflictingGovernmentIds.has(normalizedGovernmentId));
                             }}
                             className="h-10 shrink-0 rounded-lg border border-slate-200 bg-white px-3 text-[12px] font-semibold text-slate-700 hover:bg-slate-50"
                           >
-                            {hasErrors ? "Dùng CCCD hợp lệ" : "Kiểm tra trùng"}
+                            Kiểm tra trùng
                           </button>
                         </div>
                       </Field>
                     </div>
                     <Field label="Mã số thuế" required>
-                      <Input value="1200001900" />
+                      <Input value={isEditing ? "1200001900" : ""} placeholder="1200001900" />
                     </Field>
                     <Field label="Số BHXH" required>
-                      <Input value="00120019" />
+                      <Input value={isEditing ? "00120019" : ""} placeholder="00120019" />
                     </Field>
                     <Field label="Số BHYT" required>
-                      <Input value="00120019" />
+                      <Input value={isEditing ? "00120019" : ""} placeholder="00120019" />
                     </Field>
                   </div>
                 </div>
@@ -7453,14 +7562,14 @@ function LargePersonnelForm({
               >
                 <div className="grid grid-cols-2 gap-3">
                   <Field label="Email" required error={showErrors ? "Email không đúng định dạng." : undefined}>
-                    <Input value={showErrors ? "nguyenvana@" : "nguyenvana@tlu.edu.vn"} icon={<Mail size={15} />} state={showErrors ? "error" : "default"} />
+                    <Input value={showErrors ? "nguyenvana@" : isEditing ? "nguyenvana@tlu.edu.vn" : ""} placeholder="nguyenvana@tlu.edu.vn" icon={<Mail size={15} />} state={showErrors ? "error" : "default"} />
                   </Field>
                   <Field label="Số điện thoại" required error={showErrors ? "Số điện thoại là trường bắt buộc." : undefined}>
-                    <Input value={showErrors ? "" : "0987654321"} icon={<Phone size={15} />} state={showErrors ? "error" : "default"} />
+                    <Input value={showErrors ? "" : isEditing ? "0987654321" : ""} placeholder="0987654321" icon={<Phone size={15} />} state={showErrors ? "error" : "default"} />
                   </Field>
                   <div className="col-span-2">
                     <Field label="Địa chỉ thường trú" required error={showErrors ? "Vui lòng nhập địa chỉ thường trú." : undefined}>
-                      <Input value={showErrors ? "" : "Thanh Trì, Hà Nội"} icon={<MapPin size={15} />} state={showErrors ? "error" : "default"} />
+                      <Input value={showErrors ? "" : isEditing ? "Thanh Trì, Hà Nội" : ""} placeholder="Thanh Trì, Hà Nội" icon={<MapPin size={15} />} state={showErrors ? "error" : "default"} />
                     </Field>
                   </div>
                   {foreigner ? (
@@ -7496,33 +7605,34 @@ function LargePersonnelForm({
                 >
                   <div className="grid min-w-0 grid-cols-3 gap-3">
                       <Field label="Đơn vị công tác" required>
-                        <Select value={draft.unit} options={unitOptions} onChange={(value) => updateDraft("unit", value)} />
+                        <Select value={draft.unit} options={unitOptions} placeholder="Khoa Công nghệ thông tin" onChange={(value) => updateDraft("unit", value)} />
                       </Field>
                       <Field label="Bộ môn / phòng ban trực thuộc">
-                        <Select value="Bộ môn Công nghệ phần mềm" />
+                        <Select value={isEditing ? "Bộ môn Công nghệ phần mềm" : ""} placeholder="Bộ môn Công nghệ phần mềm" options={["Bộ môn Công nghệ phần mềm", "Bộ môn Hệ thống thông tin", "Bộ môn Khoa học dữ liệu"]} />
                       </Field>
                       <Field label="Chức vụ hiện tại" required error={showErrors ? "Vui lòng chọn chức vụ hiện tại." : undefined}>
                         <Select
-                          value={!isEditing && showErrors ? "Chưa chọn" : draft.role}
+                          value={draft.role}
                           options={roleOptions}
+                          placeholder="Giảng viên"
                           state={showErrors ? "error" : "default"}
                           onChange={(value) => updateDraft("role", value)}
                         />
                       </Field>
                       <Field label="Loại nhân sự" required>
-                        <Select value="Giảng viên cơ hữu" />
+                        <Select value={isEditing ? "Giảng viên cơ hữu" : ""} placeholder="Giảng viên cơ hữu" options={["Giảng viên cơ hữu", "Giảng viên thỉnh giảng", "Chuyên viên"]} />
                       </Field>
                       <Field label="Ngày bắt đầu công tác" required>
-                        <Input value="01/06/2026" icon={<Calendar size={15} />} />
+                        <Input value={isEditing ? "01/06/2026" : ""} placeholder="01/06/2026" icon={<Calendar size={15} />} />
                       </Field>
                       <Field label="Hợp đồng" required>
-                        <Select value={draft.contract} options={contractOptions} onChange={(value) => updateDraft("contract", value)} />
+                        <Select value={draft.contract} options={contractOptions} placeholder="Còn hiệu lực" onChange={(value) => updateDraft("contract", value)} />
                       </Field>
                       <Field label="Trạng thái hồ sơ" required>
-                        <Select value={draft.status} options={statusOptions} onChange={(value) => updateDraft("status", value)} />
+                        <Select value={draft.status} options={statusOptions} placeholder="Đang hoàn thiện" onChange={(value) => updateDraft("status", value)} />
                       </Field>
                       <div className="col-span-3 rounded-lg border border-blue-100 bg-blue-50 px-3 py-2 text-[12px] text-blue-800">
-                        Đường dẫn đơn vị: Trường Đại học Thủy Lợi / {draft.unit} / Bộ môn Công nghệ phần mềm
+                        Đường dẫn đơn vị: Trường Đại học Thủy Lợi / {draft.unit || "Chưa chọn đơn vị"} / Bộ môn Công nghệ phần mềm
                       </div>
                     </div>
                 </SectionCard>
@@ -7530,22 +7640,22 @@ function LargePersonnelForm({
                 <SectionCard title="Lương và phụ cấp dự kiến" icon={<Banknote size={18} />}>
                   <div className="grid grid-cols-3 gap-3">
                     <Field label="Ngạch / hạng chức danh" required>
-                      <Select value="Giảng viên hạng III" />
+                      <Select value={isEditing ? "Giảng viên hạng III" : ""} placeholder="Giảng viên hạng III" options={["Giảng viên hạng III", "Giảng viên hạng II", "Chuyên viên"]} />
                     </Field>
                     <Field label="Bậc lương" required>
-                      <Select value="Bậc 1" />
+                      <Select value={isEditing ? "Bậc 1" : ""} placeholder="Bậc 1" options={["Bậc 1", "Bậc 2", "Bậc 3"]} />
                     </Field>
                     <Field label="Hệ số lương" required error={showErrors ? "Hệ số lương phải là số lớn hơn 0." : undefined}>
-                      <Input value={showErrors ? "abc" : "2.34"} state={showErrors ? "error" : "default"} />
+                      <Input value={showErrors ? "abc" : isEditing ? "2.34" : ""} placeholder="2.34" state={showErrors ? "error" : "default"} />
                     </Field>
                     <Field label="Phụ cấp chức vụ">
-                      <Input value="0.00" />
+                      <Input value={isEditing ? "0.00" : ""} placeholder="0.00" />
                     </Field>
                     <Field label="Phụ cấp thâm niên">
-                      <Input value="0%" />
+                      <Input value={isEditing ? "0%" : ""} placeholder="0%" />
                     </Field>
                     <Field label="Nguồn chi trả" required>
-                      <Select value="Ngân sách nhà trường" />
+                      <Select value={isEditing ? "Ngân sách nhà trường" : ""} placeholder="Ngân sách nhà trường" options={["Ngân sách nhà trường", "Nguồn dự án", "Nguồn tự chủ"]} />
                     </Field>
                   </div>
                 </SectionCard>
@@ -7554,20 +7664,30 @@ function LargePersonnelForm({
 
             <section id="education">
               <SectionCard title="Trình độ học vấn" icon={<GraduationCap size={18} />}>
-                <div className="grid grid-cols-4 gap-3">
+                  <div className="grid grid-cols-4 gap-3">
                   <Field label="Trình độ văn hóa" required>
-                    <Select value="12/12" />
+                    <Select value={isEditing ? "12/12" : ""} placeholder="12/12" options={generalEducationOptions} />
                   </Field>
-                  <Field label="Trình độ đào tạo" required>
-                    <Select value={draft.degree} options={degreeOptions} onChange={(value) => updateDraft("degree", value)} />
-                  </Field>
-                  <Field label="Chức danh nghề nghiệp" required>
-                    <Input value="Tiến sĩ" />
-                  </Field>
-                  <Field label="Học hàm / Học vị" required>
-                    <Input value={draft.degree} onChange={(value) => updateDraft("degree", value)} />
-                  </Field>
-                </div>
+                    <Field label="Trình độ đào tạo" required>
+                      <Select
+                        value={draft.degree}
+                        options={Array.from(new Set([...trainingLevelOptions, ...degreeOptions]))}
+                        placeholder="Tiến sĩ"
+                        onChange={(value) => updateDraft("degree", value)}
+                      />
+                    </Field>
+                    <Field label="Chức danh nghề nghiệp" required>
+                      <Select value={isEditing ? "Giảng viên hạng III" : ""} placeholder="Giảng viên hạng III" options={professionalTitleOptions} />
+                    </Field>
+                    <Field label="Học hàm / Học vị" required>
+                      <Select
+                        value={draft.degree}
+                        options={Array.from(new Set([...academicRankDegreeOptions, ...degreeOptions]))}
+                        placeholder="Tiến sĩ"
+                        onChange={(value) => updateDraft("degree", value)}
+                      />
+                    </Field>
+                  </div>
               </SectionCard>
             </section>
 
@@ -7606,6 +7726,7 @@ function LargePersonnelForm({
                   <div className="grid grid-cols-2 gap-4">
                   <SectionCard
                     title="Bằng cấp"
+                    description="Bắt buộc đính kèm tối thiểu 1 bằng cấp."
                     icon={<Award size={18} />}
                     action={
                       <button
@@ -7617,27 +7738,31 @@ function LargePersonnelForm({
                       </button>
                     }
                   >
-                    <div className="overflow-hidden rounded-lg border border-slate-200">
-                      <div className="grid grid-cols-[1.1fr_1fr_64px_56px] bg-slate-50 px-3 py-2 text-[11px] font-bold uppercase tracking-wide text-slate-500">
+                      <div className="overflow-hidden rounded-lg border border-slate-200">
+                      <div className="grid grid-cols-[1.1fr_1fr_64px_72px] bg-slate-50 px-3 py-2 text-[11px] font-bold uppercase tracking-wide text-slate-500">
                         <span>Tên bằng</span>
                         <span>Nơi cấp</span>
                         <span className="text-center">File</span>
-                        <span className="text-center">Thao tác</span>
+                        <span className="text-center whitespace-nowrap"></span>
                       </div>
                       {degrees.map((d, i) => (
-                        <div key={`${d.name}-${i}`} className="grid grid-cols-[1.1fr_1fr_64px_56px] items-center border-t border-slate-100 px-3 py-2.5 text-[12px]">
+                        <div key={`${d.name}-${i}`} className="grid grid-cols-[1.1fr_1fr_64px_72px] items-center border-t border-slate-100 px-3 py-2.5 text-[12px]">
                           <span className="font-medium text-slate-900">{d.name || "Bằng mới"}</span>
                           <span className="text-slate-600">{d.place || "Chưa nhập"}</span>
                           <button className="inline-flex h-8 w-11 items-center justify-center justify-self-center rounded-md bg-blue-50 px-2 text-[11px] font-semibold text-blue-700">
                             PDF
                           </button>
-                          <button
-                            onClick={() => setDegrees((items) => items.filter((_, idx) => idx !== i))}
-                            className="grid size-8 place-items-center justify-self-center rounded-md text-red-500 hover:bg-red-50"
-                            aria-label="Xóa bằng cấp"
-                          >
-                            <Trash2 size={14} />
-                          </button>
+                          {degrees.length > 1 ? (
+                            <button
+                              onClick={() => setDegrees((items) => items.filter((_, idx) => idx !== i))}
+                              className="grid size-8 place-items-center justify-self-center rounded-md text-red-500 hover:bg-red-50"
+                              aria-label="Xóa bằng cấp"
+                            >
+                              <Trash2 size={14} />
+                            </button>
+                          ) : (
+                            <span className="size-8 justify-self-center" />
+                          )}
                         </div>
                       ))}
                     </div>
@@ -7737,13 +7862,15 @@ function LargePersonnelForm({
           <button
             onClick={() => {
               setValidationStarted(true);
-              if (!isEditing && (!validationStarted || hasErrors)) {
-                setShowErrors(true);
-                setDuplicateId(true);
+              if (!isEditing && (missingRequiredDraftFields || duplicateId)) {
+                setShowErrors(missingRequiredDraftFields);
                 setCaptureSection(null);
                 setActiveSection("identity");
                 formScrollRef.current?.scrollTo({ top: 0, behavior: "smooth" });
                 return;
+              }
+              if (!isEditing) {
+                setShowErrors(false);
               }
               onSave(draft);
             }}
