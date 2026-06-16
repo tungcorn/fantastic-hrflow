@@ -56,6 +56,13 @@ const wizardSteps: { id: StepId; label: string; desc: string; icon: ReactNode }[
 type FieldState = "default" | "error" | "success";
 type CredentialItem = { name: string; place: string };
 
+const defaultDegrees: CredentialItem[] = [
+  { name: "Bằng Cử nhân chuyên ngành Kỹ thuật phần mềm", place: "Trường Đại học Thủy lợi" },
+  { name: "Bằng Kỹ sư Khoa học máy tính", place: "Trường Đại học Thủy lợi" },
+];
+
+const defaultCerts: CredentialItem[] = [{ name: "IELTS 7.5", place: "British Council" }];
+
 const generalEducationOptions = [
   "12/12",
   "11/12",
@@ -260,6 +267,7 @@ function SectionCard({
   children,
   action,
   headerClassName = "",
+  sectionId,
 }: {
   title: string;
   description?: string;
@@ -268,9 +276,10 @@ function SectionCard({
   children: ReactNode;
   action?: ReactNode;
   headerClassName?: string;
+  sectionId?: string;
 }) {
   return (
-    <section className="rounded-xl border border-slate-200 bg-white">
+    <section id={sectionId} className="rounded-xl border border-slate-200 bg-white">
       <header className={`flex items-start justify-between gap-3 border-b border-slate-100 px-4 py-3 ${headerClassName}`}>
         <div className="flex gap-2.5">
           <div className="grid size-8 shrink-0 place-items-center rounded-lg bg-blue-50 text-blue-700">
@@ -307,6 +316,9 @@ function CredentialSection({
   itemLabel,
   namePlaceholder,
   requiredMinimum,
+  openComposer,
+  composerId,
+  sectionId,
 }: {
   title: string;
   description: string;
@@ -317,10 +329,18 @@ function CredentialSection({
   itemLabel: string;
   namePlaceholder: string;
   requiredMinimum?: boolean;
+  openComposer?: boolean;
+  composerId?: string;
+  sectionId?: string;
 }) {
   const [adding, setAdding] = useState(false);
   const [draft, setDraft] = useState<CredentialItem>({ name: "", place: "" });
   const canSave = draft.name.trim().length > 0 && draft.place.trim().length > 0;
+
+  useEffect(() => {
+    if (openComposer) setAdding(true);
+  }, [openComposer]);
+
   const resetDraft = () => {
     setDraft({ name: "", place: "" });
     setAdding(false);
@@ -338,6 +358,7 @@ function CredentialSection({
       icon={icon}
       optional={optional}
       headerClassName="min-h-[86px]"
+      sectionId={sectionId}
       action={
         <button
           type="button"
@@ -395,7 +416,7 @@ function CredentialSection({
         </div>
 
         {adding ? (
-          <div className="rounded-lg border border-blue-100 bg-blue-50/40 p-3">
+          <div id={composerId} className="rounded-lg border border-blue-100 bg-blue-50/40 p-3">
             <div className="mb-3 text-[12.5px] font-semibold text-slate-900">Thêm {itemLabel}</div>
             <div className="space-y-3">
               <Field label={`Tên ${itemLabel}`} required>
@@ -1096,6 +1117,7 @@ function LargePersonnelForm({
   setValidationStarted,
   captureSection,
   setCaptureSection,
+  credentialDraftTarget,
   onClose,
   onSave,
 }: {
@@ -1115,6 +1137,7 @@ function LargePersonnelForm({
   setValidationStarted: (value: boolean) => void;
   captureSection: string | null;
   setCaptureSection: (value: string | null) => void;
+  credentialDraftTarget: "degree" | null;
   onClose: () => void;
   onSave: () => void;
 }) {
@@ -1161,11 +1184,15 @@ function LargePersonnelForm({
       return;
     }
 
-    const element = formScrollRef.current?.querySelector<HTMLElement>(`#${captureSection}`);
+    const element =
+      credentialDraftTarget === "degree"
+        ? formScrollRef.current?.querySelector<HTMLElement>("#degree-card")
+        : formScrollRef.current?.querySelector<HTMLElement>(`#${captureSection}`);
     if (!element) return;
     setActiveSection(captureSection);
-    setCaptureOffset(Math.max(0, element.offsetTop - 8));
-  }, [captureViewport, captureSection, showErrors, duplicateId, foreigner, degrees.length, certs.length]);
+    const topInset = credentialDraftTarget === "degree" ? 116 : 8;
+    setCaptureOffset(Math.max(0, element.offsetTop - topInset));
+  }, [captureViewport, captureSection, credentialDraftTarget, showErrors, duplicateId, foreigner, degrees.length, certs.length]);
 
   return (
     <div
@@ -1549,6 +1576,9 @@ function LargePersonnelForm({
                     itemLabel="bằng cấp"
                     namePlaceholder="Ví dụ: Bằng Thạc sĩ Công nghệ thông tin"
                     requiredMinimum
+                    openComposer={credentialDraftTarget === "degree"}
+                    sectionId="degree-card"
+                    composerId="degree-composer"
                   />
 
                   <CredentialSection
@@ -1693,17 +1723,16 @@ export default function App() {
   const [figmaCopyMode, setFigmaCopyMode] = useState(false);
   const [formValidationStarted, setFormValidationStarted] = useState(false);
   const [captureSection, setCaptureSection] = useState<string | null>(null);
-  const [degrees, setDegrees] = useState([
-    { name: "Bằng Cử nhân chuyên ngành Kỹ thuật phần mềm", place: "Trường Đại học Thủy lợi" },
-    { name: "Bằng Kỹ sư Khoa học máy tính", place: "Trường Đại học Thủy lợi" },
-  ]);
-  const [certs, setCerts] = useState([{ name: "IELTS 7.5", place: "British Council" }]);
+  const [credentialDraftTarget, setCredentialDraftTarget] = useState<"degree" | null>(null);
+  const [degrees, setDegrees] = useState(defaultDegrees);
+  const [certs, setCerts] = useState(defaultCerts);
 
   useEffect(() => {
     const handlePrototypeShortcut = (event: KeyboardEvent) => {
       if (event.key === "Escape") {
         setFigmaCopyMode(false);
         setCaptureSection(null);
+        setCredentialDraftTarget(null);
         return;
       }
       if (!event.altKey) return;
@@ -1725,6 +1754,9 @@ export default function App() {
         setValidationAttempted({ 0: true, 1: true, 2: true, 3: true, 4: true });
         setCaptureSection(section);
         setForeigner(false);
+        setCredentialDraftTarget(null);
+        setDegrees(defaultDegrees);
+        setCerts(defaultCerts);
       };
 
       const showContactForeignerErrorFrame = () => {
@@ -1738,6 +1770,25 @@ export default function App() {
         setValidationAttempted({ 0: true, 1: true, 2: true, 3: true, 4: true });
         setCaptureSection("contact");
         setForeigner(true);
+        setCredentialDraftTarget(null);
+        setDegrees(defaultDegrees);
+        setCerts(defaultCerts);
+      };
+
+      const showDegreeComposerFrame = () => {
+        setSaved(false);
+        setModalOpen(true);
+        setAddMenuOpen(false);
+        setExcelImportOpen(false);
+        setFigmaCopyMode(false);
+        setFormValidationStarted(true);
+        setDuplicateId(true);
+        setValidationAttempted({ 0: true, 1: true, 2: true, 3: true, 4: true });
+        setCaptureSection("documents");
+        setForeigner(false);
+        setCredentialDraftTarget("degree");
+        setDegrees([defaultDegrees[0]]);
+        setCerts(defaultCerts);
       };
 
       if (event.key === "0") {
@@ -1751,6 +1802,9 @@ export default function App() {
         setValidationAttempted({});
         setCaptureSection("contact");
         setForeigner(true);
+        setCredentialDraftTarget(null);
+        setDegrees(defaultDegrees);
+        setCerts(defaultCerts);
       }
       if (event.key === "1") {
         setSaved(false);
@@ -1763,11 +1817,15 @@ export default function App() {
         setValidationAttempted({});
         setCaptureSection(null);
         setForeigner(false);
+        setCredentialDraftTarget(null);
+        setDegrees(defaultDegrees);
+        setCerts(defaultCerts);
       }
       if (event.key === "2") showErrorFrame(null);
       if (event.key === "3") showErrorFrame("work");
       if (event.key === "4") showErrorFrame("documents");
       if (event.key === "6") showContactForeignerErrorFrame();
+      if (event.key === "7") showDegreeComposerFrame();
       if (event.key === "5") {
         setSaved(false);
         setModalOpen(true);
@@ -1779,6 +1837,9 @@ export default function App() {
         setValidationAttempted({});
         setCaptureSection(null);
         setForeigner(false);
+        setCredentialDraftTarget(null);
+        setDegrees(defaultDegrees);
+        setCerts(defaultCerts);
       }
     };
     window.addEventListener("keydown", handlePrototypeShortcut);
@@ -1812,6 +1873,7 @@ export default function App() {
     setExcelImportOpen(false);
     setFigmaCopyMode(false);
     setCaptureSection(null);
+    setCredentialDraftTarget(null);
   };
   const openExcelImport = () => {
     setModalOpen(false);
@@ -2041,6 +2103,7 @@ export default function App() {
                     setValidationStarted={setFormValidationStarted}
                     captureSection={captureSection}
                     setCaptureSection={setCaptureSection}
+                    credentialDraftTarget={credentialDraftTarget}
                     onClose={closeModal}
                     onSave={() => setSaved(true)}
                   />
@@ -2460,6 +2523,9 @@ export default function App() {
                           itemLabel="bằng cấp"
                           namePlaceholder="Ví dụ: Bằng Thạc sĩ Công nghệ thông tin"
                           requiredMinimum
+                          openComposer={credentialDraftTarget === "degree"}
+                          sectionId="degree-card"
+                          composerId="degree-composer"
                         />
 
                         <CredentialSection
