@@ -172,31 +172,63 @@ function Select({
   state?: FieldState;
   options?: string[];
 }) {
+  const [open, setOpen] = useState(false);
+  const [selected, setSelected] = useState(value);
   const ring =
     state === "error"
       ? "border-red-300 focus-within:ring-red-100"
       : state === "success"
       ? "border-emerald-300 focus-within:ring-emerald-100"
       : "border-slate-200 focus-within:border-blue-300 focus-within:ring-blue-100";
-  const optionValues = options?.includes(value) ? options : [value, ...(options ?? [])];
+  const optionValues = options?.includes(selected) ? options : [selected, ...(options ?? [])];
+
+  useEffect(() => {
+    setSelected(value);
+  }, [value]);
 
   return (
     <div
-      className={`relative h-10 w-full rounded-[18px] border bg-white shadow-sm shadow-slate-200/70 transition hover:border-blue-200 focus-within:ring-4 ${ring}`}
+      className="relative w-full"
+      onBlur={(event) => {
+        const nextTarget = event.relatedTarget;
+        if (!(nextTarget instanceof Node) || !event.currentTarget.contains(nextTarget)) {
+          setOpen(false);
+        }
+      }}
     >
-      <select
-        defaultValue={value}
-        className="h-full w-full appearance-none rounded-[18px] bg-transparent py-0 pl-3 pr-11 text-[13px] text-slate-900 outline-none"
+      <button
+        type="button"
+        onClick={() => setOpen((current) => !current)}
+        className={`relative flex h-10 w-full items-center justify-between rounded-[18px] border bg-white py-0 pl-3 pr-2.5 text-left text-[13px] text-slate-900 shadow-sm shadow-slate-200/70 transition hover:border-blue-200 focus:outline-none focus:ring-4 ${ring}`}
       >
-        {optionValues.map((option) => (
-          <option key={option} value={option}>
-            {option}
-          </option>
-        ))}
-      </select>
-      <span className="pointer-events-none absolute right-2.5 top-1/2 grid size-6 -translate-y-1/2 place-items-center rounded-full bg-blue-50 text-blue-600">
-        <ChevronDown size={14} />
-      </span>
+        <span className="min-w-0 truncate">{selected}</span>
+        <span className="grid size-6 shrink-0 place-items-center rounded-full bg-blue-50 text-blue-600">
+          <ChevronDown size={14} className={open ? "rotate-180 transition" : "transition"} />
+        </span>
+      </button>
+
+      {open ? (
+        <div className="absolute left-0 right-0 top-[calc(100%+6px)] z-[80] max-h-64 overflow-y-auto rounded-[18px] border border-slate-200 bg-white p-1.5 text-[13px] shadow-xl shadow-slate-300/40">
+          {optionValues.map((option) => {
+            const active = option === selected;
+            return (
+              <button
+                key={option}
+                type="button"
+                onClick={() => {
+                  setSelected(option);
+                  setOpen(false);
+                }}
+                className={`flex min-h-8 w-full items-center rounded-[14px] px-3 text-left transition ${
+                  active ? "bg-blue-50 font-medium text-blue-700" : "text-slate-700 hover:bg-slate-100"
+                }`}
+              >
+                {option}
+              </button>
+            );
+          })}
+        </div>
+      ) : null}
     </div>
   );
 }
