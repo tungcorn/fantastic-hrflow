@@ -259,6 +259,7 @@ function SectionCard({
   optional,
   children,
   action,
+  headerClassName = "",
 }: {
   title: string;
   description?: string;
@@ -266,10 +267,11 @@ function SectionCard({
   optional?: boolean;
   children: ReactNode;
   action?: ReactNode;
+  headerClassName?: string;
 }) {
   return (
     <section className="rounded-xl border border-slate-200 bg-white">
-      <header className="flex items-start justify-between gap-3 border-b border-slate-100 px-4 py-3">
+      <header className={`flex items-start justify-between gap-3 border-b border-slate-100 px-4 py-3 ${headerClassName}`}>
         <div className="flex gap-2.5">
           <div className="grid size-8 shrink-0 place-items-center rounded-lg bg-blue-50 text-blue-700">
             {icon}
@@ -335,6 +337,7 @@ function CredentialSection({
       description={description}
       icon={icon}
       optional={optional}
+      headerClassName="min-h-[86px]"
       action={
         <button
           type="button"
