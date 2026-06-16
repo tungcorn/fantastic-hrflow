@@ -11,7 +11,7 @@ export function ContractTable({
 }: {
   rows: ContractRow[]
   compact?: boolean
-  onOpenFrame?: (frame: ContractFrame) => void
+  onOpenFrame?: (frame: ContractFrame, contract?: ContractRow) => void
   onViewContract?: (contract: ContractRow) => void
 }) {
   const [openActionFor, setOpenActionFor] = useState<string | null>(null)
@@ -79,7 +79,7 @@ export function ContractTable({
                       <button
                         onClick={() => {
                           setOpenActionFor(null)
-                          onOpenFrame?.('renew')
+                          onOpenFrame?.('renew', row)
                         }}
                         className="flex w-full items-start gap-2 rounded-lg px-2.5 py-2 text-left text-[12px] text-slate-700 hover:bg-amber-50 hover:text-amber-800"
                       >
@@ -92,7 +92,7 @@ export function ContractTable({
                       <button
                         onClick={() => {
                           setOpenActionFor(null)
-                          onOpenFrame?.('terminate')
+                          onOpenFrame?.('terminate', row)
                         }}
                         className="flex w-full items-start gap-2 rounded-lg px-2.5 py-2 text-left text-[12px] text-rose-700 hover:bg-rose-50"
                       >

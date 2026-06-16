@@ -3,22 +3,27 @@ import { Calendar, CircleUserRound } from 'lucide-react'
 import { ContractModalShell } from './ContractModalShell'
 import { ContractField, ContractFileUpload, ContractInputBox, ContractSelectBox } from './modalParts'
 import { StatusBadge } from '../StatusBadge'
+import { ConfirmDialog } from '../../../components/ui/ConfirmDialog'
+import { useContractStore } from '../../../store/contractStore'
 import { contractPersonnelOptions, contractTypeOptions, unitOptions } from '../options'
+import { deriveContractState } from '../contracts.utils'
 
-function PersonnelPreview() {
+function PersonnelPreview({ personnel, unit }: { personnel: string; unit: string }) {
+  const [code, ...nameParts] = personnel.split('·').map((part) => part.trim())
+  const name = nameParts.join(' · ') || 'Chưa chọn nhân sự'
   return (
     <aside className="rounded-xl border border-slate-200 bg-white p-5">
       <div className="flex flex-col items-center text-center">
         <div className="grid size-20 place-items-center rounded-2xl bg-blue-50 text-blue-700 ring-1 ring-blue-100">
           <CircleUserRound size={38} />
         </div>
-        <h3 className="mt-3 text-[16px] font-semibold text-slate-950">Trần Thị Bình</h3>
-        <p className="font-mono text-[12px] font-semibold text-slate-500">CB2022-0118</p>
+        <h3 className="mt-3 text-[16px] font-semibold text-slate-950">{name}</h3>
+        <p className="font-mono text-[12px] font-semibold text-slate-500">{code}</p>
       </div>
       <dl className="mt-5 space-y-3 text-[13px]">
         <div>
           <dt className="text-[12px] text-slate-500">Đơn vị</dt>
-          <dd className="font-medium text-slate-900">Khoa Công nghệ thông tin</dd>
+          <dd className="font-medium text-slate-900">{unit || '—'}</dd>
         </div>
         <div>
           <dt className="text-[12px] text-slate-500">Chức vụ</dt>
@@ -36,7 +41,38 @@ function PersonnelPreview() {
 }
 
 export function CreateContractModal({ onClose }: { onClose: () => void }) {
+  const { addContract } = useContractStore()
   const [submitted, setSubmitted] = useState(false)
+  const [confirmOpen, setConfirmOpen] = useState(false)
+
+  const [personnel, setPersonnel] = useState('CB2022-0118 · Trần Thị Bình')
+  const [type, setType] = useState('Xác định thời hạn')
+  const [number, setNumber] = useState('HĐLĐ-2026-0168')
+  const [start, setStart] = useState('01/07/2026')
+  const [end, setEnd] = useState('30/06/2029')
+  const [unit, setUnit] = useState('Khoa Công nghệ thông tin')
+
+  const isValid =
+    personnel.trim().length > 0 &&
+    type.trim().length > 0 &&
+    number.trim().length > 0 &&
+    start.trim().length > 0 &&
+    end.trim().length > 0 &&
+    unit.trim().length > 0
+
+  const handleCreateClick = () => {
+    setSubmitted(true)
+    if (isValid) setConfirmOpen(true)
+  }
+
+  const handleConfirm = () => {
+    const [code, ...nameParts] = personnel.split('·').map((part) => part.trim())
+    const name = nameParts.join(' · ')
+    const { status, remaining } = deriveContractState(end)
+    addContract({ number, code, name, unit, type, start, end, status, remaining })
+    setConfirmOpen(false)
+    onClose()
+  }
 
   return (
     <ContractModalShell
@@ -52,7 +88,7 @@ export function CreateContractModal({ onClose }: { onClose: () => void }) {
             Hủy
           </button>
           <button
-            onClick={() => setSubmitted(true)}
+            onClick={handleCreateClick}
             className="rounded-lg bg-blue-700 px-4 py-2 text-[13px] font-medium text-white hover:bg-blue-800"
           >
             Tạo hợp đồng
@@ -67,53 +103,48 @@ export function CreateContractModal({ onClose }: { onClose: () => void }) {
               <ContractField
                 label="Nhân sự liên kết"
                 required
-                error={submitted ? 'Nhân sự chưa đủ điều kiện tạo hợp đồng mới.' : undefined}
+                error={submitted && !personnel.trim() ? 'Vui lòng chọn nhân sự liên kết.' : undefined}
               >
                 <ContractSelectBox
-                  value="CB2022-0118 · Trần Thị Bình"
+                  value={personnel}
                   options={contractPersonnelOptions}
                   searchable
                   label="Nhân sự"
+                  onChange={setPersonnel}
                 />
               </ContractField>
               <ContractField
                 label="Loại hợp đồng"
                 required
-                error={submitted ? 'Loại hợp đồng này đã ngừng sử dụng cho hợp đồng mới.' : undefined}
+                error={submitted && !type.trim() ? 'Vui lòng chọn loại hợp đồng.' : undefined}
               >
-                <ContractSelectBox value="Xác định thời hạn" options={contractTypeOptions} label="Loại" />
-              </ContractField>
-              <ContractField label="Số hợp đồng" required error={submitted ? 'Số hợp đồng đã tồn tại.' : undefined}>
-                <ContractInputBox value="HĐLĐ-2026-0168" />
+                <ContractSelectBox value={type} options={contractTypeOptions} label="Loại" onChange={setType} />
               </ContractField>
               <ContractField
-                label="Ngày ký"
+                label="Số hợp đồng"
                 required
-                error={submitted ? 'Ngày ký không được sau ngày bắt đầu hợp đồng.' : undefined}
+                error={submitted && !number.trim() ? 'Vui lòng nhập số hợp đồng.' : undefined}
               >
+                <ContractInputBox value={number} onChange={setNumber} />
+              </ContractField>
+              <ContractField label="Ngày ký" required>
                 <ContractInputBox value="30/05/2026" icon={<Calendar size={15} />} />
               </ContractField>
               <ContractField
                 label="Ngày bắt đầu"
                 required
-                error={submitted ? 'Khoảng thời gian hợp đồng bị chồng lấn với hợp đồng hiện có.' : undefined}
+                error={submitted && !start.trim() ? 'Vui lòng nhập ngày bắt đầu.' : undefined}
               >
-                <ContractInputBox value="01/07/2026" icon={<Calendar size={15} />} />
+                <ContractInputBox value={start} icon={<Calendar size={15} />} onChange={setStart} />
               </ContractField>
               <ContractField
                 label="Ngày kết thúc"
                 required
-                error={
-                  submitted ? 'Ngày kết thúc phải sau ngày bắt đầu và phù hợp với loại hợp đồng đã chọn.' : undefined
-                }
+                error={submitted && !end.trim() ? 'Vui lòng nhập ngày kết thúc.' : undefined}
               >
-                <ContractInputBox value="30/06/2029" icon={<Calendar size={15} />} />
+                <ContractInputBox value={end} icon={<Calendar size={15} />} onChange={setEnd} />
               </ContractField>
-              <ContractField
-                label="Hệ số lương áp dụng"
-                required
-                error={submitted ? 'Vui lòng nhập hệ số lương hợp lệ.' : undefined}
-              >
+              <ContractField label="Hệ số lương áp dụng" required>
                 <ContractInputBox value="3.00" />
               </ContractField>
               <ContractField label="Phụ cấp">
@@ -123,24 +154,31 @@ export function CreateContractModal({ onClose }: { onClose: () => void }) {
                 <ContractField
                   label="Đơn vị công tác theo hợp đồng"
                   required
-                  error={submitted ? 'Vui lòng chọn đơn vị công tác theo hợp đồng.' : undefined}
+                  error={submitted && !unit.trim() ? 'Vui lòng chọn đơn vị công tác theo hợp đồng.' : undefined}
                 >
-                  <ContractSelectBox value="Khoa Công nghệ thông tin" options={unitOptions} searchable label="Đơn vị" />
+                  <ContractSelectBox value={unit} options={unitOptions} searchable label="Đơn vị" onChange={setUnit} />
                 </ContractField>
               </div>
               <div className="col-span-2">
                 <ContractField label="Upload file hợp đồng PDF" required>
-                  <ContractFileUpload
-                    label="Tải file hợp đồng PDF"
-                    error={submitted ? 'Vui lòng tải file hợp đồng PDF.' : undefined}
-                  />
+                  <ContractFileUpload label="Tải file hợp đồng PDF" />
                 </ContractField>
               </div>
             </div>
           </section>
-          <PersonnelPreview />
+          <PersonnelPreview personnel={personnel} unit={unit} />
         </div>
       </div>
+
+      {confirmOpen ? (
+        <ConfirmDialog
+          title="Xác nhận tạo hợp đồng"
+          description={`Tạo hợp đồng ${number} cho nhân sự đã chọn? Hợp đồng sẽ được thêm vào danh sách.`}
+          confirmLabel="Xác nhận tạo"
+          onConfirm={handleConfirm}
+          onCancel={() => setConfirmOpen(false)}
+        />
+      ) : null}
     </ContractModalShell>
   )
 }

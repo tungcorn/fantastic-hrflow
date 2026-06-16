@@ -1,4 +1,4 @@
-import { lazy, Suspense, useState } from 'react'
+import { lazy, Suspense, useEffect, useState } from 'react'
 import { CheckCircle2 } from 'lucide-react'
 import { usePersonnelStore } from '../../store/personnelStore'
 import { PersonnelList } from './PersonnelList'
@@ -14,7 +14,7 @@ import { defaultCerts, defaultDegrees } from './options'
 import { generatePersonnelCode } from './personnel.utils'
 import type { CredentialItem, PersonnelRecord } from './types'
 
-export function PersonnelView() {
+export function PersonnelView({ onBusyChange }: { onBusyChange?: (busy: boolean) => void }) {
   const { rows, options, addRow, addRows, updateRowByCode } = usePersonnelStore()
 
   const [editingPersonnel, setEditingPersonnel] = useState<PersonnelRecord | null>(null)
@@ -33,6 +33,13 @@ export function PersonnelView() {
 
   const showPersonnelForm = modalOpen || editingPersonnel !== null
   const personnelFormTitle = editingPersonnel ? 'Sửa hồ sơ nhân sự' : 'Thêm hồ sơ nhân sự'
+
+  // Report whether a form/dialog with unsaved input is open, so the shell can
+  // warn before the user navigates away and loses it.
+  useEffect(() => {
+    onBusyChange?.(showPersonnelForm || excelImportOpen)
+    return () => onBusyChange?.(false)
+  }, [showPersonnelForm, excelImportOpen, onBusyChange])
 
   const resetValidation = () => {
     setShowErrors(false)

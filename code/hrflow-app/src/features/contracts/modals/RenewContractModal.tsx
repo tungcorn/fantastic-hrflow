@@ -3,10 +3,55 @@ import { Calendar } from 'lucide-react'
 import { ContractModalShell } from './ContractModalShell'
 import { ContractField, ContractFileUpload, ContractInputBox, ContractSelectBox } from './modalParts'
 import { StatusBadge } from '../StatusBadge'
+import { ConfirmDialog } from '../../../components/ui/ConfirmDialog'
+import { useContractStore } from '../../../store/contractStore'
 import { contractTypeOptions } from '../options'
+import { deriveContractState, nextContractNumber } from '../contracts.utils'
+import type { ContractRow } from '../types'
 
-export function RenewContractModal({ onClose }: { onClose: () => void }) {
+export function RenewContractModal({ contract, onClose }: { contract: ContractRow | null; onClose: () => void }) {
+  const { contracts, addContract, updateContract } = useContractStore()
   const [submitted, setSubmitted] = useState(false)
+  const [confirmOpen, setConfirmOpen] = useState(false)
+
+  const [type, setType] = useState(contract?.type ?? 'Xác định thời hạn')
+  const [start, setStart] = useState('01/07/2026')
+  const [end, setEnd] = useState('30/06/2029')
+
+  const isValid = type.trim().length > 0 && start.trim().length > 0 && end.trim().length > 0
+
+  const handleRenewClick = () => {
+    setSubmitted(true)
+    if (isValid) setConfirmOpen(true)
+  }
+
+  const handleConfirm = () => {
+    if (!contract) {
+      setConfirmOpen(false)
+      onClose()
+      return
+    }
+    const { status, remaining } = deriveContractState(end)
+    addContract({
+      ...contract,
+      number: nextContractNumber(contracts, contract.number),
+      type,
+      start,
+      end,
+      status,
+      remaining,
+    })
+    updateContract(contract.number, { status: 'Hết hiệu lực', remaining: 'Đã gia hạn' })
+    setConfirmOpen(false)
+    onClose()
+  }
+
+  const oldFields: [string, string][] = [
+    ['Số hợp đồng', contract?.number ?? '—'],
+    ['Loại hợp đồng', contract?.type ?? '—'],
+    ['Ngày bắt đầu', contract?.start ?? '—'],
+    ['Ngày hết hạn', contract?.end ?? '—'],
+  ]
 
   return (
     <ContractModalShell
@@ -22,7 +67,7 @@ export function RenewContractModal({ onClose }: { onClose: () => void }) {
             Hủy
           </button>
           <button
-            onClick={() => setSubmitted(true)}
+            onClick={handleRenewClick}
             className="rounded-lg bg-blue-700 px-4 py-2 text-[13px] font-medium text-white hover:bg-blue-800"
           >
             Xác nhận gia hạn
@@ -44,18 +89,16 @@ export function RenewContractModal({ onClose }: { onClose: () => void }) {
             </span>
           </div>
           <div className="grid grid-cols-5 gap-3 text-[13px]">
-            {['HĐLĐ-2025-0098', 'Xác định thời hạn 36 tháng', '01/07/2023', '30/06/2026'].map((value, index) => (
-              <div key={value} className="rounded-lg border border-slate-200 bg-white px-3 py-2.5 shadow-sm">
-                <div className="text-[11px] text-slate-500">
-                  {['Số hợp đồng', 'Loại hợp đồng', 'Ngày bắt đầu', 'Ngày hết hạn'][index]}
-                </div>
+            {oldFields.map(([label, value]) => (
+              <div key={label} className="rounded-lg border border-slate-200 bg-white px-3 py-2.5 shadow-sm">
+                <div className="text-[11px] text-slate-500">{label}</div>
                 <div className="mt-0.5 font-medium text-slate-900">{value}</div>
               </div>
             ))}
             <div className="rounded-lg border border-slate-200 bg-white px-3 py-2.5 shadow-sm">
               <div className="text-[11px] text-slate-500">Trạng thái</div>
               <div className="mt-1">
-                <StatusBadge value="Sắp hết hạn" />
+                <StatusBadge value={contract?.status ?? 'Sắp hết hạn'} />
               </div>
             </div>
           </div>
@@ -67,42 +110,49 @@ export function RenewContractModal({ onClose }: { onClose: () => void }) {
             <ContractField
               label="Loại hợp đồng mới"
               required
-              error={submitted ? 'Loại hợp đồng này đã ngừng sử dụng cho hợp đồng mới.' : undefined}
+              error={submitted && !type.trim() ? 'Vui lòng chọn loại hợp đồng.' : undefined}
             >
-              <ContractSelectBox value="Xác định thời hạn" options={contractTypeOptions} label="Loại" />
+              <ContractSelectBox value={type} options={contractTypeOptions} label="Loại" onChange={setType} />
             </ContractField>
             <ContractField
               label="Ngày bắt đầu mới"
               required
               hint="Ngày bắt đầu mới được đề xuất dựa trên ngày hết hạn hợp đồng hiện tại."
-              error={submitted ? 'Ngày bắt đầu mới phải liền sau ngày hết hạn hiện tại.' : undefined}
+              error={submitted && !start.trim() ? 'Vui lòng nhập ngày bắt đầu mới.' : undefined}
             >
-              <ContractInputBox value="01/07/2026" icon={<Calendar size={15} />} />
+              <ContractInputBox value={start} icon={<Calendar size={15} />} onChange={setStart} />
             </ContractField>
             <ContractField
               label="Ngày kết thúc mới"
               required
-              error={
-                submitted ? 'Ngày kết thúc mới phải sau ngày bắt đầu mới và phù hợp với loại hợp đồng đã chọn.' : undefined
-              }
+              error={submitted && !end.trim() ? 'Vui lòng nhập ngày kết thúc mới.' : undefined}
             >
-              <ContractInputBox value="30/06/2029" icon={<Calendar size={15} />} />
+              <ContractInputBox value={end} icon={<Calendar size={15} />} onChange={setEnd} />
             </ContractField>
-            <ContractField label="Hệ số lương" required error={submitted ? 'Vui lòng nhập hệ số lương hợp lệ.' : undefined}>
+            <ContractField label="Hệ số lương" required>
               <ContractInputBox value="3.33" />
             </ContractField>
             <ContractField label="Phụ cấp">
               <ContractInputBox value="0.30 phụ cấp trách nhiệm" />
             </ContractField>
             <ContractField label="Upload file hợp đồng gia hạn" required>
-              <ContractFileUpload
-                label="Tải file gia hạn"
-                error={submitted ? 'Vui lòng tải file hợp đồng gia hạn.' : undefined}
-              />
+              <ContractFileUpload label="Tải file gia hạn" />
             </ContractField>
           </div>
         </section>
       </div>
+
+      {confirmOpen ? (
+        <ConfirmDialog
+          title="Xác nhận gia hạn hợp đồng"
+          description={`Tạo hợp đồng gia hạn cho ${contract?.name ?? 'nhân sự'} và đánh dấu hợp đồng ${
+            contract?.number ?? ''
+          } là đã gia hạn?`}
+          confirmLabel="Xác nhận gia hạn"
+          onConfirm={handleConfirm}
+          onCancel={() => setConfirmOpen(false)}
+        />
+      ) : null}
     </ContractModalShell>
   )
 }

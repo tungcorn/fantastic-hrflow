@@ -51,6 +51,127 @@
       ]
     }
   },
-  "hotPaths": [],
+  "hotPaths": [
+    {
+      "path": "code\\hrflow-app\\src\\store\\contractStore.tsx",
+      "accessCount": 3,
+      "lastAccessed": 1781622169780,
+      "type": "file"
+    },
+    {
+      "path": "code\\hrflow-app\\src\\features\\contracts\\ContractTable.tsx",
+      "accessCount": 3,
+      "lastAccessed": 1781622281375,
+      "type": "file"
+    },
+    {
+      "path": "code\\hrflow-app\\src\\features\\personnel\\PersonnelView.tsx",
+      "accessCount": 3,
+      "lastAccessed": 1781622324701,
+      "type": "file"
+    },
+    {
+      "path": "C:\\Users\\haini\\AppData\\Local\\Temp\\fig-personnel-list.png",
+      "accessCount": 1,
+      "lastAccessed": 1781619550224,
+      "type": "file"
+    },
+    {
+      "path": "C:\\Users\\haini\\AppData\\Local\\Temp\\fig-personnel-add.png",
+      "accessCount": 1,
+      "lastAccessed": 1781619707775,
+      "type": "file"
+    },
+    {
+      "path": "C:\\Users\\haini\\AppData\\Local\\Temp\\fig-contract-list-a.png",
+      "accessCount": 1,
+      "lastAccessed": 1781619728345,
+      "type": "file"
+    },
+    {
+      "path": "C:\\Users\\haini\\AppData\\Local\\Temp\\fig-contract-list-b.png",
+      "accessCount": 1,
+      "lastAccessed": 1781619739136,
+      "type": "file"
+    },
+    {
+      "path": "C:\\Users\\haini\\AppData\\Local\\Temp\\fig-contract-renew.png",
+      "accessCount": 1,
+      "lastAccessed": 1781619746670,
+      "type": "file"
+    },
+    {
+      "path": "C:\\Users\\haini\\AppData\\Local\\Temp\\fig-contract-add.png",
+      "accessCount": 1,
+      "lastAccessed": 1781619809406,
+      "type": "file"
+    },
+    {
+      "path": "master-document\\use-case-document.md",
+      "accessCount": 1,
+      "lastAccessed": 1781619866033,
+      "type": "directory"
+    },
+    {
+      "path": "transformed_doc\\Nhận xét của Peterson.md",
+      "accessCount": 1,
+      "lastAccessed": 1781621400156,
+      "type": "file"
+    },
+    {
+      "path": "code\\hrflow-app\\src\\components\\ui\\ConfirmDialog.tsx",
+      "accessCount": 1,
+      "lastAccessed": 1781622135113,
+      "type": "file"
+    },
+    {
+      "path": "code\\hrflow-app\\src\\features\\contracts\\contracts.utils.ts",
+      "accessCount": 1,
+      "lastAccessed": 1781622149163,
+      "type": "file"
+    },
+    {
+      "path": "code\\hrflow-app\\src\\features\\contracts\\modals\\modalParts.tsx",
+      "accessCount": 1,
+      "lastAccessed": 1781622181892,
+      "type": "file"
+    },
+    {
+      "path": "code\\hrflow-app\\src\\features\\contracts\\modals\\CreateContractModal.tsx",
+      "accessCount": 1,
+      "lastAccessed": 1781622212401,
+      "type": "file"
+    },
+    {
+      "path": "code\\hrflow-app\\src\\features\\contracts\\modals\\RenewContractModal.tsx",
+      "accessCount": 1,
+      "lastAccessed": 1781622238673,
+      "type": "file"
+    },
+    {
+      "path": "code\\hrflow-app\\src\\features\\contracts\\modals\\TerminateContractModal.tsx",
+      "accessCount": 1,
+      "lastAccessed": 1781622260284,
+      "type": "file"
+    },
+    {
+      "path": "code\\hrflow-app\\src\\features\\contracts\\ContractListContent.tsx",
+      "accessCount": 1,
+      "lastAccessed": 1781622289436,
+      "type": "file"
+    },
+    {
+      "path": "code\\hrflow-app\\src\\features\\contracts\\ContractsView.tsx",
+      "accessCount": 1,
+      "lastAccessed": 1781622301354,
+      "type": "file"
+    },
+    {
+      "path": "code\\hrflow-app\\src\\App.tsx",
+      "accessCount": 1,
+      "lastAccessed": 1781622351752,
+      "type": "file"
+    }
+  ],
   "userDirectives": []
 }

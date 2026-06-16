@@ -1,0 +1,17 @@
+{
+  "agents": [
+    {
+      "agent_id": "ammb-fe88afa654e635ed",
+      "agent_type": "fork",
+      "started_at": "2026-06-16T14:41:14.850Z",
+      "parent_mode": "none",
+      "status": "completed",
+      "completed_at": "2026-06-16T14:41:18.439Z",
+      "duration_ms": 3589
+    }
+  ],
+  "total_spawned": 3,
+  "total_completed": 3,
+  "total_failed": 0,
+  "last_updated": "2026-06-16T14:41:18.542Z"
+}

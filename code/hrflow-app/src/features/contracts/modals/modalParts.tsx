@@ -36,16 +36,20 @@ export function ContractInputBox({
   value,
   placeholder,
   icon,
+  onChange,
 }: {
   value?: string
   placeholder?: string
   icon?: ReactNode
+  onChange?: (value: string) => void
 }) {
   return (
     <div className="flex h-10 items-center gap-2 rounded-lg border border-slate-200 bg-white px-3 transition focus-within:ring-4 focus-within:ring-blue-100">
       {icon ? <span className="text-slate-400">{icon}</span> : null}
       <input
-        defaultValue={value}
+        defaultValue={onChange ? undefined : value}
+        value={onChange ? (value ?? '') : undefined}
+        onChange={(event) => onChange?.(event.target.value)}
         placeholder={placeholder}
         className="min-w-0 flex-1 bg-transparent text-[14px] text-slate-900 placeholder:text-slate-400 focus:outline-none"
       />
@@ -58,14 +62,24 @@ export function ContractSelectBox({
   options,
   searchable,
   label = 'Đã chọn',
+  onChange,
 }: {
   value: string
   options: DropdownOption[]
   searchable?: boolean
   label?: string
+  onChange?: (value: string) => void
 }) {
   return (
-    <ExpandedSelect label={label} value={value} options={options} searchable={searchable} width="w-full" hideLabelWhenSelected />
+    <ExpandedSelect
+      label={label}
+      value={value}
+      options={options}
+      searchable={searchable}
+      width="w-full"
+      hideLabelWhenSelected
+      onChange={onChange}
+    />
   )
 }
 

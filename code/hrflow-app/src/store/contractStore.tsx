@@ -10,6 +10,7 @@ type ContractStore = {
   expiring: ContractRow[]
   setContracts: (rows: ContractRow[]) => void
   addContract: (row: ContractRow) => void
+  updateContract: (number: string, patch: Partial<ContractRow>) => void
   resetToSeed: () => void
 }
 
@@ -30,6 +31,10 @@ export function ContractProvider({ children }: { children: ReactNode }) {
     setContractsState((current) => [row, ...current])
   }, [])
 
+  const updateContract = useCallback((number: string, patch: Partial<ContractRow>) => {
+    setContractsState((current) => current.map((row) => (row.number === number ? { ...row, ...patch } : row)))
+  }, [])
+
   const resetToSeed = useCallback(() => {
     setContractsState(CONTRACT_SEED_ROWS)
   }, [])
@@ -40,8 +45,8 @@ export function ContractProvider({ children }: { children: ReactNode }) {
   )
 
   const value = useMemo<ContractStore>(
-    () => ({ contracts, expiring, setContracts, addContract, resetToSeed }),
-    [contracts, expiring, setContracts, addContract, resetToSeed],
+    () => ({ contracts, expiring, setContracts, addContract, updateContract, resetToSeed }),
+    [contracts, expiring, setContracts, addContract, updateContract, resetToSeed],
   )
 
   return <ContractContext.Provider value={value}>{children}</ContractContext.Provider>

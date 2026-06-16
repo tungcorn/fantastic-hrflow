@@ -15,7 +15,7 @@ export function ContractListContent({
 }: {
   contracts: ContractRow[]
   dimmed?: boolean
-  onOpenFrame?: (frame: ContractFrame) => void
+  onOpenFrame?: (frame: ContractFrame, contract?: ContractRow) => void
   onViewContract?: (contract: ContractRow) => void
 }) {
   const [filters, setFilters] = useState<ContractFiltersState>(initialContractFilters)
