@@ -1619,13 +1619,32 @@ export default function App() {
         setDuplicateId(true);
         setValidationAttempted({ 0: true, 1: true, 2: true, 3: true, 4: true });
         setCaptureSection(section);
+        setForeigner(false);
       };
 
+      if (event.key === "0") {
+        setSaved(false);
+        setModalOpen(true);
+        setAddMenuOpen(false);
+        setExcelImportOpen(false);
+        setFigmaCopyMode(false);
+        setFormValidationStarted(false);
+        setDuplicateId(false);
+        setValidationAttempted({});
+        setCaptureSection("contact");
+        setForeigner(true);
+      }
       if (event.key === "1") {
+        setSaved(false);
+        setModalOpen(true);
+        setAddMenuOpen(false);
+        setExcelImportOpen(false);
+        setFigmaCopyMode(false);
         setFormValidationStarted(false);
         setDuplicateId(false);
         setValidationAttempted({});
         setCaptureSection(null);
+        setForeigner(false);
       }
       if (event.key === "2") showErrorFrame(null);
       if (event.key === "3") showErrorFrame("work");
@@ -1640,6 +1659,7 @@ export default function App() {
         setDuplicateId(false);
         setValidationAttempted({});
         setCaptureSection(null);
+        setForeigner(false);
       }
     };
     window.addEventListener("keydown", handlePrototypeShortcut);
