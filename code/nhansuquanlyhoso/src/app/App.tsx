@@ -182,10 +182,12 @@ function Select({
   value,
   state = "default",
   options,
+  pinnedOpen = false,
 }: {
   value: string;
   state?: FieldState;
   options?: string[];
+  pinnedOpen?: boolean;
 }) {
   const [open, setOpen] = useState(false);
   const [selected, setSelected] = useState(value);
@@ -205,6 +207,7 @@ function Select({
     <div
       className="relative w-full"
       onBlur={(event) => {
+        if (pinnedOpen) return;
         const nextTarget = event.relatedTarget;
         if (!(nextTarget instanceof Node) || !event.currentTarget.contains(nextTarget)) {
           setOpen(false);
@@ -213,16 +216,17 @@ function Select({
     >
       <button
         type="button"
+        disabled={pinnedOpen}
         onClick={() => setOpen((current) => !current)}
         className={`relative flex h-10 w-full items-center justify-between rounded-[18px] border bg-white py-0 pl-3 pr-2.5 text-left text-[13px] font-normal leading-5 text-slate-900 shadow-sm shadow-slate-200/70 transition hover:border-blue-200 focus:outline-none focus:ring-4 ${ring}`}
       >
         <span className="min-w-0 truncate">{selected}</span>
         <span className="grid size-6 shrink-0 place-items-center rounded-full bg-blue-50 text-blue-600">
-          <ChevronDown size={14} className={open ? "rotate-180 transition" : "transition"} />
+          <ChevronDown size={14} className={open || pinnedOpen ? "rotate-180 transition" : "transition"} />
         </span>
       </button>
 
-      {open ? (
+      {open || pinnedOpen ? (
         <div className="absolute left-0 right-0 top-[calc(100%+6px)] z-[80] max-h-64 overflow-y-auto rounded-[18px] border border-slate-200 bg-white p-1.5 shadow-xl shadow-slate-300/40">
           {optionValues.map((option) => {
             const active = option === selected;
@@ -1171,6 +1175,7 @@ function LargePersonnelForm({
   credentialDraftTarget,
   prefilledData,
   stagedErrorData,
+  pinnedTrainingLevelOpen,
   onClose,
   onRequestOfficialSave,
 }: {
@@ -1193,6 +1198,7 @@ function LargePersonnelForm({
   credentialDraftTarget: "degree" | null;
   prefilledData: boolean;
   stagedErrorData: boolean;
+  pinnedTrainingLevelOpen: boolean;
   onClose: () => void;
   onRequestOfficialSave: () => void;
 }) {
@@ -1668,7 +1674,11 @@ function LargePersonnelForm({
                     <Select value={workData.educationLevel} options={generalEducationOptions} />
                   </Field>
                   <Field label="Trình độ đào tạo" required>
-                    <Select value={workData.trainingLevel} options={trainingLevelOptions} />
+                    <Select
+                      value={workData.trainingLevel}
+                      options={trainingLevelOptions}
+                      pinnedOpen={pinnedTrainingLevelOpen}
+                    />
                   </Field>
                   <Field label="Chức danh nghề nghiệp" required>
                     <Select value={workData.professionalTitle} options={professionalTitleOptions} />
@@ -1876,6 +1886,7 @@ export default function App() {
   const [confirmOfficialSaveOpen, setConfirmOfficialSaveOpen] = useState<null | "large" | "wizard">(null);
   const [prefilledData, setPrefilledData] = useState(false);
   const [stagedErrorData, setStagedErrorData] = useState(false);
+  const [pinnedTrainingLevelOpen, setPinnedTrainingLevelOpen] = useState(false);
   const [degrees, setDegrees] = useState<CredentialItem[]>([]);
   const [certs, setCerts] = useState<CredentialItem[]>([]);
 
@@ -1887,6 +1898,7 @@ export default function App() {
         setCredentialDraftTarget(null);
         setConfirmOfficialSaveOpen(null);
         setStagedErrorData(false);
+        setPinnedTrainingLevelOpen(false);
         return;
       }
       if (!event.altKey) return;
@@ -1897,6 +1909,7 @@ export default function App() {
         setConfirmOfficialSaveOpen(null);
         setPrefilledData(false);
         setStagedErrorData(false);
+        setPinnedTrainingLevelOpen(false);
         setDegrees([]);
         setCerts([]);
         return;
@@ -1917,6 +1930,7 @@ export default function App() {
         setCredentialDraftTarget(null);
         setPrefilledData(true);
         setStagedErrorData(false);
+        setPinnedTrainingLevelOpen(false);
         setDegrees(defaultDegrees);
         setCerts(defaultCerts);
       };
@@ -1936,6 +1950,7 @@ export default function App() {
         setCredentialDraftTarget(null);
         setPrefilledData(true);
         setStagedErrorData(false);
+        setPinnedTrainingLevelOpen(false);
         setDegrees(defaultDegrees);
         setCerts(defaultCerts);
       };
@@ -1955,6 +1970,7 @@ export default function App() {
         setCredentialDraftTarget("degree");
         setPrefilledData(true);
         setStagedErrorData(false);
+        setPinnedTrainingLevelOpen(false);
         setDegrees([defaultDegrees[0]]);
         setCerts(defaultCerts);
       };
@@ -1974,11 +1990,52 @@ export default function App() {
         setCredentialDraftTarget(null);
         setPrefilledData(true);
         setStagedErrorData(true);
+        setPinnedTrainingLevelOpen(false);
         setDegrees(defaultDegrees);
         setCerts(defaultCerts);
       };
 
-      if (event.key === "0") {
+      const showEducationCaptureFrame = () => {
+        setSaved(false);
+        setModalOpen(true);
+        setAddMenuOpen(false);
+        setExcelImportOpen(false);
+        setFigmaCopyMode(false);
+        setFormValidationStarted(false);
+        setDuplicateId(false);
+        setValidationAttempted({});
+        setCaptureSection("education");
+        setConfirmOfficialSaveOpen(null);
+        setForeigner(false);
+        setCredentialDraftTarget(null);
+        setPrefilledData(true);
+        setStagedErrorData(false);
+        setPinnedTrainingLevelOpen(false);
+        setDegrees(defaultDegrees);
+        setCerts(defaultCerts);
+      };
+
+      const showPinnedTrainingLevelCaptureFrame = () => {
+        setSaved(false);
+        setModalOpen(true);
+        setAddMenuOpen(false);
+        setExcelImportOpen(false);
+        setFigmaCopyMode(false);
+        setFormValidationStarted(false);
+        setDuplicateId(false);
+        setValidationAttempted({});
+        setCaptureSection("education");
+        setConfirmOfficialSaveOpen(null);
+        setForeigner(false);
+        setCredentialDraftTarget(null);
+        setPrefilledData(true);
+        setStagedErrorData(false);
+        setPinnedTrainingLevelOpen(true);
+        setDegrees(defaultDegrees);
+        setCerts(defaultCerts);
+      };
+
+      if (event.key === "0" || event.code === "Digit0") {
         setSaved(false);
         setModalOpen(true);
         setAddMenuOpen(false);
@@ -1993,10 +2050,11 @@ export default function App() {
         setCredentialDraftTarget(null);
         setPrefilledData(true);
         setStagedErrorData(false);
+        setPinnedTrainingLevelOpen(false);
         setDegrees(defaultDegrees);
         setCerts(defaultCerts);
       }
-      if (event.key === "1") {
+      if (event.key === "1" || event.code === "Digit1") {
         setSaved(false);
         setModalOpen(true);
         setAddMenuOpen(false);
@@ -2011,16 +2069,22 @@ export default function App() {
         setCredentialDraftTarget(null);
         setPrefilledData(false);
         setStagedErrorData(false);
+        setPinnedTrainingLevelOpen(false);
         setDegrees([]);
         setCerts([]);
       }
-      if (event.key === "2") showErrorFrame(null);
-      if (event.key === "3") showErrorFrame("work");
-      if (event.key === "4") showErrorFrame("documents");
-      if (event.key === "6") showContactForeignerErrorFrame();
-      if (event.key === "7") showDegreeComposerFrame();
-      if (event.key === "8") showPrefilledCaptureFrame();
-      if (event.key === "5") {
+      if (event.key === "2" || event.code === "Digit2") showErrorFrame(null);
+      if (event.key === "3" || event.code === "Digit3") showErrorFrame("work");
+      if (event.key === "4" || event.code === "Digit4") showErrorFrame("documents");
+      if (event.key === "6" || event.code === "Digit6") showContactForeignerErrorFrame();
+      if (event.key === "7" || event.code === "Digit7") showDegreeComposerFrame();
+      if (event.key === "8" || event.code === "Digit8") showPrefilledCaptureFrame();
+      if ((event.key === "9" || event.code === "Digit9") && event.shiftKey) {
+        showPinnedTrainingLevelCaptureFrame();
+      } else if (event.key === "9" || event.code === "Digit9") {
+        showEducationCaptureFrame();
+      }
+      if (event.key === "5" || event.code === "Digit5") {
         setSaved(false);
         setModalOpen(true);
         setAddMenuOpen(false);
@@ -2035,6 +2099,7 @@ export default function App() {
         setCredentialDraftTarget(null);
         setPrefilledData(true);
         setStagedErrorData(false);
+        setPinnedTrainingLevelOpen(false);
         setDegrees(defaultDegrees);
         setCerts(defaultCerts);
       }
@@ -2068,6 +2133,7 @@ export default function App() {
     setCredentialDraftTarget(null);
     setPrefilledData(false);
     setStagedErrorData(false);
+    setPinnedTrainingLevelOpen(false);
     setDegrees([]);
     setCerts([]);
   };
@@ -2081,6 +2147,7 @@ export default function App() {
     setConfirmOfficialSaveOpen(null);
     setPrefilledData(false);
     setStagedErrorData(false);
+    setPinnedTrainingLevelOpen(false);
     setDegrees([]);
     setCerts([]);
   };
@@ -2323,6 +2390,7 @@ export default function App() {
                     credentialDraftTarget={credentialDraftTarget}
                     prefilledData={prefilledData}
                     stagedErrorData={stagedErrorData}
+                    pinnedTrainingLevelOpen={pinnedTrainingLevelOpen}
                     onClose={closeModal}
                     onRequestOfficialSave={() => setConfirmOfficialSaveOpen("large")}
                   />
