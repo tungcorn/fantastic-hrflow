@@ -1,0 +1,315 @@
+{
+  "version": "1.0.0",
+  "lastScanned": 1781615797066,
+  "projectRoot": "D:\\BTAP\\fantastic-hrflow",
+  "techStack": {
+    "languages": [],
+    "frameworks": [],
+    "packageManager": "npm",
+    "runtime": null
+  },
+  "build": {
+    "buildCommand": null,
+    "testCommand": null,
+    "lintCommand": null,
+    "devCommand": null,
+    "scripts": {}
+  },
+  "conventions": {
+    "namingStyle": null,
+    "importStyle": null,
+    "testPattern": null,
+    "fileOrganization": null
+  },
+  "structure": {
+    "isMonorepo": false,
+    "workspaces": [],
+    "mainDirectories": [],
+    "gitBranches": {
+      "defaultBranch": "main",
+      "branchingStrategy": null
+    }
+  },
+  "customNotes": [],
+  "directoryMap": {
+    "code": {
+      "path": "code",
+      "purpose": null,
+      "fileCount": 0,
+      "lastAccessed": 1781615797022,
+      "keyFiles": []
+    },
+    "master-document": {
+      "path": "master-document",
+      "purpose": null,
+      "fileCount": 3,
+      "lastAccessed": 1781615797022,
+      "keyFiles": [
+        "requirement-modeling.md",
+        "stakeholder-interviews.md",
+        "use-case-document.md"
+      ]
+    }
+  },
+  "hotPaths": [
+    {
+      "path": "code\\hrflow-app\\src\\store\\contractStore.tsx",
+      "accessCount": 4,
+      "lastAccessed": 1781627492809,
+      "type": "file"
+    },
+    {
+      "path": "code\\hrflow-app\\src\\features\\contracts\\ContractTable.tsx",
+      "accessCount": 3,
+      "lastAccessed": 1781622281375,
+      "type": "file"
+    },
+    {
+      "path": "code\\hrflow-app\\src\\features\\personnel\\PersonnelView.tsx",
+      "accessCount": 3,
+      "lastAccessed": 1781622324701,
+      "type": "file"
+    },
+    {
+      "path": "code\\hrflow-app\\src\\App.tsx",
+      "accessCount": 2,
+      "lastAccessed": 1781627485926,
+      "type": "file"
+    },
+    {
+      "path": "transformed_doc\\Nhận xét của Peterson.md",
+      "accessCount": 2,
+      "lastAccessed": 1781627840612,
+      "type": "file"
+    },
+    {
+      "path": "code\\hrflow-app\\src\\components\\ui\\ConfirmDialog.tsx",
+      "accessCount": 2,
+      "lastAccessed": 1781627882781,
+      "type": "file"
+    },
+    {
+      "path": "C:\\Users\\haini\\AppData\\Local\\Temp\\fig-personnel-list.png",
+      "accessCount": 1,
+      "lastAccessed": 1781619550224,
+      "type": "file"
+    },
+    {
+      "path": "C:\\Users\\haini\\AppData\\Local\\Temp\\fig-personnel-add.png",
+      "accessCount": 1,
+      "lastAccessed": 1781619707775,
+      "type": "file"
+    },
+    {
+      "path": "C:\\Users\\haini\\AppData\\Local\\Temp\\fig-contract-list-a.png",
+      "accessCount": 1,
+      "lastAccessed": 1781619728345,
+      "type": "file"
+    },
+    {
+      "path": "C:\\Users\\haini\\AppData\\Local\\Temp\\fig-contract-list-b.png",
+      "accessCount": 1,
+      "lastAccessed": 1781619739136,
+      "type": "file"
+    },
+    {
+      "path": "C:\\Users\\haini\\AppData\\Local\\Temp\\fig-contract-renew.png",
+      "accessCount": 1,
+      "lastAccessed": 1781619746670,
+      "type": "file"
+    },
+    {
+      "path": "C:\\Users\\haini\\AppData\\Local\\Temp\\fig-contract-add.png",
+      "accessCount": 1,
+      "lastAccessed": 1781619809406,
+      "type": "file"
+    },
+    {
+      "path": "master-document\\use-case-document.md",
+      "accessCount": 1,
+      "lastAccessed": 1781619866033,
+      "type": "directory"
+    },
+    {
+      "path": "code\\hrflow-app\\src\\features\\contracts\\contracts.utils.ts",
+      "accessCount": 1,
+      "lastAccessed": 1781622149163,
+      "type": "file"
+    },
+    {
+      "path": "code\\hrflow-app\\src\\features\\contracts\\modals\\modalParts.tsx",
+      "accessCount": 1,
+      "lastAccessed": 1781622181892,
+      "type": "file"
+    },
+    {
+      "path": "code\\hrflow-app\\src\\features\\contracts\\modals\\CreateContractModal.tsx",
+      "accessCount": 1,
+      "lastAccessed": 1781622212401,
+      "type": "file"
+    },
+    {
+      "path": "code\\hrflow-app\\src\\features\\contracts\\modals\\RenewContractModal.tsx",
+      "accessCount": 1,
+      "lastAccessed": 1781622238673,
+      "type": "file"
+    },
+    {
+      "path": "code\\hrflow-app\\src\\features\\contracts\\modals\\TerminateContractModal.tsx",
+      "accessCount": 1,
+      "lastAccessed": 1781622260284,
+      "type": "file"
+    },
+    {
+      "path": "code\\hrflow-app\\src\\features\\contracts\\ContractListContent.tsx",
+      "accessCount": 1,
+      "lastAccessed": 1781622289436,
+      "type": "file"
+    },
+    {
+      "path": "code\\hrflow-app\\src\\features\\contracts\\ContractsView.tsx",
+      "accessCount": 1,
+      "lastAccessed": 1781622301354,
+      "type": "file"
+    },
+    {
+      "path": ".figma-review\\01-danh-sach-ho-so.png",
+      "accessCount": 1,
+      "lastAccessed": 1781622928013,
+      "type": "file"
+    },
+    {
+      "path": ".figma-review\\02-them-ho-so.png",
+      "accessCount": 1,
+      "lastAccessed": 1781622995955,
+      "type": "file"
+    },
+    {
+      "path": ".figma-review\\03-danh-sach-hop-dong.png",
+      "accessCount": 1,
+      "lastAccessed": 1781622996616,
+      "type": "file"
+    },
+    {
+      "path": ".figma-review\\04-tao-hop-dong.png",
+      "accessCount": 1,
+      "lastAccessed": 1781622997180,
+      "type": "file"
+    },
+    {
+      "path": ".figma-review\\05-gia-han-hop-dong.png",
+      "accessCount": 1,
+      "lastAccessed": 1781622997673,
+      "type": "file"
+    },
+    {
+      "path": "C:\\Users\\haini\\AppData\\Local\\Temp\\pw-hrflow\\code-01-personnel-list.png",
+      "accessCount": 1,
+      "lastAccessed": 1781623240502,
+      "type": "file"
+    },
+    {
+      "path": "C:\\Users\\haini\\AppData\\Local\\Temp\\pw-hrflow\\code-03-contract-list.png",
+      "accessCount": 1,
+      "lastAccessed": 1781623270298,
+      "type": "file"
+    },
+    {
+      "path": "C:\\Users\\haini\\AppData\\Local\\Temp\\pw-hrflow\\code-04-create-contract.png",
+      "accessCount": 1,
+      "lastAccessed": 1781623270977,
+      "type": "file"
+    },
+    {
+      "path": "C:\\Users\\haini\\AppData\\Local\\Temp\\pw-hrflow\\code-05-renew-contract.png",
+      "accessCount": 1,
+      "lastAccessed": 1781623271882,
+      "type": "file"
+    },
+    {
+      "path": "C:\\Users\\haini\\AppData\\Local\\Temp\\pw-hrflow\\code-02-add-personnel.png",
+      "accessCount": 1,
+      "lastAccessed": 1781623272366,
+      "type": "file"
+    },
+    {
+      "path": "code\\hrflow-app\\src",
+      "accessCount": 1,
+      "lastAccessed": 1781623776878,
+      "type": "directory"
+    },
+    {
+      "path": "C:\\Users\\haini\\AppData\\Local\\Temp\\pw-hrflow\\renew-success-card.png",
+      "accessCount": 1,
+      "lastAccessed": 1781626438698,
+      "type": "file"
+    },
+    {
+      "path": "code\\hrflow-app\\package.json",
+      "accessCount": 1,
+      "lastAccessed": 1781627452685,
+      "type": "file"
+    },
+    {
+      "path": "code\\hrflow-app\\vite.config.ts",
+      "accessCount": 1,
+      "lastAccessed": 1781627461633,
+      "type": "file"
+    },
+    {
+      "path": "bao-cao-phan-3-4.md",
+      "accessCount": 1,
+      "lastAccessed": 1781627470369,
+      "type": "file"
+    },
+    {
+      "path": ".agent\\skills\\ttnm-hrms-report-assembler\\references\\report-outline-and-checklist.md",
+      "accessCount": 1,
+      "lastAccessed": 1781627470995,
+      "type": "file"
+    },
+    {
+      "path": ".agent\\skills\\ttnm-hrms-report-assembler\\references\\style-guide.md",
+      "accessCount": 1,
+      "lastAccessed": 1781627471347,
+      "type": "file"
+    },
+    {
+      "path": "code\\hrflow-app\\src\\lib\\storage.ts",
+      "accessCount": 1,
+      "lastAccessed": 1781627484383,
+      "type": "file"
+    },
+    {
+      "path": "code\\hrflow-app\\src\\main.tsx",
+      "accessCount": 1,
+      "lastAccessed": 1781627485244,
+      "type": "file"
+    },
+    {
+      "path": "code\\hrflow-app\\src\\lib\\utils.ts",
+      "accessCount": 1,
+      "lastAccessed": 1781627486098,
+      "type": "file"
+    },
+    {
+      "path": "code\\hrflow-app\\src\\features\\personnel\\ConfirmOfficialSaveModal.tsx",
+      "accessCount": 1,
+      "lastAccessed": 1781627882229,
+      "type": "file"
+    },
+    {
+      "path": "code\\hrflow-app\\src\\features\\personnel\\PersonnelForm.tsx",
+      "accessCount": 1,
+      "lastAccessed": 1781627917664,
+      "type": "directory"
+    },
+    {
+      "path": "code\\hrflow-app\\src\\features\\personnel",
+      "accessCount": 1,
+      "lastAccessed": 1781627927045,
+      "type": "directory"
+    }
+  ],
+  "userDirectives": []
+}
