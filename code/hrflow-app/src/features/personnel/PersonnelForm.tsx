@@ -169,21 +169,14 @@ export function PersonnelForm({
     <div className="relative flex h-[calc(100vh-96px)] w-full max-w-[1260px] flex-col overflow-hidden rounded-2xl bg-white shadow-2xl ring-1 ring-slate-200">
       <div className="flex items-center justify-between border-b border-slate-200 px-5 py-3">
         <div className="flex items-center gap-3">
-          <button
-            onClick={onClose}
-            className="grid size-9 place-items-center rounded-lg border border-slate-200 text-slate-500 hover:bg-slate-50"
-          >
-            <ArrowLeft size={17} />
-          </button>
+
           <div>
             <h1 className="text-[17px] font-semibold text-slate-900">{title}</h1>
             <p className="text-[12px] text-slate-500">Form nhập liệu một trang · chia nhóm theo nghiệp vụ hồ sơ</p>
           </div>
         </div>
         <div className="flex items-center gap-2">
-          <span className="hidden items-center gap-1 rounded-full bg-slate-100 px-2.5 py-1 text-[12px] font-medium text-slate-600 md:inline-flex">
-            <Save size={13} /> Bản nháp đã lưu lúc 09:42
-          </span>
+
           <button onClick={onClose} className="grid size-9 place-items-center rounded-lg text-slate-400 hover:bg-slate-100">
             <X size={18} />
           </button>
