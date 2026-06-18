@@ -460,15 +460,6 @@ export function PersonnelForm({
                       <Field label="Ngày bắt đầu công tác" required error={showErrors ? 'Ngày bắt đầu công tác là trường bắt buộc.' : undefined}>
                         <Input value={isEditing ? '01/06/2026' : ''} placeholder="01/06/2026" icon={<Calendar size={15} />} state={showErrors ? 'error' : 'default'} />
                       </Field>
-                      <Field label="Hợp đồng" required error={showErrors ? 'Vui lòng chọn loại hợp đồng.' : undefined}>
-                        <Select
-                          value={draft.contract}
-                          options={contractOptions}
-                          placeholder="Còn hiệu lực"
-                          onChange={(value) => updateDraft('contract', value)}
-                          state={showErrors ? 'error' : 'default'}
-                        />
-                      </Field>
                       <Field label="Trạng thái hồ sơ" required error={showErrors ? 'Vui lòng chọn trạng thái hồ sơ.' : undefined}>
                         <Select
                           value={draft.status}
