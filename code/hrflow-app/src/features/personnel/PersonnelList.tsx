@@ -155,18 +155,8 @@ export function PersonnelList({
             </span>
             <button
               type="button"
-              onClick={() =>
-                onEditPersonnel?.({
-                  code,
-                  name,
-                  unit: rowUnit,
-                  degree: rowDegree,
-                  role,
-                  contract: rowContract,
-                  status: rowStatus,
-                })
-              }
-              className="grid size-8 place-items-center rounded-lg text-slate-500 hover:bg-slate-50"
+              disabled
+              className="grid size-8 cursor-not-allowed place-items-center rounded-lg text-slate-300"
               aria-label={`Sửa hồ sơ ${name}`}
             >
               <Edit3 size={14} />

@@ -1,5 +1,5 @@
 *.docx
 node_modules/
-assets/
+/assets/
 dist/
 .omc/
