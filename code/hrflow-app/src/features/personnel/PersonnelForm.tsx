@@ -285,9 +285,6 @@ export function PersonnelForm({
                           onChange={(value) => updateDraft('name', value)}
                         />
                       </Field>
-                      <Field label="Mã cán bộ">
-                        <Input value="" placeholder="Tự động tạo khi lưu" readOnly />
-                      </Field>
                       <Field label="Giới tính" required error={showErrors ? 'Vui lòng chọn giới tính.' : undefined}>
                         <Select value={gender} options={['Nam', 'Nữ', 'Khác']} placeholder="Chọn giới tính" onChange={setGender} state={showErrors ? 'error' : 'default'} />
                       </Field>
