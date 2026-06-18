@@ -131,6 +131,9 @@ export function PersonnelForm({
   const [requiredDocuments, setRequiredDocuments] = useState<Partial<Record<RequiredDocumentKey, string>>>({})
   const [validationErrors, setValidationErrors] = useState<ValidationErrors>({})
   const [validatedValues, setValidatedValues] = useState<Record<string, string>>({})
+  const [avatarPreview, setAvatarPreview] = useState('')
+  const [avatarFileName, setAvatarFileName] = useState('')
+  const [avatarError, setAvatarError] = useState('')
   const currentFieldValues: Record<string, string> = {
     name: draft.name,
     gender,
@@ -173,6 +176,7 @@ export function PersonnelForm({
   const hasErrors = Object.keys(visibleValidationErrors).length > 0 || duplicateId
   const isEditing = initialPersonnel !== null && initialPersonnel !== undefined
   const formScrollRef = useRef<HTMLElement>(null)
+  const avatarInputRef = useRef<HTMLInputElement>(null)
   const [activeSection, setActiveSection] = useState('identity')
   const validationState = !validationStarted ? 'idle' : hasErrors ? 'error' : 'valid'
   const knownConflictingGovernmentIds = new Set(['001200001900'])
@@ -297,6 +301,26 @@ export function PersonnelForm({
     }, sections[0].id)
     setActiveSection(current)
   }
+  const handleAvatarSelected = (file?: File) => {
+    if (!file) return
+    if (!['image/jpeg', 'image/png'].includes(file.type)) {
+      setAvatarError('Ảnh phải có định dạng JPG hoặc PNG.')
+      return
+    }
+    if (file.size > 2 * 1024 * 1024) {
+      setAvatarError('Dung lượng ảnh không được vượt quá 2MB.')
+      return
+    }
+
+    const reader = new FileReader()
+    reader.onload = () => {
+      setAvatarPreview(typeof reader.result === 'string' ? reader.result : '')
+      setAvatarFileName(file.name)
+      setAvatarError('')
+    }
+    reader.onerror = () => setAvatarError('Không thể đọc tệp ảnh. Vui lòng thử lại.')
+    reader.readAsDataURL(file)
+  }
 
   return (
     <div className="relative flex h-[calc(100vh-96px)] w-full max-w-[1260px] flex-col overflow-hidden rounded-2xl bg-white shadow-2xl ring-1 ring-slate-200">
@@ -400,13 +424,50 @@ export function PersonnelForm({
                 >
                   <div className="grid grid-cols-[112px_1fr] gap-4">
                     <div className="space-y-2">
-                      <div className="grid h-[128px] place-items-center rounded-lg border-2 border-dashed border-slate-300 bg-white text-slate-400">
-                        <div className="text-center">
-                          <Upload size={20} className="mx-auto" />
-                          <div className="mt-1 text-[11px]">Tải ảnh 3x4</div>
-                        </div>
+                      <input
+                        ref={avatarInputRef}
+                        type="file"
+                        accept="image/jpeg,image/png"
+                        className="hidden"
+                        onChange={(event) => {
+                          handleAvatarSelected(event.target.files?.[0])
+                          event.target.value = ''
+                        }}
+                      />
+                      <div className="relative">
+                        <button
+                          type="button"
+                          onClick={() => avatarInputRef.current?.click()}
+                          className={`grid h-[128px] w-full place-items-center overflow-hidden rounded-lg border-2 border-dashed bg-white ${avatarError ? 'border-red-300' : 'border-slate-300'} text-slate-400 hover:border-blue-400 hover:bg-blue-50/30`}
+                          aria-label={avatarPreview ? 'Thay ảnh 3x4' : 'Tải ảnh 3x4'}
+                        >
+                          {avatarPreview ? (
+                            <img src={avatarPreview} alt="Ảnh hồ sơ 3x4" className="h-full w-full object-cover" />
+                          ) : (
+                            <div className="text-center">
+                              <Upload size={20} className="mx-auto" />
+                              <div className="mt-1 text-[11px]">Tải ảnh 3x4</div>
+                            </div>
+                          )}
+                        </button>
+                        {avatarPreview ? (
+                          <button
+                            type="button"
+                            onClick={() => {
+                              setAvatarPreview('')
+                              setAvatarFileName('')
+                              setAvatarError('')
+                            }}
+                            className="absolute right-1.5 top-1.5 grid size-6 place-items-center rounded-full bg-white/90 text-slate-600 shadow hover:text-red-600"
+                            aria-label="Xóa ảnh hồ sơ"
+                          >
+                            <X size={13} />
+                          </button>
+                        ) : null}
                       </div>
-                      <p className="text-[11px] text-slate-500">JPG/PNG, tối đa 2MB.</p>
+                      <p className={`truncate text-[11px] ${avatarError ? 'text-red-600' : 'text-slate-500'}`}>
+                        {avatarError || avatarFileName || 'JPG/PNG, tối đa 2MB.'}
+                      </p>
                     </div>
                     <div className="grid min-w-0 grid-cols-2 gap-3">
                       <Field label="Họ và tên" required error={fieldError('name')}>
