@@ -94,12 +94,28 @@ export function PersonnelForm({
   const [gender, setGender] = useState(() => (initialPersonnel ? 'Nam' : ''))
   const [governmentId, setGovernmentId] = useState(() => (initialPersonnel ? '001200001901' : ''))
   const [department, setDepartment] = useState(() => (initialPersonnel ? 'Bộ môn Công nghệ phần mềm' : ''))
+  const [birthDate, setBirthDate] = useState(() => (initialPersonnel ? '2000-01-01' : ''))
+  const [hometown, setHometown] = useState(() => (initialPersonnel ? 'Hà Nội' : ''))
+  const [taxCode, setTaxCode] = useState(() => (initialPersonnel ? '1200001900' : ''))
+  const [bhxhCode, setBhxhCode] = useState(() => (initialPersonnel ? '00120019' : ''))
+  const [bhytCode, setBhytCode] = useState(() => (initialPersonnel ? '00120019' : ''))
+  const [email, setEmail] = useState(() => (initialPersonnel ? 'nguyenvana@tlu.edu.vn' : ''))
+  const [phone, setPhone] = useState(() => (initialPersonnel ? '0987654321' : ''))
+  const [address, setAddress] = useState(() => (initialPersonnel ? 'Thanh Trì, Hà Nội' : ''))
+  const [personnelType, setPersonnelType] = useState(() => (initialPersonnel ? 'Giảng viên cơ hữu' : ''))
+  const [startDate, setStartDate] = useState(() => (initialPersonnel ? '2026-06-01' : ''))
+  const [professionalRank, setProfessionalRank] = useState(() => (initialPersonnel ? 'Giảng viên hạng III' : ''))
+  const [salaryGrade, setSalaryGrade] = useState(() => (initialPersonnel ? 'Bậc 1' : ''))
+  const [salaryCoeff, setSalaryCoeff] = useState(() => (initialPersonnel ? '2.34' : ''))
+  const [paymentSource, setPaymentSource] = useState(() => (initialPersonnel ? 'Ngân sách nhà trường' : ''))
+  const [generalEdu, setGeneralEdu] = useState(() => (initialPersonnel ? '12/12' : ''))
+  const [professionalTitle, setProfessionalTitle] = useState(() => (initialPersonnel ? 'Giảng viên hạng III' : ''))
+  const [academicDegree, setAcademicDegree] = useState(() => (initialPersonnel ? 'Tiến sĩ' : ''))
   const hasErrors = showErrors || duplicateId
   const isEditing = initialPersonnel !== null && initialPersonnel !== undefined
   const formScrollRef = useRef<HTMLElement>(null)
   const [activeSection, setActiveSection] = useState('identity')
   const validationState = !validationStarted ? 'idle' : hasErrors ? 'error' : 'valid'
-  const errorCount = showErrors ? 20 : duplicateId ? 1 : 0
   const knownConflictingGovernmentIds = new Set(['001200001900'])
   const errorGroups = [
     hasErrors ? 'Thông tin cá nhân' : null,
@@ -113,12 +129,41 @@ export function PersonnelForm({
   }
   const missingRequiredDraftFields =
     !draft.name.trim() ||
-    !draft.unit.trim() ||
-    !draft.degree.trim() ||
-    !draft.role.trim() ||
-    !draft.status.trim() ||
     !gender.trim() ||
-    !governmentId.trim()
+    !birthDate.trim() ||
+    !hometown.trim() ||
+    !governmentId.trim() ||
+    !taxCode.trim() ||
+    !bhxhCode.trim() ||
+    !bhytCode.trim() ||
+    !email.trim() ||
+    !phone.trim() ||
+    !address.trim() ||
+    !draft.unit.trim() ||
+    !department.trim() ||
+    !draft.role.trim() ||
+    !personnelType.trim() ||
+    !startDate.trim() ||
+    !draft.status.trim() ||
+    !professionalRank.trim() ||
+    !salaryGrade.trim() ||
+    !salaryCoeff.trim() ||
+    !paymentSource.trim() ||
+    !generalEdu.trim() ||
+    !draft.degree.trim() ||
+    !professionalTitle.trim() ||
+    !academicDegree.trim() ||
+    degrees.length === 0
+  const errorCount = showErrors
+    ? [
+        !draft.name, !gender, !birthDate, !hometown, !governmentId,
+        !taxCode, !bhxhCode, !bhytCode, !email, !phone, !address,
+        !draft.unit, !department, !draft.role, !personnelType, !startDate,
+        !draft.status, !professionalRank, !salaryGrade, !salaryCoeff, !paymentSource,
+        !generalEdu, !draft.degree, !professionalTitle, !academicDegree,
+        degrees.length === 0,
+      ].filter(Boolean).length
+    : duplicateId ? 1 : 0
   const sections = [
     {
       id: 'identity',
@@ -279,35 +324,36 @@ export function PersonnelForm({
                       <p className="text-[11px] text-slate-500">JPG/PNG, tối đa 2MB.</p>
                     </div>
                     <div className="grid min-w-0 grid-cols-2 gap-3">
-                      <Field label="Họ và tên" required error={showErrors ? 'Họ và tên là trường bắt buộc.' : undefined}>
+                      <Field label="Họ và tên" required error={showErrors && !draft.name.trim() ? 'Họ và tên là trường bắt buộc.' : undefined}>
                         <Input
                           value={draft.name}
                           placeholder="Nguyễn Văn A"
-                          state={showErrors ? 'error' : 'default'}
+                          state={showErrors && !draft.name.trim() ? 'error' : 'default'}
                           onChange={(value) => updateDraft('name', value)}
                         />
                       </Field>
-                      <Field label="Giới tính" required error={showErrors ? 'Vui lòng chọn giới tính.' : undefined}>
-                        <Select value={gender} options={['Nam', 'Nữ', 'Khác']} placeholder="Chọn giới tính" onChange={setGender} state={showErrors ? 'error' : 'default'} />
+                      <Field label="Giới tính" required error={showErrors && !gender.trim() ? 'Vui lòng chọn giới tính.' : undefined}>
+                        <Select value={gender} options={['Nam', 'Nữ', 'Khác']} placeholder="Chọn giới tính" onChange={setGender} state={showErrors && !gender.trim() ? 'error' : 'default'} />
                       </Field>
-                      <Field label="Ngày sinh" required error={showErrors ? 'Ngày sinh không hợp lệ.' : undefined}>
+                      <Field label="Ngày sinh" required error={showErrors && !birthDate.trim() ? 'Ngày sinh là trường bắt buộc.' : undefined}>
                         <Input
                           type="date"
-                          value={showErrors ? '2000-13-32' : isEditing ? '2000-01-01' : ''}
-                          state={showErrors ? 'error' : 'default'}
+                          value={birthDate}
+                          onChange={setBirthDate}
+                          state={showErrors && !birthDate.trim() ? 'error' : 'default'}
                         />
                       </Field>
-                      <Field label="Quê quán" required error={showErrors ? 'Quê quán là trường bắt buộc.' : undefined}>
-                        <Input value={isEditing ? 'Hà Nội' : ''} placeholder="Hà Nội" icon={<MapPin size={15} />} state={showErrors ? 'error' : 'default'} />
+                      <Field label="Quê quán" required error={showErrors && !hometown.trim() ? 'Quê quán là trường bắt buộc.' : undefined}>
+                        <Input value={hometown} placeholder="Hà Nội" icon={<MapPin size={15} />} onChange={setHometown} state={showErrors && !hometown.trim() ? 'error' : 'default'} />
                       </Field>
                       <div className="col-span-2">
-                        <Field label="Số CCCD" required error={showErrors ? 'Số CCCD là trường bắt buộc.' : duplicateId ? 'Đã tồn tại hồ sơ với CCCD này.' : undefined}>
+                        <Field label="Số CCCD" required error={showErrors && !governmentId.trim() ? 'Số CCCD là trường bắt buộc.' : duplicateId ? 'Đã tồn tại hồ sơ với CCCD này.' : undefined}>
                           <div className="flex gap-2">
                             <div className="min-w-0 flex-1">
                               <Input
                                 value={governmentId}
                                 placeholder="001200001901"
-                                state={showErrors || duplicateId ? 'error' : 'default'}
+                                state={(showErrors && !governmentId.trim()) || duplicateId ? 'error' : 'default'}
                                 onChange={(value) => {
                                   setGovernmentId(value)
                                   setDuplicateId(false)
@@ -328,14 +374,14 @@ export function PersonnelForm({
                           </div>
                         </Field>
                       </div>
-                      <Field label="Mã số thuế" required error={showErrors ? 'Mã số thuế là trường bắt buộc.' : undefined}>
-                        <Input value={isEditing ? '1200001900' : ''} placeholder="1200001900" state={showErrors ? 'error' : 'default'} />
+                      <Field label="Mã số thuế" required error={showErrors && !taxCode.trim() ? 'Mã số thuế là trường bắt buộc.' : undefined}>
+                        <Input value={taxCode} placeholder="1200001900" onChange={setTaxCode} state={showErrors && !taxCode.trim() ? 'error' : 'default'} />
                       </Field>
-                      <Field label="Số BHXH" required error={showErrors ? 'Số BHXH là trường bắt buộc.' : undefined}>
-                        <Input value={isEditing ? '00120019' : ''} placeholder="00120019" state={showErrors ? 'error' : 'default'} />
+                      <Field label="Số BHXH" required error={showErrors && !bhxhCode.trim() ? 'Số BHXH là trường bắt buộc.' : undefined}>
+                        <Input value={bhxhCode} placeholder="00120019" onChange={setBhxhCode} state={showErrors && !bhxhCode.trim() ? 'error' : 'default'} />
                       </Field>
-                      <Field label="Số BHYT" required error={showErrors ? 'Số BHYT là trường bắt buộc.' : undefined}>
-                        <Input value={isEditing ? '00120019' : ''} placeholder="00120019" state={showErrors ? 'error' : 'default'} />
+                      <Field label="Số BHYT" required error={showErrors && !bhytCode.trim() ? 'Số BHYT là trường bắt buộc.' : undefined}>
+                        <Input value={bhytCode} placeholder="00120019" onChange={setBhytCode} state={showErrors && !bhytCode.trim() ? 'error' : 'default'} />
                       </Field>
                     </div>
                   </div>
@@ -362,33 +408,36 @@ export function PersonnelForm({
                   }
                 >
                   <div className="grid grid-cols-2 gap-3">
-                    <Field label="Email" required error={showErrors ? (isEditing ? 'Email không đúng định dạng.' : 'Vui lòng nhập email.') : undefined}>
+                    <Field label="Email" required error={showErrors && !email.trim() ? 'Vui lòng nhập email.' : undefined}>
                       <Input
-                        value={showErrors && isEditing ? 'nguyenvana@' : isEditing ? 'nguyenvana@tlu.edu.vn' : ''}
+                        value={email}
                         placeholder="nguyenvana@tlu.edu.vn"
                         icon={<Mail size={15} />}
-                        state={showErrors ? 'error' : 'default'}
+                        onChange={setEmail}
+                        state={showErrors && !email.trim() ? 'error' : 'default'}
                       />
                     </Field>
-                    <Field label="Số điện thoại" required error={showErrors ? 'Số điện thoại là trường bắt buộc.' : undefined}>
+                    <Field label="Số điện thoại" required error={showErrors && !phone.trim() ? 'Số điện thoại là trường bắt buộc.' : undefined}>
                       <Input
-                        value={showErrors ? '' : isEditing ? '0987654321' : ''}
+                        value={phone}
                         placeholder="0987654321"
                         icon={<Phone size={15} />}
-                        state={showErrors ? 'error' : 'default'}
+                        onChange={setPhone}
+                        state={showErrors && !phone.trim() ? 'error' : 'default'}
                       />
                     </Field>
                     <div className="col-span-2">
                       <Field
                         label="Địa chỉ thường trú"
                         required
-                        error={showErrors ? 'Vui lòng nhập địa chỉ thường trú.' : undefined}
+                        error={showErrors && !address.trim() ? 'Vui lòng nhập địa chỉ thường trú.' : undefined}
                       >
                         <Input
-                          value={showErrors ? '' : isEditing ? 'Thanh Trì, Hà Nội' : ''}
+                          value={address}
                           placeholder="Thanh Trì, Hà Nội"
                           icon={<MapPin size={15} />}
-                          state={showErrors ? 'error' : 'default'}
+                          onChange={setAddress}
+                          state={showErrors && !address.trim() ? 'error' : 'default'}
                         />
                       </Field>
                     </div>
@@ -424,51 +473,52 @@ export function PersonnelForm({
                     icon={<Building2 size={18} />}
                   >
                     <div className="grid min-w-0 grid-cols-3 gap-3">
-                      <Field label="Đơn vị công tác" required error={showErrors ? 'Vui lòng chọn đơn vị công tác.' : undefined}>
+                      <Field label="Đơn vị công tác" required error={showErrors && !draft.unit.trim() ? 'Vui lòng chọn đơn vị công tác.' : undefined}>
                         <Select
                           value={draft.unit}
                           options={unitOptions}
                           placeholder="Chọn đơn vị công tác"
                           onChange={(value) => updateDraft('unit', value)}
-                          state={showErrors ? 'error' : 'default'}
+                          state={showErrors && !draft.unit.trim() ? 'error' : 'default'}
                         />
                       </Field>
-                      <Field label="Bộ môn / phòng ban trực thuộc" required error={showErrors ? 'Vui lòng chọn bộ môn / phòng ban.' : undefined}>
+                      <Field label="Bộ môn / phòng ban trực thuộc" required error={showErrors && !department.trim() ? 'Vui lòng chọn bộ môn / phòng ban.' : undefined}>
                         <Select
                           value={department}
                           placeholder="Chọn bộ môn / phòng ban"
                           options={['Bộ môn Công nghệ phần mềm', 'Bộ môn Hệ thống thông tin', 'Bộ môn Khoa học dữ liệu']}
                           onChange={setDepartment}
-                          state={showErrors ? 'error' : 'default'}
+                          state={showErrors && !department.trim() ? 'error' : 'default'}
                         />
                       </Field>
-                      <Field label="Chức vụ hiện tại" required error={showErrors ? 'Vui lòng chọn chức vụ hiện tại.' : undefined}>
+                      <Field label="Chức vụ hiện tại" required error={showErrors && !draft.role.trim() ? 'Vui lòng chọn chức vụ hiện tại.' : undefined}>
                         <Select
                           value={draft.role}
                           options={roleOptions}
                           placeholder="Chọn chức vụ hiện tại"
-                          state={showErrors ? 'error' : 'default'}
+                          state={showErrors && !draft.role.trim() ? 'error' : 'default'}
                           onChange={(value) => updateDraft('role', value)}
                         />
                       </Field>
-                      <Field label="Loại nhân sự" required error={showErrors ? 'Vui lòng chọn loại nhân sự.' : undefined}>
+                      <Field label="Loại nhân sự" required error={showErrors && !personnelType.trim() ? 'Vui lòng chọn loại nhân sự.' : undefined}>
                         <Select
-                          value={isEditing ? 'Giảng viên cơ hữu' : ''}
+                          value={personnelType}
                           placeholder="Chọn loại nhân sự"
                           options={['Giảng viên cơ hữu', 'Giảng viên thỉnh giảng', 'Chuyên viên']}
-                          state={showErrors ? 'error' : 'default'}
+                          onChange={setPersonnelType}
+                          state={showErrors && !personnelType.trim() ? 'error' : 'default'}
                         />
                       </Field>
-                      <Field label="Ngày bắt đầu công tác" required error={showErrors ? 'Ngày bắt đầu công tác là trường bắt buộc.' : undefined}>
-                        <Input type="date" value={isEditing ? '2026-06-01' : ''} state={showErrors ? 'error' : 'default'} />
+                      <Field label="Ngày bắt đầu công tác" required error={showErrors && !startDate.trim() ? 'Ngày bắt đầu công tác là trường bắt buộc.' : undefined}>
+                        <Input type="date" value={startDate} onChange={setStartDate} state={showErrors && !startDate.trim() ? 'error' : 'default'} />
                       </Field>
-                      <Field label="Trạng thái hồ sơ" required error={showErrors ? 'Vui lòng chọn trạng thái hồ sơ.' : undefined}>
+                      <Field label="Trạng thái hồ sơ" required error={showErrors && !draft.status.trim() ? 'Vui lòng chọn trạng thái hồ sơ.' : undefined}>
                         <Select
                           value={draft.status}
                           options={statusOptions}
                           placeholder="Chọn trạng thái hồ sơ"
                           onChange={(value) => updateDraft('status', value)}
-                          state={showErrors ? 'error' : 'default'}
+                          state={showErrors && !draft.status.trim() ? 'error' : 'default'}
                         />
                       </Field>
                       <div className="col-span-3 rounded-lg border border-blue-100 bg-blue-50 px-3 py-2 text-[12px] text-blue-800">
@@ -481,19 +531,20 @@ export function PersonnelForm({
 
                   <SectionCard title="Lương và phụ cấp dự kiến" icon={<Banknote size={18} />}>
                     <div className="grid grid-cols-3 gap-3">
-                      <Field label="Ngạch / hạng chức danh" required error={showErrors ? 'Vui lòng chọn ngạch / hạng chức danh.' : undefined}>
+                      <Field label="Ngạch / hạng chức danh" required error={showErrors && !professionalRank.trim() ? 'Vui lòng chọn ngạch / hạng chức danh.' : undefined}>
                         <Select
-                          value={isEditing ? 'Giảng viên hạng III' : ''}
+                          value={professionalRank}
                           placeholder="Giảng viên hạng III"
                           options={['Giảng viên hạng III', 'Giảng viên hạng II', 'Chuyên viên']}
-                          state={showErrors ? 'error' : 'default'}
+                          onChange={setProfessionalRank}
+                          state={showErrors && !professionalRank.trim() ? 'error' : 'default'}
                         />
                       </Field>
-                      <Field label="Bậc lương" required error={showErrors ? 'Vui lòng chọn bậc lương.' : undefined}>
-                        <Select value={isEditing ? 'Bậc 1' : ''} placeholder="Bậc 1" options={['Bậc 1', 'Bậc 2', 'Bậc 3']} state={showErrors ? 'error' : 'default'} />
+                      <Field label="Bậc lương" required error={showErrors && !salaryGrade.trim() ? 'Vui lòng chọn bậc lương.' : undefined}>
+                        <Select value={salaryGrade} placeholder="Bậc 1" options={['Bậc 1', 'Bậc 2', 'Bậc 3']} onChange={setSalaryGrade} state={showErrors && !salaryGrade.trim() ? 'error' : 'default'} />
                       </Field>
-                      <Field label="Hệ số lương" required error={showErrors ? 'Hệ số lương phải là số lớn hơn 0.' : undefined}>
-                        <Input value={showErrors ? 'abc' : isEditing ? '2.34' : ''} placeholder="2.34" state={showErrors ? 'error' : 'default'} />
+                      <Field label="Hệ số lương" required error={showErrors && !salaryCoeff.trim() ? 'Hệ số lương là trường bắt buộc.' : undefined}>
+                        <Input value={salaryCoeff} placeholder="2.34" onChange={setSalaryCoeff} state={showErrors && !salaryCoeff.trim() ? 'error' : 'default'} />
                       </Field>
                       <Field label="Phụ cấp chức vụ">
                         <Input value={isEditing ? '0.00' : ''} placeholder="0.00" />
@@ -501,12 +552,13 @@ export function PersonnelForm({
                       <Field label="Phụ cấp thâm niên">
                         <Input value={isEditing ? '0%' : ''} placeholder="0%" />
                       </Field>
-                      <Field label="Nguồn chi trả" required error={showErrors ? 'Vui lòng chọn nguồn chi trả.' : undefined}>
+                      <Field label="Nguồn chi trả" required error={showErrors && !paymentSource.trim() ? 'Vui lòng chọn nguồn chi trả.' : undefined}>
                         <Select
-                          value={isEditing ? 'Ngân sách nhà trường' : ''}
+                          value={paymentSource}
                           placeholder="Ngân sách nhà trường"
                           options={['Ngân sách nhà trường', 'Nguồn dự án', 'Nguồn tự chủ']}
-                          state={showErrors ? 'error' : 'default'}
+                          onChange={setPaymentSource}
+                          state={showErrors && !paymentSource.trim() ? 'error' : 'default'}
                         />
                       </Field>
                     </div>
@@ -517,33 +569,34 @@ export function PersonnelForm({
               <section id="education">
                 <SectionCard title="Trình độ học vấn" icon={<GraduationCap size={18} />}>
                   <div className="grid grid-cols-4 gap-3">
-                    <Field label="Trình độ văn hóa" required error={showErrors ? 'Vui lòng chọn trình độ văn hóa.' : undefined}>
-                      <Select value={isEditing ? '12/12' : ''} placeholder="12/12" options={generalEducationOptions} state={showErrors ? 'error' : 'default'} />
+                    <Field label="Trình độ văn hóa" required error={showErrors && !generalEdu.trim() ? 'Vui lòng chọn trình độ văn hóa.' : undefined}>
+                      <Select value={generalEdu} placeholder="12/12" options={generalEducationOptions} onChange={setGeneralEdu} state={showErrors && !generalEdu.trim() ? 'error' : 'default'} />
                     </Field>
-                    <Field label="Trình độ đào tạo" required error={showErrors ? 'Vui lòng chọn trình độ đào tạo.' : undefined}>
+                    <Field label="Trình độ đào tạo" required error={showErrors && !draft.degree.trim() ? 'Vui lòng chọn trình độ đào tạo.' : undefined}>
                       <Select
                         value={draft.degree}
                         options={Array.from(new Set([...trainingLevelOptions, ...degreeOptions]))}
                         placeholder="Tiến sĩ"
                         onChange={(value) => updateDraft('degree', value)}
-                        state={showErrors ? 'error' : 'default'}
+                        state={showErrors && !draft.degree.trim() ? 'error' : 'default'}
                       />
                     </Field>
-                    <Field label="Chức danh nghề nghiệp" required error={showErrors ? 'Vui lòng chọn chức danh nghề nghiệp.' : undefined}>
+                    <Field label="Chức danh nghề nghiệp" required error={showErrors && !professionalTitle.trim() ? 'Vui lòng chọn chức danh nghề nghiệp.' : undefined}>
                       <Select
-                        value={isEditing ? 'Giảng viên hạng III' : ''}
+                        value={professionalTitle}
                         placeholder="Giảng viên hạng III"
                         options={professionalTitleOptions}
-                        state={showErrors ? 'error' : 'default'}
+                        onChange={setProfessionalTitle}
+                        state={showErrors && !professionalTitle.trim() ? 'error' : 'default'}
                       />
                     </Field>
-                    <Field label="Học hàm / Học vị" required error={showErrors ? 'Vui lòng chọn học hàm / học vị.' : undefined}>
+                    <Field label="Học hàm / Học vị" required error={showErrors && !academicDegree.trim() ? 'Vui lòng chọn học hàm / học vị.' : undefined}>
                       <Select
-                        value={draft.degree}
+                        value={academicDegree}
                         options={Array.from(new Set([...academicRankDegreeOptions, ...degreeOptions]))}
                         placeholder="Tiến sĩ"
-                        onChange={(value) => updateDraft('degree', value)}
-                        state={showErrors ? 'error' : 'default'}
+                        onChange={setAcademicDegree}
+                        state={showErrors && !academicDegree.trim() ? 'error' : 'default'}
                       />
                     </Field>
                   </div>
