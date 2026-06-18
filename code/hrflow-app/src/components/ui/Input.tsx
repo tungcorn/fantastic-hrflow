@@ -6,6 +6,7 @@ export function Input({
   value,
   placeholder,
   icon,
+  type = 'text',
   state = 'default',
   readOnly,
   onChange,
@@ -13,6 +14,7 @@ export function Input({
   value?: string
   placeholder?: string
   icon?: ReactNode
+  type?: string
   state?: FieldState
   readOnly?: boolean
   onChange?: (value: string) => void
@@ -29,6 +31,7 @@ export function Input({
     >
       {icon ? <span className="text-slate-400">{icon}</span> : null}
       <input
+        type={type}
         defaultValue={onChange ? undefined : value}
         value={onChange ? (value ?? '') : undefined}
         placeholder={placeholder}

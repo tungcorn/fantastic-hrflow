@@ -93,6 +93,7 @@ export function PersonnelForm({
   )
   const [gender, setGender] = useState(() => (initialPersonnel ? 'Nam' : ''))
   const [governmentId, setGovernmentId] = useState(() => (initialPersonnel ? '001200001901' : ''))
+  const [department, setDepartment] = useState(() => (initialPersonnel ? 'Bộ môn Công nghệ phần mềm' : ''))
   const hasErrors = showErrors || duplicateId
   const isEditing = initialPersonnel !== null && initialPersonnel !== undefined
   const formScrollRef = useRef<HTMLElement>(null)
@@ -291,9 +292,8 @@ export function PersonnelForm({
                       </Field>
                       <Field label="Ngày sinh" required error={showErrors ? 'Ngày sinh không hợp lệ.' : undefined}>
                         <Input
-                          value={showErrors ? '32/13/2000' : isEditing ? '01/01/2000' : ''}
-                          placeholder="01/01/2000"
-                          icon={<Calendar size={15} />}
+                          type="date"
+                          value={showErrors ? '2000-13-32' : isEditing ? '2000-01-01' : ''}
                           state={showErrors ? 'error' : 'default'}
                         />
                       </Field>
@@ -398,13 +398,13 @@ export function PersonnelForm({
                           <Input placeholder="00-120-019" state={showErrors ? 'error' : 'default'} />
                         </Field>
                         <Field label="Ngày hết hạn Visa" required error={showErrors ? 'Vui lòng nhập ngày hết hạn Visa.' : undefined}>
-                          <Input placeholder="01/01/2030" icon={<Calendar size={15} />} state={showErrors ? 'error' : 'default'} />
+                          <Input type="date" state={showErrors ? 'error' : 'default'} />
                         </Field>
                         <Field label="Số Hộ chiếu" required error={showErrors ? 'Vui lòng nhập số Hộ chiếu.' : undefined}>
                           <Input placeholder="00-120-019" state={showErrors ? 'error' : 'default'} />
                         </Field>
                         <Field label="Ngày hết hạn Hộ chiếu" required error={showErrors ? 'Vui lòng nhập ngày hết hạn Hộ chiếu.' : undefined}>
-                          <Input placeholder="01/01/2030" icon={<Calendar size={15} />} state={showErrors ? 'error' : 'default'} />
+                          <Input type="date" state={showErrors ? 'error' : 'default'} />
                         </Field>
                       </>
                     ) : (
@@ -428,16 +428,17 @@ export function PersonnelForm({
                         <Select
                           value={draft.unit}
                           options={unitOptions}
-                          placeholder="Khoa Công nghệ thông tin"
+                          placeholder="Chọn đơn vị công tác"
                           onChange={(value) => updateDraft('unit', value)}
                           state={showErrors ? 'error' : 'default'}
                         />
                       </Field>
                       <Field label="Bộ môn / phòng ban trực thuộc" required error={showErrors ? 'Vui lòng chọn bộ môn / phòng ban.' : undefined}>
                         <Select
-                          value={isEditing ? 'Bộ môn Công nghệ phần mềm' : ''}
-                          placeholder="Bộ môn Công nghệ phần mềm"
+                          value={department}
+                          placeholder="Chọn bộ môn / phòng ban"
                           options={['Bộ môn Công nghệ phần mềm', 'Bộ môn Hệ thống thông tin', 'Bộ môn Khoa học dữ liệu']}
+                          onChange={setDepartment}
                           state={showErrors ? 'error' : 'default'}
                         />
                       </Field>
@@ -445,7 +446,7 @@ export function PersonnelForm({
                         <Select
                           value={draft.role}
                           options={roleOptions}
-                          placeholder="Giảng viên"
+                          placeholder="Chọn chức vụ hiện tại"
                           state={showErrors ? 'error' : 'default'}
                           onChange={(value) => updateDraft('role', value)}
                         />
@@ -453,26 +454,27 @@ export function PersonnelForm({
                       <Field label="Loại nhân sự" required error={showErrors ? 'Vui lòng chọn loại nhân sự.' : undefined}>
                         <Select
                           value={isEditing ? 'Giảng viên cơ hữu' : ''}
-                          placeholder="Giảng viên cơ hữu"
+                          placeholder="Chọn loại nhân sự"
                           options={['Giảng viên cơ hữu', 'Giảng viên thỉnh giảng', 'Chuyên viên']}
                           state={showErrors ? 'error' : 'default'}
                         />
                       </Field>
                       <Field label="Ngày bắt đầu công tác" required error={showErrors ? 'Ngày bắt đầu công tác là trường bắt buộc.' : undefined}>
-                        <Input value={isEditing ? '01/06/2026' : ''} placeholder="01/06/2026" icon={<Calendar size={15} />} state={showErrors ? 'error' : 'default'} />
+                        <Input type="date" value={isEditing ? '2026-06-01' : ''} state={showErrors ? 'error' : 'default'} />
                       </Field>
                       <Field label="Trạng thái hồ sơ" required error={showErrors ? 'Vui lòng chọn trạng thái hồ sơ.' : undefined}>
                         <Select
                           value={draft.status}
                           options={statusOptions}
-                          placeholder="Đang hoàn thiện"
+                          placeholder="Chọn trạng thái hồ sơ"
                           onChange={(value) => updateDraft('status', value)}
                           state={showErrors ? 'error' : 'default'}
                         />
                       </Field>
                       <div className="col-span-3 rounded-lg border border-blue-100 bg-blue-50 px-3 py-2 text-[12px] text-blue-800">
-                        Đường dẫn đơn vị: Trường Đại học Thủy Lợi / {draft.unit || 'Chưa chọn đơn vị'} / Bộ môn Công nghệ
-                        phần mềm
+                        {draft.unit
+                          ? `Đường dẫn đơn vị: Trường Đại học Thủy Lợi / ${draft.unit}${department ? ` / ${department}` : ''}`
+                          : 'Sau khi chọn đơn vị và bộ môn, hệ thống sẽ hiển thị đường dẫn tổ chức tại đây.'}
                       </div>
                     </div>
                   </SectionCard>
