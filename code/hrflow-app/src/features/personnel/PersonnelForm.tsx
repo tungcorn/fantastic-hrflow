@@ -1,4 +1,4 @@
-import { useRef, useState } from 'react'
+﻿import { useRef, useState } from 'react'
 import {
   AlertCircle,
   ArrowLeft,
@@ -232,9 +232,8 @@ export function PersonnelForm({
                     key={section.id}
                     type="button"
                     onClick={() => scrollToSection(section.id)}
-                    className={`flex w-full items-center justify-between rounded-lg px-2.5 py-1.5 text-left text-[12px] font-medium transition ${
-                      active ? 'bg-blue-50 text-blue-700 ring-1 ring-blue-100' : 'text-slate-700 hover:bg-slate-50'
-                    }`}
+                    className={`flex w-full items-center justify-between rounded-lg px-2.5 py-1.5 text-left text-[12px] font-medium transition ${active ? 'bg-blue-50 text-blue-700 ring-1 ring-blue-100' : 'text-slate-700 hover:bg-slate-50'
+                      }`}
                   >
                     <span className="flex items-center gap-2">
                       {section.icon}
@@ -354,14 +353,12 @@ export function PersonnelForm({
                     <button
                       type="button"
                       onClick={() => setForeigner((value) => !value)}
-                      className={`relative inline-flex h-6 w-11 items-center rounded-full transition ${
-                        foreigner ? 'bg-blue-700' : 'bg-slate-300'
-                      }`}
+                      className={`relative inline-flex h-6 w-11 items-center rounded-full transition ${foreigner ? 'bg-blue-700' : 'bg-slate-300'
+                        }`}
                     >
                       <span
-                        className={`inline-block size-5 transform rounded-full bg-white shadow transition ${
-                          foreigner ? 'translate-x-5' : 'translate-x-0.5'
-                        }`}
+                        className={`inline-block size-5 transform rounded-full bg-white shadow transition ${foreigner ? 'translate-x-5' : 'translate-x-0.5'
+                          }`}
                       />
                     </button>
                   }
@@ -573,13 +570,12 @@ export function PersonnelForm({
                         ['CCCD/CMND bản scan', showErrors ? 'Thiếu tài liệu' : 'Chưa tải lên', showErrors ? 'error' : 'pending'],
                         ['Quyết định tuyển dụng', showErrors ? 'Thiếu tài liệu' : 'Chưa tải lên', showErrors ? 'error' : 'pending'],
                         ['Sơ yếu lý lịch', showErrors ? 'Thiếu tài liệu' : 'Chưa tải lên', showErrors ? 'error' : 'pending'],
-                        ['Ảnh thẻ 3x4', showErrors ? 'Thiếu tài liệu' : 'Chưa tải lên', showErrors ? 'error' : 'pending'],
+                        ['Giấy khám sức khỏe', showErrors ? 'Thiếu tài liệu' : 'Chưa tải lên', showErrors ? 'error' : 'pending'],
                       ].map(([name, status, tone]) => (
                         <div
                           key={name}
-                          className={`rounded-lg border px-3 py-2.5 ${
-                            tone === 'error' ? 'border-red-200 bg-red-50' : 'border-slate-200 bg-white'
-                          }`}
+                          className={`rounded-lg border px-3 py-2.5 ${tone === 'error' ? 'border-red-200 bg-red-50' : 'border-slate-200 bg-white'
+                            }`}
                         >
                           <div className="text-[12.5px] font-semibold text-slate-900">{name}</div>
                           <div className={`mt-0.5 text-[12px] ${tone === 'error' ? 'text-red-700' : 'text-slate-500'}`}>
