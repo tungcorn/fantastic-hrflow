@@ -130,14 +130,54 @@ export function PersonnelForm({
   const [academicDegree, setAcademicDegree] = useState(() => (initialPersonnel ? 'Tiến sĩ' : ''))
   const [requiredDocuments, setRequiredDocuments] = useState<Partial<Record<RequiredDocumentKey, string>>>({})
   const [validationErrors, setValidationErrors] = useState<ValidationErrors>({})
-  const hasErrors = Object.keys(validationErrors).length > 0 || duplicateId
+  const [validatedValues, setValidatedValues] = useState<Record<string, string>>({})
+  const currentFieldValues: Record<string, string> = {
+    name: draft.name,
+    gender,
+    birthDate,
+    hometown,
+    governmentId,
+    taxCode,
+    bhxhCode,
+    bhytCode,
+    email,
+    phone,
+    address,
+    visaNumber: foreigner ? visaNumber : '__not-required__',
+    visaExpiry: foreigner ? visaExpiry : '__not-required__',
+    passportNumber: foreigner ? passportNumber : '__not-required__',
+    passportExpiry: foreigner ? passportExpiry : '__not-required__',
+    unit: draft.unit,
+    department,
+    role: draft.role,
+    personnelType,
+    startDate,
+    status: draft.status,
+    professionalRank,
+    salaryGrade,
+    salaryCoeff,
+    paymentSource,
+    generalEdu,
+    degree: draft.degree,
+    professionalTitle,
+    academicDegree,
+    degrees: JSON.stringify(degrees),
+    identityDocument: requiredDocuments.identityDocument ?? '',
+    recruitmentDecision: requiredDocuments.recruitmentDecision ?? '',
+    curriculumVitae: requiredDocuments.curriculumVitae ?? '',
+    healthCertificate: requiredDocuments.healthCertificate ?? '',
+  }
+  const visibleValidationErrors = Object.fromEntries(
+    Object.entries(validationErrors).filter(([field]) => currentFieldValues[field] === validatedValues[field]),
+  ) as ValidationErrors
+  const hasErrors = Object.keys(visibleValidationErrors).length > 0 || duplicateId
   const isEditing = initialPersonnel !== null && initialPersonnel !== undefined
   const formScrollRef = useRef<HTMLElement>(null)
   const [activeSection, setActiveSection] = useState('identity')
   const validationState = !validationStarted ? 'idle' : hasErrors ? 'error' : 'valid'
   const knownConflictingGovernmentIds = new Set(['001200001900'])
-  const fieldError = (field: string) => validationErrors[field]
-  const hasGroupError = (...fields: string[]) => fields.some((field) => !!validationErrors[field])
+  const fieldError = (field: string) => visibleValidationErrors[field]
+  const hasGroupError = (...fields: string[]) => fields.some((field) => !!visibleValidationErrors[field])
   const identityHasErrors = hasGroupError('name', 'gender', 'birthDate', 'hometown', 'governmentId', 'taxCode', 'bhxhCode', 'bhytCode') || duplicateId
   const contactHasErrors = hasGroupError('email', 'phone', 'address', 'visaNumber', 'visaExpiry', 'passportNumber', 'passportExpiry')
   const workHasErrors = hasGroupError('unit', 'department', 'role', 'personnelType', 'startDate', 'status', 'professionalRank', 'salaryGrade', 'salaryCoeff', 'paymentSource')
@@ -208,7 +248,7 @@ export function PersonnelForm({
 
     return errors
   }
-  const errorCount = Object.keys(validationErrors).length + (duplicateId && !validationErrors.governmentId ? 1 : 0)
+  const errorCount = Object.keys(visibleValidationErrors).length + (duplicateId && !visibleValidationErrors.governmentId ? 1 : 0)
   const sections = [
     {
       id: 'identity',
@@ -743,6 +783,7 @@ export function PersonnelForm({
               setValidationStarted(true)
               const errors = validateForm()
               setValidationErrors(errors)
+              setValidatedValues(currentFieldValues)
               setDuplicateId(false)
               setShowErrors(Object.keys(errors).length > 0)
               if (Object.keys(errors).length > 0) {
