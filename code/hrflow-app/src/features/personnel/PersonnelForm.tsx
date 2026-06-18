@@ -115,8 +115,9 @@ export function PersonnelForm({
     !draft.unit.trim() ||
     !draft.degree.trim() ||
     !draft.role.trim() ||
-    !draft.contract.trim() ||
-    !draft.status.trim()
+    !draft.status.trim() ||
+    !gender.trim() ||
+    !governmentId.trim()
   const sections = [
     {
       id: 'identity',
@@ -634,7 +635,7 @@ export function PersonnelForm({
             onClick={() => {
               setValidationStarted(true)
               if (!isEditing && (missingRequiredDraftFields || duplicateId)) {
-                setShowErrors(missingRequiredDraftFields)
+                setShowErrors(true)
                 setActiveSection('identity')
                 formScrollRef.current?.scrollTo({ top: 0, behavior: 'smooth' })
                 return
