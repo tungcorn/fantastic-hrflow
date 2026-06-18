@@ -18,7 +18,7 @@ export function ContractTable({
 
   return (
     <section className="relative z-0 rounded-xl border border-slate-200 bg-white shadow-sm">
-      <div className="grid grid-cols-[1.15fr_0.8fr_1.1fr_1.15fr_0.85fr_0.85fr_0.95fr_0.8fr_1fr] rounded-t-xl bg-blue-100 px-4 py-3 text-[11px] font-bold uppercase tracking-wide text-slate-800">
+      <div className="grid grid-cols-[1.2fr_0.85fr_1.05fr_1.5fr_0.9fr_0.9fr_1fr_0.85fr_1.05fr] rounded-t-xl bg-blue-100 px-4 py-3 text-[11px] font-bold uppercase tracking-wide text-slate-800">
         <span>Số hợp đồng</span>
         <span>Mã cán bộ</span>
         <span>Họ tên</span>
@@ -36,14 +36,14 @@ export function ContractTable({
         return (
           <div
             key={row.number}
-            className={`relative grid min-h-[58px] grid-cols-[1.15fr_0.8fr_1.1fr_1.15fr_0.85fr_0.85fr_0.95fr_0.8fr_1fr] items-center border-b border-slate-100 px-4 text-[12px] text-slate-800 last:border-0 ${
+            className={`relative grid min-h-[52px] grid-cols-[1.2fr_0.85fr_1.05fr_1.5fr_0.9fr_0.9fr_1fr_0.85fr_1.05fr] items-center border-b border-slate-100 px-4 text-[12px] text-slate-800 last:border-0 ${
               isActionMenuOpen ? 'z-20 bg-white' : ''
             }`}
           >
             <span className="font-mono text-[11px] font-semibold text-slate-700">{row.number}</span>
             <span className="font-mono text-[11px] font-semibold text-slate-600">{row.code}</span>
             <span className="font-medium text-slate-900">{row.name}</span>
-            <span>{row.type}</span>
+            <span className="whitespace-nowrap leading-tight">{row.type}</span>
             <span>{row.start}</span>
             <span>{row.end}</span>
             <span>
