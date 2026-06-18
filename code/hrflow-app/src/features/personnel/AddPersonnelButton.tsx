@@ -37,7 +37,7 @@ export function AddPersonnelButton({
             </span>
             <span>
               <span className="block text-[12.5px] font-semibold text-slate-900">Thêm thủ công</span>
-              <span className="block text-[11px] text-slate-500">Nhập từng hồ sơ qua 6 bước</span>
+              <span className="block text-[11px] text-slate-500">Nhập và hoàn thiện từng hồ sơ</span>
             </span>
           </button>
           <button
