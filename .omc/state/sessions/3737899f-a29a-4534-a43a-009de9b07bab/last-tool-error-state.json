@@ -1,7 +1,0 @@
-{
-  "tool_name": "Read",
-  "tool_input_preview": "{\"file_path\":\"C:\\\\Users\\\\viettelvtk\\\\.claude\\\\settings.json\"}",
-  "error": "File does not exist. Note: your current working directory is D:\\BTAP\\fantastic-hrflow.",
-  "timestamp": "2026-06-16T16:41:22.760Z",
-  "retry_count": 6
-}
