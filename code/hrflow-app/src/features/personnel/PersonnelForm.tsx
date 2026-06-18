@@ -367,9 +367,9 @@ export function PersonnelForm({
                   }
                 >
                   <div className="grid grid-cols-2 gap-3">
-                    <Field label="Email" required error={showErrors ? 'Email không đúng định dạng.' : undefined}>
+                    <Field label="Email" required error={showErrors ? (isEditing ? 'Email không đúng định dạng.' : 'Vui lòng nhập email.') : undefined}>
                       <Input
-                        value={showErrors ? 'nguyenvana@' : isEditing ? 'nguyenvana@tlu.edu.vn' : ''}
+                        value={showErrors && isEditing ? 'nguyenvana@' : isEditing ? 'nguyenvana@tlu.edu.vn' : ''}
                         placeholder="nguyenvana@tlu.edu.vn"
                         icon={<Mail size={15} />}
                         state={showErrors ? 'error' : 'default'}
@@ -399,17 +399,17 @@ export function PersonnelForm({
                     </div>
                     {foreigner ? (
                       <>
-                        <Field label="Số Visa" required>
-                          <Input placeholder="00-120-019" />
+                        <Field label="Số Visa" required error={showErrors ? 'Vui lòng nhập số Visa.' : undefined}>
+                          <Input placeholder="00-120-019" state={showErrors ? 'error' : 'default'} />
                         </Field>
-                        <Field label="Ngày hết hạn Visa" required>
-                          <Input placeholder="01/01/2030" icon={<Calendar size={15} />} />
+                        <Field label="Ngày hết hạn Visa" required error={showErrors ? 'Vui lòng nhập ngày hết hạn Visa.' : undefined}>
+                          <Input placeholder="01/01/2030" icon={<Calendar size={15} />} state={showErrors ? 'error' : 'default'} />
                         </Field>
-                        <Field label="Số Hộ chiếu" required>
-                          <Input placeholder="00-120-019" />
+                        <Field label="Số Hộ chiếu" required error={showErrors ? 'Vui lòng nhập số Hộ chiếu.' : undefined}>
+                          <Input placeholder="00-120-019" state={showErrors ? 'error' : 'default'} />
                         </Field>
-                        <Field label="Ngày hết hạn Hộ chiếu" required>
-                          <Input placeholder="01/01/2030" icon={<Calendar size={15} />} />
+                        <Field label="Ngày hết hạn Hộ chiếu" required error={showErrors ? 'Vui lòng nhập ngày hết hạn Hộ chiếu.' : undefined}>
+                          <Input placeholder="01/01/2030" icon={<Calendar size={15} />} state={showErrors ? 'error' : 'default'} />
                         </Field>
                       </>
                     ) : (
