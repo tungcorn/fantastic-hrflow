@@ -7,6 +7,7 @@ import { ConfirmDialog } from '../../../components/ui/ConfirmDialog'
 import { useContractStore } from '../../../store/contractStore'
 import { contractPersonnelOptions, contractTypeOptions, unitOptions } from '../options'
 import { deriveContractState } from '../contracts.utils'
+import type { ContractSuccess } from '../types'
 
 function PersonnelPreview({ personnel, unit }: { personnel: string; unit: string }) {
   const [code, ...nameParts] = personnel.split('·').map((part) => part.trim())
@@ -40,7 +41,13 @@ function PersonnelPreview({ personnel, unit }: { personnel: string; unit: string
   )
 }
 
-export function CreateContractModal({ onClose }: { onClose: () => void }) {
+export function CreateContractModal({
+  onClose,
+  onSuccess,
+}: {
+  onClose: () => void
+  onSuccess: (success: ContractSuccess) => void
+}) {
   const { addContract } = useContractStore()
   const [submitted, setSubmitted] = useState(false)
   const [confirmOpen, setConfirmOpen] = useState(false)
@@ -71,7 +78,12 @@ export function CreateContractModal({ onClose }: { onClose: () => void }) {
     const { status, remaining } = deriveContractState(end)
     addContract({ number, code, name, unit, type, start, end, status, remaining })
     setConfirmOpen(false)
-    onClose()
+    onSuccess({
+      title: 'Tạo hợp đồng thành công',
+      description: `Hợp đồng cho ${name} đã được tạo và thêm vào danh sách hợp đồng lao động.`,
+      highlightLabel: 'Số hợp đồng',
+      highlightValue: number,
+    })
   }
 
   return (

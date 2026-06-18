@@ -7,9 +7,17 @@ import { ConfirmDialog } from '../../../components/ui/ConfirmDialog'
 import { useContractStore } from '../../../store/contractStore'
 import { contractTypeOptions } from '../options'
 import { deriveContractState, nextContractNumber } from '../contracts.utils'
-import type { ContractRow } from '../types'
+import type { ContractRow, ContractSuccess } from '../types'
 
-export function RenewContractModal({ contract, onClose }: { contract: ContractRow | null; onClose: () => void }) {
+export function RenewContractModal({
+  contract,
+  onClose,
+  onSuccess,
+}: {
+  contract: ContractRow | null
+  onClose: () => void
+  onSuccess: (success: ContractSuccess) => void
+}) {
   const { contracts, addContract, updateContract } = useContractStore()
   const [submitted, setSubmitted] = useState(false)
   const [confirmOpen, setConfirmOpen] = useState(false)
@@ -31,10 +39,11 @@ export function RenewContractModal({ contract, onClose }: { contract: ContractRo
       onClose()
       return
     }
+    const newNumber = nextContractNumber(contracts, contract.number)
     const { status, remaining } = deriveContractState(end)
     addContract({
       ...contract,
-      number: nextContractNumber(contracts, contract.number),
+      number: newNumber,
       type,
       start,
       end,
@@ -43,7 +52,12 @@ export function RenewContractModal({ contract, onClose }: { contract: ContractRo
     })
     updateContract(contract.number, { status: 'Hết hiệu lực', remaining: 'Đã gia hạn' })
     setConfirmOpen(false)
-    onClose()
+    onSuccess({
+      title: 'Gia hạn hợp đồng thành công',
+      description: `Đã tạo hợp đồng gia hạn cho ${contract.name} và đánh dấu hợp đồng cũ ${contract.number} là đã gia hạn.`,
+      highlightLabel: 'Số hợp đồng mới',
+      highlightValue: newNumber,
+    })
   }
 
   const oldFields: [string, string][] = [

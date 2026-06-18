@@ -23,6 +23,13 @@ export type ContractRow = {
   remaining: string
 }
 
+export type ContractSuccess = {
+  title: string
+  description?: string
+  highlightLabel?: string
+  highlightValue?: string
+}
+
 export type ContractFiltersState = {
   keyword: string
   contractType: string

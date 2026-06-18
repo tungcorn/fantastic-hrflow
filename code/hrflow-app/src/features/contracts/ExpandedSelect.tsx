@@ -71,7 +71,7 @@ export function ExpandedSelect({
         } ${open ? 'border-blue-300 ring-4 ring-blue-100' : activeTrigger ? '' : 'border-slate-300'}`}
       >
         <span className="min-w-0 flex-1 whitespace-normal break-words leading-5">
-          {!hideLabelWhenSelected || !hasSelectedValue ? <span className="text-slate-400">{label}: </span> : null}
+          {!hideLabelWhenSelected || !hasSelectedValue ? <span className="text-slate-400">{label}</span> : null}
           {selected}
         </span>
         <ChevronDown size={14} className={`mt-0.5 shrink-0 text-slate-400 transition ${open ? 'rotate-180' : ''}`} />
