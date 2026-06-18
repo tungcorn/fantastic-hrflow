@@ -16,6 +16,7 @@ export function CredentialSection({
   itemLabel,
   namePlaceholder,
   requiredMinimum,
+  showError,
 }: {
   title: string
   description: string
@@ -26,6 +27,7 @@ export function CredentialSection({
   itemLabel: string
   namePlaceholder: string
   requiredMinimum?: boolean
+  showError?: boolean
 }) {
   const [adding, setAdding] = useState(false)
   const [draft, setDraft] = useState<CredentialItem>({ name: '', place: '' })
@@ -100,8 +102,12 @@ export function CredentialSection({
               )
             })
           ) : (
-            <div className="rounded-lg border border-dashed border-slate-200 bg-slate-50/60 px-3 py-4 text-[12.5px] text-slate-500">
-              Chưa có {itemLabel}. Nhấn Thêm để bổ sung thông tin.
+            <div className={`rounded-lg border border-dashed px-3 py-4 text-[12.5px] ${
+              showError ? 'border-red-200 bg-red-50 text-red-600' : 'border-slate-200 bg-slate-50/60 text-slate-500'
+            }`}>
+              {showError
+                ? `Bắt buộc phải đính kèm ít nhất 1 ${itemLabel} trước khi lưu hồ sơ.`
+                : `Chưa có ${itemLabel}. Nhấn Thêm để bổ sung thông tin.`}
             </div>
           )}
         </div>

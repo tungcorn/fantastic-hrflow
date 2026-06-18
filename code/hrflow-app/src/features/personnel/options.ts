@@ -48,9 +48,7 @@ export const academicRankDegreeOptions = [
   'Giáo sư',
 ]
 
-export const defaultDegrees: CredentialItem[] = [
-  { name: 'Bằng Cử nhân chuyên ngành Kỹ thuật phần mềm', place: 'Trường Đại học Thủy lợi' },
-  { name: 'Bằng Kỹ sư Khoa học máy tính', place: 'Trường Đại học Thủy lợi' },
-]
+export const defaultDegrees: CredentialItem[] = []
 
-export const defaultCerts: CredentialItem[] = [{ name: 'IELTS 7.5', place: 'British Council' }]
+export const defaultCerts: CredentialItem[] = []
+

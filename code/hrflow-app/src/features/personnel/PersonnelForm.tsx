@@ -1,4 +1,4 @@
-﻿import { useRef, useState } from 'react'
+import { useRef, useState } from 'react'
 import {
   AlertCircle,
   ArrowLeft,
@@ -285,8 +285,8 @@ export function PersonnelForm({
                           onChange={(value) => updateDraft('name', value)}
                         />
                       </Field>
-                      <Field label="Mã cán bộ" required>
-                        <Input value={draft.code} placeholder="CB2026-0048" readOnly />
+                      <Field label="Mã cán bộ">
+                        <Input value="" placeholder="Tự động tạo khi lưu" readOnly />
                       </Field>
                       <Field label="Giới tính" required error={showErrors ? 'Vui lòng chọn giới tính.' : undefined}>
                         <Select value={gender} options={['Nam', 'Nữ', 'Khác']} placeholder="Chọn giới tính" onChange={setGender} state={showErrors ? 'error' : 'default'} />
@@ -303,13 +303,13 @@ export function PersonnelForm({
                         <Input value={isEditing ? 'Hà Nội' : ''} placeholder="Hà Nội" icon={<MapPin size={15} />} state={showErrors ? 'error' : 'default'} />
                       </Field>
                       <div className="col-span-2">
-                        <Field label="Số CCCD" required error={duplicateId ? 'Đã tồn tại hồ sơ với CCCD này.' : undefined}>
+                        <Field label="Số CCCD" required error={showErrors ? 'Số CCCD là trường bắt buộc.' : duplicateId ? 'Đã tồn tại hồ sơ với CCCD này.' : undefined}>
                           <div className="flex gap-2">
                             <div className="min-w-0 flex-1">
                               <Input
                                 value={governmentId}
                                 placeholder="001200001901"
-                                state={duplicateId ? 'error' : 'default'}
+                                state={showErrors || duplicateId ? 'error' : 'default'}
                                 onChange={(value) => {
                                   setGovernmentId(value)
                                   setDuplicateId(false)
@@ -426,12 +426,13 @@ export function PersonnelForm({
                     icon={<Building2 size={18} />}
                   >
                     <div className="grid min-w-0 grid-cols-3 gap-3">
-                      <Field label="Đơn vị công tác" required>
+                      <Field label="Đơn vị công tác" required error={showErrors ? 'Vui lòng chọn đơn vị công tác.' : undefined}>
                         <Select
                           value={draft.unit}
                           options={unitOptions}
                           placeholder="Khoa Công nghệ thông tin"
                           onChange={(value) => updateDraft('unit', value)}
+                          state={showErrors ? 'error' : 'default'}
                         />
                       </Field>
                       <Field label="Bộ môn / phòng ban trực thuộc" required error={showErrors ? 'Vui lòng chọn bộ môn / phòng ban.' : undefined}>
@@ -599,6 +600,7 @@ export function PersonnelForm({
                       itemLabel="bằng cấp"
                       namePlaceholder="Ví dụ: Bằng Thạc sĩ Công nghệ thông tin"
                       requiredMinimum
+                      showError={showErrors && degrees.length === 0}
                     />
 
                     <CredentialSection
