@@ -57,17 +57,21 @@ export function ContractListContent({
     <div className={`px-6 py-5 ${dimmed ? 'select-none opacity-25' : ''}`}>
       <div className="space-y-4">
         <SummaryCards />
-        <ContractFilters filters={filters} onChange={handleFiltersChange} onClear={clearFilters} />
-        <div className="flex items-center justify-end gap-2">
-          <button className="inline-flex h-9 items-center gap-2 rounded-lg border border-slate-300 bg-white px-3.5 text-[12px] font-semibold text-slate-700 shadow-sm hover:bg-slate-50">
-            <Download size={14} /> Xuất danh sách
-          </button>
-          <button
-            onClick={() => onOpenFrame?.('create')}
-            className="inline-flex h-9 items-center gap-2 rounded-lg bg-blue-700 px-3.5 text-[12px] font-semibold text-white shadow-sm hover:bg-blue-800"
-          >
-            <Plus size={14} /> Tạo hợp đồng
-          </button>
+        <div className="flex flex-wrap items-start justify-between gap-3">
+          <div className="min-w-0 flex-1">
+            <ContractFilters filters={filters} onChange={handleFiltersChange} onClear={clearFilters} />
+          </div>
+          <div className="flex shrink-0 items-center gap-2">
+            <button className="inline-flex h-9 items-center gap-2 rounded-lg border border-slate-300 bg-white px-3.5 text-[12px] font-semibold text-slate-700 shadow-sm hover:bg-slate-50">
+              <Download size={14} /> Xuất danh sách
+            </button>
+            <button
+              onClick={() => onOpenFrame?.('create')}
+              className="inline-flex h-9 items-center gap-2 rounded-lg bg-blue-700 px-3.5 text-[12px] font-semibold text-white shadow-sm hover:bg-blue-800"
+            >
+              <Plus size={14} /> Tạo hợp đồng
+            </button>
+          </div>
         </div>
         <ContractTable rows={paginatedRows} compact={dimmed} onOpenFrame={onOpenFrame} onViewContract={onViewContract} />
       </div>
