@@ -6,22 +6,18 @@ import { StatusBadge } from '../StatusBadge'
 import { ConfirmDialog } from '../../../components/ui/ConfirmDialog'
 import { useContractStore } from '../../../store/contractStore'
 import { contractPersonnelOptions, contractTypeOptions, unitOptions } from '../options'
-import { deriveContractState } from '../contracts.utils'
+import {
+  contractNumberPattern,
+  deriveContractState,
+  getContractDate,
+  validateContractDecimal,
+  validateContractPdf,
+} from '../contracts.utils'
 import type { ContractSuccess } from '../types'
-import { parseContractDate } from '../../../lib/utils'
 
 type ValidationErrors = Partial<
   Record<'personnel' | 'type' | 'number' | 'signed' | 'start' | 'end' | 'salary' | 'allowance' | 'unit' | 'file', string>
 >
-
-const contractNumberPattern = /^HĐLĐ-\d{4}-\d{4}$/i
-const decimalPattern = /^\d+(?:[.,]\d{1,2})?$/
-const strictDatePattern = /^\d{2}\/\d{2}\/\d{4}$/
-const MAX_PDF_SIZE = 10 * 1024 * 1024
-
-function getDate(value: string) {
-  return strictDatePattern.test(value.trim()) ? parseContractDate(value.trim()) : null
-}
 
 function PersonnelPreview({ personnel, unit }: { personnel: string; unit: string }) {
   const [code, ...nameParts] = personnel.split('·').map((part) => part.trim())
@@ -80,9 +76,9 @@ export function CreateContractModal({
   const validateForm = (): ValidationErrors => {
     const errors: ValidationErrors = {}
     const normalizedNumber = number.trim().toUpperCase()
-    const signedDate = getDate(signed)
-    const startDate = getDate(start)
-    const endDate = getDate(end)
+    const signedDate = getContractDate(signed)
+    const startDate = getContractDate(start)
+    const endDate = getContractDate(end)
     const personnelCode = personnel.split('·')[0]?.trim()
 
     if (!personnel.trim()) errors.personnel = 'Vui lòng chọn nhân sự liên kết.'
@@ -103,33 +99,17 @@ export function CreateContractModal({
     if (personnelCode && startDate && endDate) {
       const overlaps = contracts.some((contract) => {
         if (contract.code !== personnelCode) return false
-        const existingStart = getDate(contract.start)
-        const existingEnd = getDate(contract.end)
+        const existingStart = getContractDate(contract.start)
+        const existingEnd = getContractDate(contract.end)
         return Boolean(existingStart && existingEnd && startDate <= existingEnd && endDate >= existingStart)
       })
       if (overlaps) errors.start = 'Thời gian hợp đồng bị chồng lấn với hợp đồng đã có của nhân sự.'
     }
 
-    const validateDecimal = (value: string, required: boolean) => {
-      const normalized = value.trim().replace(',', '.')
-      if (!normalized) return required ? 'Vui lòng nhập giá trị.' : undefined
-      if (!decimalPattern.test(value.trim()) || Number(normalized) < 0 || (required && Number(normalized) === 0)) {
-        return required ? 'Hệ số lương phải là số dương, tối đa 2 chữ số thập phân.' : 'Phụ cấp phải là số không âm, tối đa 2 chữ số thập phân.'
-      }
-      if (Number(normalized) > 20) return 'Giá trị không được lớn hơn 20.'
-      return undefined
-    }
-    errors.salary = validateDecimal(salary, true)
-    errors.allowance = validateDecimal(allowance, false)
+    errors.salary = validateContractDecimal(salary, 'salary')
+    errors.allowance = validateContractDecimal(allowance, 'allowance')
     if (!unit.trim()) errors.unit = 'Vui lòng chọn đơn vị công tác theo hợp đồng.'
-    if (!file) errors.file = 'Vui lòng tải file hợp đồng PDF.'
-    else if (
-      !file.name.toLowerCase().endsWith('.pdf') ||
-      (file.type.length > 0 && file.type !== 'application/pdf')
-    ) {
-      errors.file = 'Tệp hợp đồng phải có định dạng PDF.'
-    }
-    else if (file.size > MAX_PDF_SIZE) errors.file = 'Tệp PDF không được vượt quá 10MB.'
+    errors.file = validateContractPdf(file)
 
     return Object.fromEntries(Object.entries(errors).filter(([, message]) => message)) as ValidationErrors
   }

@@ -6,8 +6,16 @@ import { StatusBadge } from '../StatusBadge'
 import { ConfirmDialog } from '../../../components/ui/ConfirmDialog'
 import { useContractStore } from '../../../store/contractStore'
 import { contractTypeOptions } from '../options'
-import { deriveContractState, nextContractNumber } from '../contracts.utils'
+import {
+  deriveContractState,
+  getContractDate,
+  nextContractNumber,
+  validateContractDecimal,
+  validateContractPdf,
+} from '../contracts.utils'
 import type { ContractRow, ContractSuccess } from '../types'
+
+type RenewErrors = Partial<Record<'type' | 'start' | 'end' | 'salary' | 'allowance' | 'file', string>>
 
 export function RenewContractModal({
   contract,
@@ -25,12 +33,39 @@ export function RenewContractModal({
   const [type, setType] = useState(contract?.type ?? 'Xác định thời hạn')
   const [start, setStart] = useState('01/07/2026')
   const [end, setEnd] = useState('30/06/2029')
+  const [salary, setSalary] = useState('3.33')
+  const [allowance, setAllowance] = useState('0.30')
+  const [file, setFile] = useState<File | null>(null)
 
-  const isValid = type.trim().length > 0 && start.trim().length > 0 && end.trim().length > 0
+  const validateForm = (): RenewErrors => {
+    const errors: RenewErrors = {}
+    const startDate = getContractDate(start)
+    const endDate = getContractDate(end)
+    const oldEndDate = contract ? getContractDate(contract.end) : null
+
+    if (!type.trim()) errors.type = 'Vui lòng chọn loại hợp đồng.'
+
+    if (!start.trim()) errors.start = 'Vui lòng nhập ngày bắt đầu mới.'
+    else if (!startDate) errors.start = 'Ngày bắt đầu phải đúng định dạng DD/MM/YYYY.'
+    if (!end.trim()) errors.end = 'Vui lòng nhập ngày kết thúc mới.'
+    else if (!endDate) errors.end = 'Ngày kết thúc phải đúng định dạng DD/MM/YYYY.'
+
+    if (startDate && endDate && endDate <= startDate) errors.end = 'Ngày kết thúc phải sau ngày bắt đầu.'
+    if (startDate && oldEndDate && startDate <= oldEndDate)
+      errors.start = 'Ngày bắt đầu mới phải sau ngày hết hạn của hợp đồng cũ.'
+
+    errors.salary = validateContractDecimal(salary, 'salary')
+    errors.allowance = validateContractDecimal(allowance, 'allowance')
+    errors.file = validateContractPdf(file)
+
+    return Object.fromEntries(Object.entries(errors).filter(([, message]) => message)) as RenewErrors
+  }
+
+  const validationErrors = submitted ? validateForm() : {}
 
   const handleRenewClick = () => {
     setSubmitted(true)
-    if (isValid) setConfirmOpen(true)
+    if (Object.keys(validateForm()).length === 0) setConfirmOpen(true)
   }
 
   const handleConfirm = () => {
@@ -121,36 +156,65 @@ export function RenewContractModal({
         <section className="rounded-xl border border-slate-200 bg-white p-5">
           <h3 className="mb-4 text-[15px] font-semibold text-slate-950">Thông tin gia hạn</h3>
           <div className="grid grid-cols-2 gap-4">
-            <ContractField
-              label="Loại hợp đồng mới"
-              required
-              error={submitted && !type.trim() ? 'Vui lòng chọn loại hợp đồng.' : undefined}
-            >
+            <ContractField label="Loại hợp đồng mới" required error={validationErrors.type}>
               <ContractSelectBox value={type} options={contractTypeOptions} label="Loại" onChange={setType} />
             </ContractField>
             <ContractField
               label="Ngày bắt đầu mới"
               required
               hint="Ngày bắt đầu mới được đề xuất dựa trên ngày hết hạn hợp đồng hiện tại."
-              error={submitted && !start.trim() ? 'Vui lòng nhập ngày bắt đầu mới.' : undefined}
+              error={validationErrors.start}
             >
-              <ContractInputBox value={start} icon={<Calendar size={15} />} onChange={setStart} />
+              <ContractInputBox
+                value={start}
+                icon={<Calendar size={15} />}
+                onChange={setStart}
+                placeholder="DD/MM/YYYY"
+                maxLength={10}
+                inputMode="numeric"
+                invalid={!!validationErrors.start}
+              />
+            </ContractField>
+            <ContractField label="Ngày kết thúc mới" required error={validationErrors.end}>
+              <ContractInputBox
+                value={end}
+                icon={<Calendar size={15} />}
+                onChange={setEnd}
+                placeholder="DD/MM/YYYY"
+                maxLength={10}
+                inputMode="numeric"
+                invalid={!!validationErrors.end}
+              />
+            </ContractField>
+            <ContractField label="Hệ số lương" required error={validationErrors.salary}>
+              <ContractInputBox
+                value={salary}
+                onChange={setSalary}
+                inputMode="decimal"
+                maxLength={5}
+                invalid={!!validationErrors.salary}
+              />
             </ContractField>
             <ContractField
-              label="Ngày kết thúc mới"
-              required
-              error={submitted && !end.trim() ? 'Vui lòng nhập ngày kết thúc mới.' : undefined}
+              label="Phụ cấp"
+              hint="Nhập hệ số phụ cấp (ví dụ: 0.30)."
+              error={validationErrors.allowance}
             >
-              <ContractInputBox value={end} icon={<Calendar size={15} />} onChange={setEnd} />
-            </ContractField>
-            <ContractField label="Hệ số lương" required>
-              <ContractInputBox value="3.33" />
-            </ContractField>
-            <ContractField label="Phụ cấp">
-              <ContractInputBox value="0.30 phụ cấp trách nhiệm" />
+              <ContractInputBox
+                value={allowance}
+                onChange={setAllowance}
+                inputMode="decimal"
+                maxLength={5}
+                invalid={!!validationErrors.allowance}
+              />
             </ContractField>
             <ContractField label="Upload file hợp đồng gia hạn" required>
-              <ContractFileUpload label="Tải file gia hạn" />
+              <ContractFileUpload
+                label="Tải file gia hạn"
+                file={file}
+                onChange={setFile}
+                error={validationErrors.file}
+              />
             </ContractField>
           </div>
         </section>
