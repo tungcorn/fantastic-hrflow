@@ -6,13 +6,14 @@ import {
   buildPersonnelImportAnalysis,
   PERSONNEL_IMPORT_HEADERS,
 } from './personnelImport'
-import type { PersonnelImportAnalysis, PersonnelRow } from './types'
+import type { PersonnelImportAnalysis } from './types'
 
 export function ExcelImportDialog({
   onClose,
   existingRows,
   unitOptions,
   degreeOptions,
+  roleOptions,
   contractOptions,
   statusOptions,
   onImport,
@@ -23,7 +24,8 @@ export function ExcelImportDialog({
   degreeOptions: string[]
   contractOptions: string[]
   statusOptions: string[]
-  onImport: (rows: PersonnelRow[]) => void
+  roleOptions: string[]
+  onImport: (rows: string[][]) => void
 }) {
   const fileInputRef = useRef<HTMLInputElement>(null)
   const [analysis, setAnalysis] = useState<PersonnelImportAnalysis | null>(null)
@@ -57,12 +59,65 @@ export function ExcelImportDialog({
   // Build the import template in the browser and download it. The example row
   // uses values present in the current option lists so it imports cleanly.
   const downloadTemplate = () => {
+    const exampleByHeader: Record<string, string> = {
+      'Mã cán bộ': 'CB2026-9001',
+      'Họ và tên': 'Nguyễn Văn Mẫu',
+      'Giới tính': 'Nam',
+      'Ngày sinh': '1990-01-15',
+      'Quê quán': 'Hà Nội',
+      'Số CCCD': '001090123456',
+      'Mã số thuế': '0101234567',
+      'Số BHXH': '0123456789',
+      'Số BHYT': 'DN4010123456789',
+      Email: 'nguyenvanmau@tlu.edu.vn',
+      'Số điện thoại': '0987654321',
+      'Địa chỉ thường trú': 'Thanh Trì, Hà Nội',
+      'Là người nước ngoài': 'Không',
+      'Đơn vị': unitOptions[0] ?? 'Ban Giám hiệu',
+      'Bộ môn / phòng ban': 'Phòng Tổ chức cán bộ',
+      'Chức vụ': roleOptions[0] ?? 'Chuyên viên',
+      'Hợp đồng': contractOptions[0] ?? '',
+      'Loại nhân sự': 'Chuyên viên',
+      'Ngày bắt đầu công tác': '2020-09-01',
+      'Trạng thái hồ sơ': statusOptions[0] ?? 'Đang hoạt động',
+      'Ngạch / hạng chức danh': 'Chuyên viên',
+      'Bậc lương': 'Bậc 1',
+      'Hệ số lương': '2.34',
+      'Phụ cấp chức vụ': '0',
+      'Phụ cấp thâm niên (%)': '5',
+      'Nguồn chi trả': 'Ngân sách nhà trường',
+      'Trình độ văn hóa': '12/12',
+      'Trình độ đào tạo': 'Đại học',
+      'Chức danh nghề nghiệp': 'Chuyên viên',
+      'Học hàm / Học vị': 'Cử nhân',
+    }
     const worksheet = XLSX.utils.aoa_to_sheet([
       [...PERSONNEL_IMPORT_HEADERS],
-      ['CB2026-9001', 'Nguyễn Văn Mẫu', 'Ban Giám hiệu', 'Cử nhân', 'Chuyên viên', 'Còn hiệu lực', 'Đang hoạt động'],
+      PERSONNEL_IMPORT_HEADERS.map((header) => exampleByHeader[header] ?? ''),
     ])
+    worksheet['!cols'] = PERSONNEL_IMPORT_HEADERS.map((header) => ({ wch: Math.max(16, Math.min(28, header.length + 4)) }))
+    worksheet['!autofilter'] = { ref: `A1:AH2` }
+
+    const optionalHeaders = new Set(['Số Visa', 'Ngày hết hạn Visa', 'Số Hộ chiếu', 'Ngày hết hạn Hộ chiếu', 'Hợp đồng', 'Phụ cấp chức vụ', 'Phụ cấp thâm niên (%)'])
+    const guideRows = [
+      ['Tên cột', 'Bắt buộc', 'Hướng dẫn'],
+      ...PERSONNEL_IMPORT_HEADERS.map((header) => [
+        header,
+        optionalHeaders.has(header) ? 'Không / có điều kiện' : 'Có',
+        header.includes('Ngày') ? 'Nhập theo định dạng YYYY-MM-DD.'
+          : header === 'Là người nước ngoài' ? 'Chỉ nhập Có hoặc Không. Visa và Hộ chiếu bắt buộc khi chọn Có.'
+            : header === 'Số CCCD' ? 'Đúng 12 chữ số và không được trùng.'
+              : ['Mã cán bộ', 'Mã số thuế', 'Số BHXH', 'Số BHYT', 'Số điện thoại'].includes(header) ? 'Nên đặt định dạng ô là Text để giữ số 0 ở đầu.'
+              : header.includes('Phụ cấp') ? 'Nhập số, không kèm ký hiệu % hoặc đơn vị.'
+                : 'Không thay đổi tên hoặc thứ tự cột.',
+      ]),
+      ['', '', 'Ảnh hồ sơ, tài liệu bắt buộc và file bằng cấp không thể nhúng qua mẫu Excel; cần bổ sung sau khi nhập.'],
+    ]
+    const guideSheet = XLSX.utils.aoa_to_sheet(guideRows)
+    guideSheet['!cols'] = [{ wch: 30 }, { wch: 20 }, { wch: 85 }]
     const workbook = XLSX.utils.book_new()
     XLSX.utils.book_append_sheet(workbook, worksheet, 'HoSoNhanSu')
+    XLSX.utils.book_append_sheet(workbook, guideSheet, 'HuongDan')
     XLSX.writeFile(workbook, 'personnel-import-template.xlsx')
   }
 
@@ -81,6 +136,7 @@ export function ExcelImportDialog({
         const nextAnalysis = analyzePersonnelWorkbook(workbook, file.name, existingRows, {
           unitOptions,
           degreeOptions,
+          roleOptions,
           contractOptions,
           statusOptions,
         })
@@ -224,8 +280,8 @@ export function ExcelImportDialog({
               <div>
                 <div className="text-[13px] font-semibold text-blue-900">File mẫu nhập hồ sơ</div>
                 <p className="mt-1 text-[12px] leading-5 text-blue-800">
-                  File mẫu giúp thống nhất 7 cột bắt buộc cho hồ sơ nhân sự: mã cán bộ, họ tên, đơn vị, trình độ, chức
-                  danh, hợp đồng và trạng thái.
+                  Mẫu chi tiết gồm {PERSONNEL_IMPORT_HEADERS.length} cột về định danh, liên hệ, công tác, lương và học vấn.
+                  Ảnh cùng file đính kèm được bổ sung sau khi nhập.
                 </p>
               </div>
               <button
@@ -302,7 +358,7 @@ export function ExcelImportDialog({
                 <div className="text-[11px] font-semibold uppercase tracking-wide text-slate-500">File mẫu</div>
                 <div className="mt-0.5 text-[13.5px] font-semibold text-slate-950">Mẫu nhập hồ sơ nhân sự</div>
                 <p className="mt-1 text-[12px] leading-5 text-slate-600">
-                  Mẫu gồm 7 cột chuẩn cho danh sách hồ sơ nhân sự để hệ thống kiểm tra và nhập đồng bộ.
+                  Mẫu gồm {PERSONNEL_IMPORT_HEADERS.length} cột hồ sơ chi tiết và một sheet hướng dẫn cách nhập.
                 </p>
               </div>
               <div className="flex justify-end">
@@ -414,10 +470,10 @@ export function ExcelImportDialog({
             </div>
             <div className="grid grid-cols-2 gap-3 p-4">
               {[
-                'Đủ 7 trường bắt buộc',
+                'Đủ các trường hồ sơ bắt buộc',
                 'Không vượt quá 200 hồ sơ trong một file',
-                'Đơn vị và Trình độ khớp danh mục hiện có',
-                'Mã cán bộ, Hợp đồng và Trạng thái hợp lệ',
+                'Đơn vị, chức vụ và trình độ khớp danh mục',
+                'Mã cán bộ và CCCD không bị trùng',
               ].map((item) => (
                 <div
                   key={item}

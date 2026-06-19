@@ -58,7 +58,7 @@ export type PersonnelImportInvalidRow = {
 export type PersonnelImportAnalysis = {
   fileName: string
   totalRows: number
-  validRows: PersonnelRow[]
+  validRows: string[][]
   invalidRows: PersonnelImportInvalidRow[]
   validCount: number
   invalidCount: number

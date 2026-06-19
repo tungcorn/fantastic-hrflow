@@ -266,6 +266,7 @@ export function PersonnelView({ onBusyChange }: { onBusyChange?: (busy: boolean)
                 existingRows={rows}
                 unitOptions={options.unitOptions}
                 degreeOptions={options.degreeOptions}
+                roleOptions={options.roleOptions}
                 contractOptions={options.contractOptions}
                 statusOptions={options.statusOptions}
                 onImport={(importedRows) => {
