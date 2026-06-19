@@ -8,6 +8,8 @@ export function Input({
   icon,
   type = 'text',
   state = 'default',
+  align = 'left',
+  inputMode,
   readOnly,
   onChange,
 }: {
@@ -16,6 +18,8 @@ export function Input({
   icon?: ReactNode
   type?: string
   state?: FieldState
+  align?: 'left' | 'right'
+  inputMode?: 'text' | 'decimal' | 'numeric' | 'tel' | 'email'
   readOnly?: boolean
   onChange?: (value: string) => void
 }) {
@@ -35,9 +39,10 @@ export function Input({
         defaultValue={onChange ? undefined : value}
         value={onChange ? (value ?? '') : undefined}
         placeholder={placeholder}
+        inputMode={inputMode}
         readOnly={readOnly}
         onChange={(event) => onChange?.(event.target.value)}
-        className="min-w-0 flex-1 bg-transparent text-[13px] text-slate-900 placeholder:text-slate-400 focus:outline-none"
+        className={`min-w-0 flex-1 bg-transparent text-[13px] text-slate-900 placeholder:text-slate-400 focus:outline-none ${align === 'right' ? 'text-right' : 'text-left'}`}
       />
       {state === 'success' ? <CheckCircle2 size={16} className="text-emerald-500" /> : null}
       {state === 'error' ? <AlertCircle size={16} className="text-red-500" /> : null}

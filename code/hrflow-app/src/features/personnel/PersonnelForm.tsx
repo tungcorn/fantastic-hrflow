@@ -800,13 +800,7 @@ export function PersonnelForm({
                         <Select value={salaryGrade} placeholder="Bậc 1" options={['Bậc 1', 'Bậc 2', 'Bậc 3']} onChange={setSalaryGrade} state={fieldError('salaryGrade') ? 'error' : 'default'} />
                       </Field>
                       <Field label="Hệ số lương" required error={fieldError('salaryCoeff')}>
-                        <Input value={salaryCoeff} placeholder="2.34" onChange={setSalaryCoeff} state={fieldError('salaryCoeff') ? 'error' : 'default'} />
-                      </Field>
-                      <Field label="Phụ cấp chức vụ" error={fieldError('positionAllowance')}>
-                        <Input value={positionAllowance} onChange={setPositionAllowance} placeholder="0.00" state={fieldError('positionAllowance') ? 'error' : 'default'} />
-                      </Field>
-                      <Field label="Phụ cấp thâm niên (%)" error={fieldError('seniorityAllowance')}>
-                        <Input value={seniorityAllowance} onChange={setSeniorityAllowance} placeholder="0" state={fieldError('seniorityAllowance') ? 'error' : 'default'} />
+                        <Input value={salaryCoeff} placeholder="2.34" onChange={setSalaryCoeff} state={fieldError('salaryCoeff') ? 'error' : 'default'} align="right" inputMode="decimal" />
                       </Field>
                       <Field label="Nguồn chi trả" required error={fieldError('paymentSource')}>
                         <Select
@@ -816,6 +810,12 @@ export function PersonnelForm({
                           onChange={setPaymentSource}
                           state={fieldError('paymentSource') ? 'error' : 'default'}
                         />
+                      </Field>
+                      <Field label="Phụ cấp thâm niên (%)" error={fieldError('seniorityAllowance')}>
+                        <Input value={seniorityAllowance} onChange={setSeniorityAllowance} placeholder="0" state={fieldError('seniorityAllowance') ? 'error' : 'default'} align="right" inputMode="decimal" />
+                      </Field>
+                      <Field label="Phụ cấp chức vụ" error={fieldError('positionAllowance')}>
+                        <Input value={positionAllowance} onChange={setPositionAllowance} placeholder="0.00" state={fieldError('positionAllowance') ? 'error' : 'default'} align="right" inputMode="decimal" />
                       </Field>
                     </div>
                   </SectionCard>
