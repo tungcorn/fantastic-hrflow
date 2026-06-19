@@ -18,9 +18,22 @@ export function generatePersonnelCode(rows: string[][]): string {
   return `CB2026-${String(max + 1).padStart(4, '0')}`
 }
 
-/** Map a raw 7-column row tuple into a named personnel record. */
-export function toPersonnelRecord([code, name, unit, degree, role, contract, status]: string[]): PersonnelRecord {
-  return { code, name, unit, degree, role, contract, status }
+/** Map a row into a named record. Column 8 stores optional JSON details while preserving the legacy 7-column format. */
+export function toPersonnelRecord([code, name, unit, degree, role, contract, status, details]: string[]): PersonnelRecord {
+  let parsedDetails: Partial<PersonnelRecord> = {}
+  if (details) {
+    try {
+      parsedDetails = JSON.parse(details) as Partial<PersonnelRecord>
+    } catch {
+      parsedDetails = {}
+    }
+  }
+  return { ...parsedDetails, code, name, unit, degree, role, contract, status }
+}
+
+export function toPersonnelRow(record: PersonnelRecord): string[] {
+  const { code, name, unit, degree, role, contract, status, ...details } = record
+  return [code, name, unit, degree, role, contract, status, JSON.stringify(details)]
 }
 
 /** Derive the distinct filter/select option lists from the current rows. */

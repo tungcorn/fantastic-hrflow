@@ -32,16 +32,25 @@ import {
   professionalTitleOptions,
   trainingLevelOptions,
 } from './options'
-import type { CredentialItem, PersonnelRecord } from './types'
+import type { CredentialItem, PersonnelRecord, RequiredDocumentKey, UploadedFileMeta } from './types'
 
 type ValidationErrors = Record<string, string>
-type RequiredDocumentKey = 'identityDocument' | 'recruitmentDecision' | 'curriculumVitae' | 'healthCertificate'
 
 const emailPattern = /^[A-Z0-9.!#$%&'*+/=?^_`{|}~-]+@[A-Z0-9](?:[A-Z0-9-]{0,61}[A-Z0-9])?(?:\.[A-Z0-9](?:[A-Z0-9-]{0,61}[A-Z0-9])?)+$/i
-const vietnamesePhonePattern = /^0\d{9}$/
+const vietnamesePhonePattern = /^(?:03|05|07|08|09)\d{8}$/
 const governmentIdPattern = /^\d{12}$/
 const socialInsurancePattern = /^\d{10}$/
 const healthInsurancePattern = /^[A-Z0-9]{15}$/i
+const namePattern = /^[\p{L}][\p{L}\s.'’\-]{1,99}$/u
+const travelDocumentPattern = /^[A-Z0-9-]{5,20}$/i
+const MAX_DOCUMENT_SIZE = 5 * 1024 * 1024
+const allowedDocumentTypes = ['application/pdf', 'image/jpeg', 'image/png']
+const localDateString = (date = new Date()) => {
+  const year = date.getFullYear()
+  const month = String(date.getMonth() + 1).padStart(2, '0')
+  const day = String(date.getDate()).padStart(2, '0')
+  return `${year}-${month}-${day}`
+}
 const isValidEmail = (value: string) => {
   const [localPart] = value.split('@')
   return emailPattern.test(value) && !localPart.startsWith('.') && !localPart.endsWith('.') && !localPart.includes('..')
@@ -63,6 +72,7 @@ export function PersonnelForm({
   roleOptions,
   contractOptions,
   statusOptions,
+  existingGovernmentIds,
   certs,
   setCerts,
   validationStarted,
@@ -85,6 +95,7 @@ export function PersonnelForm({
   roleOptions: string[]
   contractOptions: string[]
   statusOptions: string[]
+  existingGovernmentIds: string[]
   certs: CredentialItem[]
   setCerts: (value: CredentialItem[] | ((value: CredentialItem[]) => CredentialItem[])) => void
   validationStarted: boolean
@@ -104,36 +115,40 @@ export function PersonnelForm({
         status: '',
       },
   )
-  const [gender, setGender] = useState(() => (initialPersonnel ? 'Nam' : ''))
-  const [governmentId, setGovernmentId] = useState(() => (initialPersonnel ? '001200001901' : ''))
-  const [department, setDepartment] = useState(() => (initialPersonnel ? 'Bộ môn Công nghệ phần mềm' : ''))
-  const [birthDate, setBirthDate] = useState(() => (initialPersonnel ? '2000-01-01' : ''))
-  const [hometown, setHometown] = useState(() => (initialPersonnel ? 'Hà Nội' : ''))
-  const [taxCode, setTaxCode] = useState(() => (initialPersonnel ? '1200001900' : ''))
-  const [bhxhCode, setBhxhCode] = useState(() => (initialPersonnel ? '00120019' : ''))
-  const [bhytCode, setBhytCode] = useState(() => (initialPersonnel ? '00120019' : ''))
-  const [email, setEmail] = useState(() => (initialPersonnel ? 'nguyenvana@tlu.edu.vn' : ''))
-  const [phone, setPhone] = useState(() => (initialPersonnel ? '0987654321' : ''))
-  const [address, setAddress] = useState(() => (initialPersonnel ? 'Thanh Trì, Hà Nội' : ''))
-  const [visaNumber, setVisaNumber] = useState('')
-  const [visaExpiry, setVisaExpiry] = useState('')
-  const [passportNumber, setPassportNumber] = useState('')
-  const [passportExpiry, setPassportExpiry] = useState('')
-  const [personnelType, setPersonnelType] = useState(() => (initialPersonnel ? 'Giảng viên cơ hữu' : ''))
-  const [startDate, setStartDate] = useState(() => (initialPersonnel ? '2026-06-01' : ''))
-  const [professionalRank, setProfessionalRank] = useState(() => (initialPersonnel ? 'Giảng viên hạng III' : ''))
-  const [salaryGrade, setSalaryGrade] = useState(() => (initialPersonnel ? 'Bậc 1' : ''))
-  const [salaryCoeff, setSalaryCoeff] = useState(() => (initialPersonnel ? '2.34' : ''))
-  const [paymentSource, setPaymentSource] = useState(() => (initialPersonnel ? 'Ngân sách nhà trường' : ''))
-  const [generalEdu, setGeneralEdu] = useState(() => (initialPersonnel ? '12/12' : ''))
-  const [professionalTitle, setProfessionalTitle] = useState(() => (initialPersonnel ? 'Giảng viên hạng III' : ''))
-  const [academicDegree, setAcademicDegree] = useState(() => (initialPersonnel ? 'Tiến sĩ' : ''))
-  const [requiredDocuments, setRequiredDocuments] = useState<Partial<Record<RequiredDocumentKey, string>>>({})
+  const [gender, setGender] = useState(() => initialPersonnel?.gender ?? '')
+  const [governmentId, setGovernmentId] = useState(() => initialPersonnel?.governmentId ?? '')
+  const [department, setDepartment] = useState(() => initialPersonnel?.department ?? '')
+  const [birthDate, setBirthDate] = useState(() => initialPersonnel?.birthDate ?? '')
+  const [hometown, setHometown] = useState(() => initialPersonnel?.hometown ?? '')
+  const [taxCode, setTaxCode] = useState(() => initialPersonnel?.taxCode ?? '')
+  const [bhxhCode, setBhxhCode] = useState(() => initialPersonnel?.bhxhCode ?? '')
+  const [bhytCode, setBhytCode] = useState(() => initialPersonnel?.bhytCode ?? '')
+  const [email, setEmail] = useState(() => initialPersonnel?.email ?? '')
+  const [phone, setPhone] = useState(() => initialPersonnel?.phone ?? '')
+  const [address, setAddress] = useState(() => initialPersonnel?.address ?? '')
+  const [visaNumber, setVisaNumber] = useState(() => initialPersonnel?.visaNumber ?? '')
+  const [visaExpiry, setVisaExpiry] = useState(() => initialPersonnel?.visaExpiry ?? '')
+  const [passportNumber, setPassportNumber] = useState(() => initialPersonnel?.passportNumber ?? '')
+  const [passportExpiry, setPassportExpiry] = useState(() => initialPersonnel?.passportExpiry ?? '')
+  const [personnelType, setPersonnelType] = useState(() => initialPersonnel?.personnelType ?? '')
+  const [startDate, setStartDate] = useState(() => initialPersonnel?.startDate ?? '')
+  const [professionalRank, setProfessionalRank] = useState(() => initialPersonnel?.professionalRank ?? '')
+  const [salaryGrade, setSalaryGrade] = useState(() => initialPersonnel?.salaryGrade ?? '')
+  const [salaryCoeff, setSalaryCoeff] = useState(() => initialPersonnel?.salaryCoeff ?? '')
+  const [positionAllowance, setPositionAllowance] = useState(() => initialPersonnel?.positionAllowance ?? '')
+  const [seniorityAllowance, setSeniorityAllowance] = useState(() => initialPersonnel?.seniorityAllowance ?? '')
+  const [paymentSource, setPaymentSource] = useState(() => initialPersonnel?.paymentSource ?? '')
+  const [generalEdu, setGeneralEdu] = useState(() => initialPersonnel?.generalEdu ?? '')
+  const [professionalTitle, setProfessionalTitle] = useState(() => initialPersonnel?.professionalTitle ?? '')
+  const [academicDegree, setAcademicDegree] = useState(() => initialPersonnel?.academicDegree ?? '')
+  const [requiredDocuments, setRequiredDocuments] = useState<Partial<Record<RequiredDocumentKey, UploadedFileMeta>>>(() => initialPersonnel?.requiredDocuments ?? {})
+  const [documentUploadErrors, setDocumentUploadErrors] = useState<Partial<Record<RequiredDocumentKey, string>>>({})
   const [validationErrors, setValidationErrors] = useState<ValidationErrors>({})
   const [validatedValues, setValidatedValues] = useState<Record<string, string>>({})
   const [avatarPreview, setAvatarPreview] = useState('')
-  const [avatarFileName, setAvatarFileName] = useState('')
+  const [avatarFileName, setAvatarFileName] = useState(() => initialPersonnel?.avatarFileName ?? '')
   const [avatarError, setAvatarError] = useState('')
+  const [governmentIdCheck, setGovernmentIdCheck] = useState<{ value: string; status: 'available' | 'duplicate' | 'invalid' } | null>(null)
   const currentFieldValues: Record<string, string> = {
     name: draft.name,
     gender,
@@ -159,16 +174,19 @@ export function PersonnelForm({
     professionalRank,
     salaryGrade,
     salaryCoeff,
+    positionAllowance,
+    seniorityAllowance,
     paymentSource,
     generalEdu,
     degree: draft.degree,
     professionalTitle,
     academicDegree,
     degrees: JSON.stringify(degrees),
-    identityDocument: requiredDocuments.identityDocument ?? '',
-    recruitmentDecision: requiredDocuments.recruitmentDecision ?? '',
-    curriculumVitae: requiredDocuments.curriculumVitae ?? '',
-    healthCertificate: requiredDocuments.healthCertificate ?? '',
+    certs: JSON.stringify(certs),
+    identityDocument: requiredDocuments.identityDocument?.name ?? '',
+    recruitmentDecision: requiredDocuments.recruitmentDecision?.name ?? '',
+    curriculumVitae: requiredDocuments.curriculumVitae?.name ?? '',
+    healthCertificate: requiredDocuments.healthCertificate?.name ?? '',
   }
   const visibleValidationErrors = Object.fromEntries(
     Object.entries(validationErrors).filter(([field]) => currentFieldValues[field] === validatedValues[field]),
@@ -179,13 +197,17 @@ export function PersonnelForm({
   const avatarInputRef = useRef<HTMLInputElement>(null)
   const [activeSection, setActiveSection] = useState('identity')
   const validationState = !validationStarted ? 'idle' : hasErrors ? 'error' : 'valid'
-  const knownConflictingGovernmentIds = new Set(['001200001900'])
   const fieldError = (field: string) => visibleValidationErrors[field]
+  const governmentIdCheckIsCurrent = governmentIdCheck?.value === governmentId.trim()
+  const governmentIdAvailable = governmentIdCheckIsCurrent && governmentIdCheck?.status === 'available'
+  const governmentIdCheckError = governmentIdCheckIsCurrent && governmentIdCheck?.status === 'invalid'
+    ? 'Số CCCD phải gồm đúng 12 chữ số.'
+    : undefined
   const hasGroupError = (...fields: string[]) => fields.some((field) => !!visibleValidationErrors[field])
   const identityHasErrors = hasGroupError('name', 'gender', 'birthDate', 'hometown', 'governmentId', 'taxCode', 'bhxhCode', 'bhytCode') || duplicateId
   const contactHasErrors = hasGroupError('email', 'phone', 'address', 'visaNumber', 'visaExpiry', 'passportNumber', 'passportExpiry')
-  const workHasErrors = hasGroupError('unit', 'department', 'role', 'personnelType', 'startDate', 'status', 'professionalRank', 'salaryGrade', 'salaryCoeff', 'paymentSource')
-  const educationHasErrors = hasGroupError('generalEdu', 'degree', 'professionalTitle', 'academicDegree', 'degrees')
+  const workHasErrors = hasGroupError('unit', 'department', 'role', 'personnelType', 'startDate', 'status', 'professionalRank', 'salaryGrade', 'salaryCoeff', 'positionAllowance', 'seniorityAllowance', 'paymentSource')
+  const educationHasErrors = hasGroupError('generalEdu', 'degree', 'professionalTitle', 'academicDegree', 'degrees', 'certs')
   const documentsHasErrors = hasGroupError('identityDocument', 'recruitmentDecision', 'curriculumVitae', 'healthCertificate')
   const errorGroups = [
     identityHasErrors ? 'Thông tin cá nhân' : null,
@@ -235,24 +257,100 @@ export function PersonnelForm({
     requireValue('professionalTitle', professionalTitle, 'Vui lòng chọn chức danh nghề nghiệp.')
     requireValue('academicDegree', academicDegree, 'Vui lòng chọn học hàm / học vị.')
 
+    if (draft.name.trim() && !namePattern.test(draft.name.trim())) errors.name = 'Họ tên phải có từ 2–100 ký tự và không được chứa chữ số.'
     if (governmentId.trim() && !governmentIdPattern.test(governmentId.trim())) errors.governmentId = 'Số CCCD phải gồm đúng 12 chữ số.'
-    if (knownConflictingGovernmentIds.has(governmentId.trim())) errors.governmentId = 'Đã tồn tại hồ sơ với CCCD này.'
-    if (email.trim() && !isValidEmail(email.trim())) errors.email = 'Email không đúng định dạng (ví dụ: ten@tlu.edu.vn).'
-    if (phone.trim() && !vietnamesePhonePattern.test(phone.trim())) errors.phone = 'Số điện thoại phải gồm 10 chữ số và bắt đầu bằng 0.'
-    if (taxCode.trim() && !/^\d{10}(?:\d{3})?$/.test(taxCode.replace(/-/g, ''))) errors.taxCode = 'Mã số thuế phải gồm 10 hoặc 13 chữ số.'
+    if (existingGovernmentIds.includes(governmentId.trim())) errors.governmentId = 'Đã tồn tại hồ sơ với CCCD này.'
+    if (email.trim() && (email.trim().length > 254 || !isValidEmail(email.trim()))) errors.email = 'Email không đúng định dạng (ví dụ: ten@tlu.edu.vn).'
+    if (phone.trim() && !vietnamesePhonePattern.test(phone.trim())) errors.phone = 'Số điện thoại phải gồm 10 chữ số và dùng đầu số 03, 05, 07, 08 hoặc 09.'
+    if (taxCode.trim() && !/^\d{10}(?:-\d{3})?$/.test(taxCode.trim())) errors.taxCode = 'Mã số thuế phải có dạng 10 chữ số hoặc 10 chữ số-3 chữ số.'
     if (bhxhCode.trim() && !socialInsurancePattern.test(bhxhCode.trim())) errors.bhxhCode = 'Số BHXH phải gồm đúng 10 chữ số.'
     if (bhytCode.trim() && !healthInsurancePattern.test(bhytCode.trim())) errors.bhytCode = 'Số BHYT phải gồm đúng 15 ký tự chữ hoặc số.'
-    if (birthDate && birthDate >= new Date().toISOString().slice(0, 10)) errors.birthDate = 'Ngày sinh phải nhỏ hơn ngày hiện tại.'
-    if (salaryCoeff.trim() && (!/^\d+(?:\.\d{1,2})?$/.test(salaryCoeff.trim()) || Number(salaryCoeff) <= 0)) errors.salaryCoeff = 'Hệ số lương phải là số dương, tối đa 2 chữ số thập phân.'
+    const today = localDateString()
+    if (birthDate) {
+      const adultDate = new Date(`${birthDate}T00:00:00`)
+      adultDate.setFullYear(adultDate.getFullYear() + 18)
+      if (birthDate >= today) errors.birthDate = 'Ngày sinh phải nhỏ hơn ngày hiện tại.'
+      else if (localDateString(adultDate) > today) errors.birthDate = 'Nhân sự phải đủ 18 tuổi.'
+      if (startDate && startDate < localDateString(adultDate)) errors.startDate = 'Ngày bắt đầu công tác phải sau ngày đủ 18 tuổi.'
+    }
+    if (foreigner) {
+      if (visaNumber.trim() && !travelDocumentPattern.test(visaNumber.trim())) errors.visaNumber = 'Số Visa phải gồm 5–20 ký tự chữ, số hoặc dấu gạch ngang.'
+      if (passportNumber.trim() && !travelDocumentPattern.test(passportNumber.trim())) errors.passportNumber = 'Số Hộ chiếu phải gồm 5–20 ký tự chữ, số hoặc dấu gạch ngang.'
+      if (visaExpiry && visaExpiry <= today) errors.visaExpiry = 'Visa phải còn hạn sau ngày hiện tại.'
+      if (passportExpiry && passportExpiry <= today) errors.passportExpiry = 'Hộ chiếu phải còn hạn sau ngày hiện tại.'
+    }
+    if (salaryCoeff.trim() && (!/^\d+(?:\.\d{1,2})?$/.test(salaryCoeff.trim()) || Number(salaryCoeff) <= 0 || Number(salaryCoeff) > 20)) errors.salaryCoeff = 'Hệ số lương phải lớn hơn 0, không quá 20 và tối đa 2 chữ số thập phân.'
+    if (positionAllowance.trim() && (!/^\d+(?:\.\d{1,2})?$/.test(positionAllowance.trim()) || Number(positionAllowance) < 0)) errors.positionAllowance = 'Phụ cấp chức vụ phải là số không âm, tối đa 2 chữ số thập phân.'
+    if (seniorityAllowance.trim() && (!/^\d+(?:\.\d{1,2})?$/.test(seniorityAllowance.trim()) || Number(seniorityAllowance) < 0 || Number(seniorityAllowance) > 100)) errors.seniorityAllowance = 'Phụ cấp thâm niên phải nằm trong khoảng 0–100%.'
     if (degrees.length === 0) errors.degrees = 'Bắt buộc phải đính kèm ít nhất 1 bằng cấp trước khi lưu hồ sơ.'
-    if (!requiredDocuments.identityDocument) errors.identityDocument = 'Vui lòng tải lên CCCD/CMND bản scan.'
-    if (!requiredDocuments.recruitmentDecision) errors.recruitmentDecision = 'Vui lòng tải lên quyết định tuyển dụng.'
-    if (!requiredDocuments.curriculumVitae) errors.curriculumVitae = 'Vui lòng tải lên sơ yếu lý lịch.'
-    if (!requiredDocuments.healthCertificate) errors.healthCertificate = 'Vui lòng tải lên giấy khám sức khỏe.'
+    else if (degrees.some((item) => !item.fileName)) errors.degrees = 'Mỗi bằng cấp phải có file PDF đính kèm.'
+    if (certs.some((item) => !item.fileName)) errors.certs = 'Mỗi chứng chỉ đã thêm phải có file PDF đính kèm.'
+    const validateDocument = (key: RequiredDocumentKey, message: string) => {
+      const file = requiredDocuments[key]
+      if (!file) errors[key] = message
+      else if (!allowedDocumentTypes.includes(file.type)) errors[key] = 'Tài liệu phải là PDF, JPG hoặc PNG.'
+      else if (file.size <= 0 || file.size > MAX_DOCUMENT_SIZE) errors[key] = 'Dung lượng tài liệu phải lớn hơn 0 và không quá 5MB.'
+    }
+    validateDocument('identityDocument', 'Vui lòng tải lên CCCD/CMND bản scan.')
+    validateDocument('recruitmentDecision', 'Vui lòng tải lên quyết định tuyển dụng.')
+    validateDocument('curriculumVitae', 'Vui lòng tải lên sơ yếu lý lịch.')
+    validateDocument('healthCertificate', 'Vui lòng tải lên giấy khám sức khỏe.')
 
     return errors
   }
+  const buildPersonnelRecord = (): PersonnelRecord => ({
+    ...draft,
+    name: draft.name.trim().replace(/\s+/g, ' '),
+    unit: draft.unit.trim(),
+    degree: draft.degree.trim(),
+    role: draft.role.trim(),
+    contract: draft.contract.trim(),
+    status: draft.status.trim(),
+    gender,
+    governmentId: governmentId.trim(),
+    department: department.trim(),
+    birthDate,
+    hometown: hometown.trim(),
+    taxCode: taxCode.trim(),
+    bhxhCode: bhxhCode.trim(),
+    bhytCode: bhytCode.trim().toUpperCase(),
+    email: email.trim().toLowerCase(),
+    phone: phone.trim(),
+    address: address.trim(),
+    foreigner,
+    visaNumber: foreigner ? visaNumber.trim().toUpperCase() : '',
+    visaExpiry: foreigner ? visaExpiry : '',
+    passportNumber: foreigner ? passportNumber.trim().toUpperCase() : '',
+    passportExpiry: foreigner ? passportExpiry : '',
+    personnelType,
+    startDate,
+    professionalRank,
+    salaryGrade,
+    salaryCoeff: salaryCoeff.trim(),
+    positionAllowance: positionAllowance.trim(),
+    seniorityAllowance: seniorityAllowance.trim(),
+    paymentSource,
+    generalEdu,
+    professionalTitle,
+    academicDegree,
+    degrees,
+    certs,
+    requiredDocuments,
+    avatarFileName,
+  })
   const errorCount = Object.keys(visibleValidationErrors).length + (duplicateId && !visibleValidationErrors.governmentId ? 1 : 0)
+  const sectionForError = (field: string) => [
+    'name', 'gender', 'birthDate', 'hometown', 'governmentId', 'taxCode', 'bhxhCode', 'bhytCode',
+  ].includes(field)
+    ? 'identity'
+    : ['email', 'phone', 'address', 'visaNumber', 'visaExpiry', 'passportNumber', 'passportExpiry'].includes(field)
+      ? 'contact'
+      : ['unit', 'department', 'role', 'personnelType', 'startDate', 'status', 'professionalRank', 'salaryGrade', 'salaryCoeff', 'positionAllowance', 'seniorityAllowance', 'paymentSource'].includes(field)
+        ? 'work'
+        : ['generalEdu', 'degree', 'professionalTitle', 'academicDegree', 'degrees', 'certs'].includes(field)
+          ? 'education'
+          : 'documents'
+  const firstVisibleErrorSection = sectionForError(Object.keys(visibleValidationErrors)[0] ?? (duplicateId ? 'governmentId' : ''))
   const sections = [
     {
       id: 'identity',
@@ -365,7 +463,7 @@ export function PersonnelForm({
             </div>
             <button
               type="button"
-              onClick={() => scrollToSection('identity')}
+              onClick={() => scrollToSection(firstVisibleErrorSection)}
               className="shrink-0 rounded-lg border border-slate-200 bg-white px-3 py-1.5 text-[12px] font-semibold text-slate-700 hover:bg-slate-50"
             >
               Đến lỗi đầu tiên
@@ -493,16 +591,17 @@ export function PersonnelForm({
                         <Input value={hometown} placeholder="Hà Nội" icon={<MapPin size={15} />} onChange={setHometown} state={fieldError('hometown') ? 'error' : 'default'} />
                       </Field>
                       <div className="col-span-2">
-                        <Field label="Số CCCD" required error={fieldError('governmentId') ?? (duplicateId ? 'Đã tồn tại hồ sơ với CCCD này.' : undefined)}>
+                        <Field label="Số CCCD" required error={fieldError('governmentId') ?? governmentIdCheckError ?? (duplicateId ? 'Đã tồn tại hồ sơ với CCCD này.' : undefined)}>
                           <div className="flex gap-2">
                             <div className="min-w-0 flex-1">
                               <Input
                                 value={governmentId}
                                 placeholder="001200001901"
-                                state={fieldError('governmentId') || duplicateId ? 'error' : 'default'}
+                                state={fieldError('governmentId') || governmentIdCheckError || duplicateId ? 'error' : governmentIdAvailable ? 'success' : 'default'}
                                 onChange={(value) => {
                                   setGovernmentId(value)
                                   setDuplicateId(false)
+                                  setGovernmentIdCheck(null)
                                 }}
                               />
                             </div>
@@ -510,13 +609,25 @@ export function PersonnelForm({
                               type="button"
                               onClick={() => {
                                 const normalizedGovernmentId = governmentId.trim()
-                                setDuplicateId(knownConflictingGovernmentIds.has(normalizedGovernmentId))
+                                if (!governmentIdPattern.test(normalizedGovernmentId)) {
+                                  setDuplicateId(false)
+                                  setGovernmentIdCheck({ value: normalizedGovernmentId, status: 'invalid' })
+                                  return
+                                }
+                                const isDuplicate = existingGovernmentIds.includes(normalizedGovernmentId)
+                                setDuplicateId(isDuplicate)
+                                setGovernmentIdCheck({ value: normalizedGovernmentId, status: isDuplicate ? 'duplicate' : 'available' })
                               }}
                               className="h-10 shrink-0 rounded-lg border border-slate-200 bg-white px-3 text-[12px] font-semibold text-slate-700 hover:bg-slate-50"
                             >
                               Kiểm tra trùng
                             </button>
                           </div>
+                          {governmentIdAvailable ? (
+                            <div className="mt-1.5 flex items-center gap-1 text-[11.5px] font-medium text-emerald-600">
+                              <CheckCircle2 size={13} /> CCCD chưa tồn tại, có thể sử dụng.
+                            </div>
+                          ) : null}
                         </Field>
                       </div>
                       <Field label="Mã số thuế" required error={fieldError('taxCode')}>
@@ -691,11 +802,11 @@ export function PersonnelForm({
                       <Field label="Hệ số lương" required error={fieldError('salaryCoeff')}>
                         <Input value={salaryCoeff} placeholder="2.34" onChange={setSalaryCoeff} state={fieldError('salaryCoeff') ? 'error' : 'default'} />
                       </Field>
-                      <Field label="Phụ cấp chức vụ">
-                        <Input value={isEditing ? '0.00' : ''} placeholder="0.00" />
+                      <Field label="Phụ cấp chức vụ" error={fieldError('positionAllowance')}>
+                        <Input value={positionAllowance} onChange={setPositionAllowance} placeholder="0.00" state={fieldError('positionAllowance') ? 'error' : 'default'} />
                       </Field>
-                      <Field label="Phụ cấp thâm niên">
-                        <Input value={isEditing ? '0%' : ''} placeholder="0%" />
+                      <Field label="Phụ cấp thâm niên (%)" error={fieldError('seniorityAllowance')}>
+                        <Input value={seniorityAllowance} onChange={setSeniorityAllowance} placeholder="0" state={fieldError('seniorityAllowance') ? 'error' : 'default'} />
                       </Field>
                       <Field label="Nguồn chi trả" required error={fieldError('paymentSource')}>
                         <Select
@@ -762,8 +873,9 @@ export function PersonnelForm({
                         ['curriculumVitae', 'Sơ yếu lý lịch'],
                         ['healthCertificate', 'Giấy khám sức khỏe'],
                       ] as const).map(([key, name]) => {
-                        const fileName = requiredDocuments[key]
-                        const hasError = !!fieldError(key)
+                        const fileName = requiredDocuments[key]?.name
+                        const uploadError = documentUploadErrors[key]
+                        const hasError = !!fieldError(key) || !!uploadError
                         return (
                         <div
                           key={name}
@@ -772,13 +884,27 @@ export function PersonnelForm({
                         >
                           <div className="text-[12.5px] font-semibold text-slate-900">{name}</div>
                           <div className={`mt-0.5 truncate text-[12px] ${hasError ? 'text-red-700' : fileName ? 'text-emerald-700' : 'text-slate-500'}`}>
-                            {hasError ? 'Thiếu tài liệu' : fileName || 'Chưa tải lên'}
+                            {uploadError || (fieldError(key) ? 'Thiếu tài liệu' : fileName || 'Chưa tải lên')}
                           </div>
                           <div className="mt-2">
                             <FileButton
                               label={fileName ? 'Thay file' : 'Tải lên'}
                               accept=".pdf,.jpg,.jpeg,.png"
-                              onFileSelected={(file) => setRequiredDocuments((current) => ({ ...current, [key]: file.name }))}
+                              onFileSelected={(file) => {
+                                const type = file.type || (file.name.toLowerCase().endsWith('.pdf') ? 'application/pdf' : '')
+                                if (!allowedDocumentTypes.includes(type)) {
+                                  setDocumentUploadErrors((current) => ({ ...current, [key]: 'Chỉ chấp nhận PDF, JPG hoặc PNG.' }))
+                                  setRequiredDocuments((current) => ({ ...current, [key]: undefined }))
+                                  return
+                                }
+                                if (file.size <= 0 || file.size > MAX_DOCUMENT_SIZE) {
+                                  setDocumentUploadErrors((current) => ({ ...current, [key]: 'Tệp phải lớn hơn 0 và không quá 5MB.' }))
+                                  setRequiredDocuments((current) => ({ ...current, [key]: undefined }))
+                                  return
+                                }
+                                setRequiredDocuments((current) => ({ ...current, [key]: { name: file.name, type, size: file.size } }))
+                                setDocumentUploadErrors((current) => ({ ...current, [key]: undefined }))
+                              }}
                             />
                           </div>
                         </div>
@@ -797,7 +923,7 @@ export function PersonnelForm({
                       itemLabel="bằng cấp"
                       namePlaceholder="Ví dụ: Bằng Thạc sĩ Công nghệ thông tin"
                       requiredMinimum
-                      showError={!!fieldError('degrees')}
+                      errorMessage={fieldError('degrees')}
                     />
 
                     <CredentialSection
@@ -809,6 +935,7 @@ export function PersonnelForm({
                       setItems={setCerts}
                       itemLabel="chứng chỉ"
                       namePlaceholder="Ví dụ: IELTS 7.5"
+                      errorMessage={fieldError('certs')}
                     />
                   </div>
                 </div>
@@ -848,23 +975,11 @@ export function PersonnelForm({
               setDuplicateId(false)
               setShowErrors(Object.keys(errors).length > 0)
               if (Object.keys(errors).length > 0) {
-                const firstError = Object.keys(errors)[0]
-                const section = [
-                  'name', 'gender', 'birthDate', 'hometown', 'governmentId', 'taxCode', 'bhxhCode', 'bhytCode',
-                ].includes(firstError)
-                  ? 'identity'
-                  : ['email', 'phone', 'address', 'visaNumber', 'visaExpiry', 'passportNumber', 'passportExpiry'].includes(firstError)
-                    ? 'contact'
-                    : ['unit', 'department', 'role', 'personnelType', 'startDate', 'status', 'professionalRank', 'salaryGrade', 'salaryCoeff', 'paymentSource'].includes(firstError)
-                      ? 'work'
-                      : ['generalEdu', 'degree', 'professionalTitle', 'academicDegree'].includes(firstError)
-                        ? 'education'
-                        : 'documents'
-                scrollToSection(section)
+                scrollToSection(sectionForError(Object.keys(errors)[0]))
                 return
               }
               setShowErrors(false)
-              onRequestOfficialSave(draft)
+              onRequestOfficialSave(buildPersonnelRecord())
             }}
             className="inline-flex items-center gap-1.5 rounded-lg bg-blue-700 px-4 py-2 text-[13px] font-semibold text-white hover:bg-blue-800"
           >

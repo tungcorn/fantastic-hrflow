@@ -11,7 +11,7 @@ const ExcelImportDialog = lazy(() =>
   import('./ExcelImportDialog').then((module) => ({ default: module.ExcelImportDialog })),
 )
 import { defaultCerts, defaultDegrees } from './options'
-import { generatePersonnelCode } from './personnel.utils'
+import { generatePersonnelCode, toPersonnelRecord, toPersonnelRow } from './personnel.utils'
 import type { CredentialItem, PersonnelRecord } from './types'
 
 export function PersonnelView({ onBusyChange }: { onBusyChange?: (busy: boolean) => void }) {
@@ -33,6 +33,11 @@ export function PersonnelView({ onBusyChange }: { onBusyChange?: (busy: boolean)
 
   const showPersonnelForm = modalOpen || editingPersonnel !== null
   const personnelFormTitle = editingPersonnel ? 'Sửa hồ sơ nhân sự' : 'Thêm hồ sơ nhân sự'
+  const existingGovernmentIds = rows
+    .map(toPersonnelRecord)
+    .filter((record) => record.code !== editingPersonnel?.code)
+    .map((record) => record.governmentId?.trim())
+    .filter((value): value is string => !!value)
 
   // Report whether a form/dialog with unsaved input is open, so the shell can
   // warn before the user navigates away and loses it.
@@ -81,21 +86,13 @@ export function PersonnelView({ onBusyChange }: { onBusyChange?: (busy: boolean)
 
   const savePersonnelForm = (updated: PersonnelRecord) => {
     if (editingPersonnel) {
-      updateRowByCode(editingPersonnel.code, [
-        editingPersonnel.code,
-        updated.name,
-        updated.unit,
-        updated.degree,
-        updated.role,
-        updated.contract,
-        updated.status,
-      ])
+      updateRowByCode(editingPersonnel.code, toPersonnelRow({ ...updated, code: editingPersonnel.code }))
       closePersonnelForm()
       return
     }
 
     const code = generatePersonnelCode(rows)
-    addRow([code, updated.name || 'Chưa đặt tên', updated.unit, updated.degree, updated.role, updated.contract, updated.status])
+    addRow(toPersonnelRow({ ...updated, code }))
     setSavedRecord({ code, name: updated.name || 'Hồ sơ mới' })
     setModalOpen(false)
   }
@@ -217,6 +214,7 @@ export function PersonnelView({ onBusyChange }: { onBusyChange?: (busy: boolean)
               roleOptions={options.roleOptions}
               contractOptions={options.contractOptions}
               statusOptions={options.statusOptions}
+              existingGovernmentIds={existingGovernmentIds}
               certs={certs}
               setCerts={setCerts}
               validationStarted={validationStarted}
@@ -244,9 +242,9 @@ export function PersonnelView({ onBusyChange }: { onBusyChange?: (busy: boolean)
             setAddMenuOpen(false)
             setModalOpen(false)
             setExcelImportOpen(false)
-            setForeigner(false)
-            setDegrees(defaultDegrees)
-            setCerts(defaultCerts)
+            setForeigner(!!personnel.foreigner)
+            setDegrees(personnel.degrees ?? defaultDegrees)
+            setCerts(personnel.certs ?? defaultCerts)
             resetValidation()
             setEditingPersonnel(personnel)
           }}

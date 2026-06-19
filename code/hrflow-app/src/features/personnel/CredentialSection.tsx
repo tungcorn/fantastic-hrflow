@@ -16,7 +16,7 @@ export function CredentialSection({
   itemLabel,
   namePlaceholder,
   requiredMinimum,
-  showError,
+  errorMessage,
 }: {
   title: string
   description: string
@@ -27,14 +27,16 @@ export function CredentialSection({
   itemLabel: string
   namePlaceholder: string
   requiredMinimum?: boolean
-  showError?: boolean
+  errorMessage?: string
 }) {
   const [adding, setAdding] = useState(false)
   const [draft, setDraft] = useState<CredentialItem>({ name: '', place: '' })
-  const canSave = draft.name.trim().length > 0 && draft.place.trim().length > 0
+  const [fileError, setFileError] = useState('')
+  const canSave = draft.name.trim().length > 0 && draft.place.trim().length > 0 && !!draft.fileName
 
   const resetDraft = () => {
     setDraft({ name: '', place: '' })
+    setFileError('')
     setAdding(false)
   }
 
@@ -103,13 +105,18 @@ export function CredentialSection({
             })
           ) : (
             <div className={`rounded-lg border border-dashed px-3 py-4 text-[12.5px] ${
-              showError ? 'border-red-200 bg-red-50 text-red-600' : 'border-slate-200 bg-slate-50/60 text-slate-500'
+              errorMessage ? 'border-red-200 bg-red-50 text-red-600' : 'border-slate-200 bg-slate-50/60 text-slate-500'
             }`}>
-              {showError
-                ? `Bắt buộc phải đính kèm ít nhất 1 ${itemLabel} trước khi lưu hồ sơ.`
+              {errorMessage
+                ? errorMessage
                 : `Chưa có ${itemLabel}. Nhấn Thêm để bổ sung thông tin.`}
             </div>
           )}
+          {errorMessage && items.length > 0 ? (
+            <div className="rounded-lg border border-red-200 bg-red-50 px-3 py-2 text-[12px] text-red-600">
+              {errorMessage}
+            </div>
+          ) : null}
         </div>
 
         {adding ? (
@@ -135,7 +142,29 @@ export function CredentialSection({
                   <div className="text-[12px] font-medium text-slate-800">File đính kèm</div>
                   <div className="text-[11.5px] text-slate-500">PDF {itemLabel}, có thể thay đổi sau.</div>
                 </div>
-                <FileButton label="Chọn PDF" />
+                <div className="text-right">
+                  <FileButton
+                    label={draft.fileName ? 'Thay PDF' : 'Chọn PDF'}
+                    onFileSelected={(file) => {
+                      const isPdf = file.type === 'application/pdf' || file.name.toLowerCase().endsWith('.pdf')
+                      if (!isPdf) {
+                        setFileError('Chỉ chấp nhận file PDF.')
+                        setDraft((current) => ({ ...current, fileName: undefined }))
+                        return
+                      }
+                      if (file.size <= 0 || file.size > 5 * 1024 * 1024) {
+                        setFileError('File PDF phải lớn hơn 0 và không quá 5MB.')
+                        setDraft((current) => ({ ...current, fileName: undefined }))
+                        return
+                      }
+                      setDraft((current) => ({ ...current, fileName: file.name }))
+                      setFileError('')
+                    }}
+                  />
+                  <div className={`mt-1 max-w-[190px] truncate text-[11px] ${fileError ? 'text-red-600' : 'text-emerald-700'}`}>
+                    {fileError || draft.fileName || ''}
+                  </div>
+                </div>
               </div>
             </div>
             <div className="mt-3 flex justify-end gap-2">
