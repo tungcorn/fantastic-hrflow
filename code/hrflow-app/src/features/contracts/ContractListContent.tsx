@@ -55,14 +55,10 @@ export function ContractListContent({
 
   return (
     <div className={`px-6 py-5 ${dimmed ? 'select-none opacity-25' : ''}`}>
-      <div className="mb-5 flex items-start justify-between gap-4">
-        <div>
-          <h1 className="text-[24px] font-semibold leading-tight text-slate-950">Hợp đồng lao động</h1>
-          <p className="mt-1 text-[13px] text-slate-500">
-            Theo dõi hiệu lực hợp đồng, tạo mới và gia hạn hợp đồng cho nhân sự.
-          </p>
-        </div>
-        <div className="flex items-center gap-2">
+      <div className="space-y-4">
+        <SummaryCards />
+        <ContractFilters filters={filters} onChange={handleFiltersChange} onClear={clearFilters} />
+        <div className="flex items-center justify-end gap-2">
           <button className="inline-flex h-9 items-center gap-2 rounded-lg border border-slate-300 bg-white px-3.5 text-[12px] font-semibold text-slate-700 shadow-sm hover:bg-slate-50">
             <Download size={14} /> Xuất danh sách
           </button>
@@ -73,11 +69,6 @@ export function ContractListContent({
             <Plus size={14} /> Tạo hợp đồng
           </button>
         </div>
-      </div>
-
-      <div className="space-y-4">
-        <SummaryCards />
-        <ContractFilters filters={filters} onChange={handleFiltersChange} onClear={clearFilters} />
         <ContractTable rows={paginatedRows} compact={dimmed} onOpenFrame={onOpenFrame} onViewContract={onViewContract} />
       </div>
 
